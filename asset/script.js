@@ -9,7 +9,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (homeGrid) {
         
         // 1. Fetch the code from items.html
-        fetch('../items/')
+        fetch('items/')
             .then(response => response.text())
             .then(htmlText => {
                 
@@ -113,17 +113,40 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
-   // --- VENDOR GRID SHUFFLE (Index Page) ---
+  // --- VENDOR GRID SHUFFLE (Index Page) ---
     const allVendors = [
-        // Change "img" from the placeholder URL to "img/person.png"
-        { id: "V001", name: "Campus Tech", cat: "Gadgets", loc: "Hostel A", img: "/img/person.png" },
-        { id: "V002", name: "Mama Tee Food", cat: "Food", loc: "Student Centre", img: "img/person.png" },
-        { id: "V003", name: "Styles by John", cat: "Fashion", loc: "Off Campus", img: "img/person.png" },
-        { id: "V004", name: "Book Haven", cat: "Books", loc: "Library Area", img: "img/person.png" },
-        { id: "V005", name: "Quick Fix", cat: "Repairs", loc: "Block C", img: "img/person.png" },
-        { id: "V006", name: "Glamour Beauty", cat: "Services", loc: "Female Hostel", img: "img/person.png" },
-        { id: "V007", name: "Game Centre", cat: "Gaming", loc: "Common Room", img: "img/person.png" },
-        { id: "V008", name: "Data Plug", cat: "Services", loc: "Online", img: "img/person.png" }
+        // 1. ADD THE "link" PROPERTY TO EACH VENDOR HERE
+        // Make sure the path points to "ID/Foldername/index.html"
+        
+        { 
+            id: "V000", 
+            name: "Null", 
+            cat: "category", 
+            loc: "location", 
+            img: "img/person.png", 
+            link: "ID/V001/"  // <--- THIS IS THE NEW LINK
+        },
+
+        /* <-- START COMMENT HERE
+        { 
+          id: "V002", 
+            name: "Mama Tee Food", 
+            cat: "Food", 
+            loc: "Student Centre", 
+            img: "img/person.png", 
+            link: "ID/V002/index.html" 
+        },
+        { 
+            id: "V003", 
+            name: "Styles by John", 
+            cat: "Fashion", 
+            loc: "Off Campus", 
+            img: "img/person.png", 
+            link: "ID/V003/index.html" 
+        },
+
+        END COMMENT HERE --> */
+        // ... Add the rest of your vendors with their specific links ...
     ];
 
     const vendorGrid = document.getElementById('vendor-grid');
@@ -140,7 +163,9 @@ document.addEventListener("DOMContentLoaded", () => {
                     <span class="vendor-id">${v.id}</span>
                     <div class="vendor-name">${v.name} <i class="fas fa-check-circle" style="color:#2d8eff; font-size:10px;"></i></div>
                     <div class="vendor-cat">${v.cat} | ${v.loc}</div>
-                    <button class="view-vendor-btn" onclick="window.location.href='profile.html'">View Vendor</button>
+                    
+                    <button class="view-vendor-btn" onclick="window.location.href='${v.link}'">View Vendor</button>
+                    
                 </div>`;
             });
         }
@@ -262,3 +287,43 @@ if (faqSearch) {
         });
     });
 }
+
+// --- INDEX PAGE SEARCH ---
+    const mainSearch = document.getElementById('main-search');
+    if(mainSearch) {
+        
+        // 1. Real-time Search Logic (Existing)
+        mainSearch.addEventListener('input', (e) => {
+            const query = e.target.value.toLowerCase();
+            const type = document.getElementById('search-type').value;
+            
+            if(type === 'vendor') {
+                const results = allVendors.filter(v => v.id.toLowerCase().includes(query) || v.name.toLowerCase().includes(query));
+                if(vendorGrid) {
+                    vendorGrid.innerHTML = "";
+                    results.forEach(v => {
+                        vendorGrid.innerHTML += `
+                        <div class="vendor-card">
+                            <img src="${v.img}" class="vendor-logo" alt="${v.name}">
+                            <span class="vendor-id">${v.id}</span>
+                            <div class="vendor-name">${v.name}</div>
+                            <button class="view-vendor-btn" onclick="window.location.href='profile.html'">View</button>
+                        </div>`;
+                    });
+                }
+            } else {
+                // Product Search
+                document.querySelectorAll('.ad-card').forEach(card => {
+                    const title = card.querySelector('.ad-title').innerText.toLowerCase();
+                    card.style.display = title.includes(query) ? "block" : "none";
+                });
+            }
+        });
+
+        // 2. KEYBOARD FIX: Close keyboard when "Enter" is pressed
+        mainSearch.addEventListener('keyup', (e) => {
+            if (e.key === 'Enter') {
+                mainSearch.blur(); // This command closes the mobile keyboard
+            }
+        });
+    }
