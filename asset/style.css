@@ -913,3 +913,74 @@ body {
   align-items: center;
   padding-bottom: 10px; /* Ensures space between logo and search bar */
 }
+
+/* --- CONTACT PAGE STYLES --- */
+.contact-form {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+}
+
+.form-group label {
+  font-size: 13px;
+  font-weight: bold;
+  color: #555;
+  margin-bottom: 5px;
+}
+
+.form-group input, 
+.form-group textarea {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  font-size: 14px;
+  outline: none;
+  font-family: inherit;
+  background: #f9f9f9;
+}
+
+.form-group input:focus, 
+.form-group textarea:focus {
+  border-color: var(--primary-blue);
+  background: white;
+}
+
+.submit-btn {
+  background: var(--primary-blue);
+  color: white;
+  border: none;
+  padding: 14px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background 0.2s;
+  margin-top: 5px;
+}
+
+.submit-btn:hover {
+  background: #1a75d2;
+}
+
+.whatsapp-contact-btn {
+  display: inline-block;
+  background: #25D366;
+  color: white;
+  padding: 12px 25px;
+  border-radius: 30px;
+  text-decoration: none;
+  font-weight: bold;
+  font-size: 14px;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+  transition: transform 0.2s;
+}
+
+.whatsapp-contact-btn:active {
+  transform: scale(0.98);
+}

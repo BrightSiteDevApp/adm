@@ -9,7 +9,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (homeGrid) {
         
         // 1. Fetch the code from items.html
-        fetch('/items/')
+        fetch('../items/')
             .then(response => response.text())
             .then(htmlText => {
                 
