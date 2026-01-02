@@ -1,15 +1,14 @@
 document.addEventListener("DOMContentLoaded", () => {
-    
     // ============================================
-    //  MAGIC: LOAD RANDOM ITEMS FROM items.html
+    //  MAGIC: LOAD RANDOM ITEMS FROM items/
     // ============================================
     const homeGrid = document.getElementById('home-items-grid');
     
-    // Check if we are on the Home Page (by checking if the grid exists)
+    // Check if we are on the Home Page
     if (homeGrid) {
         
-        // 1. Fetch the code from items.html
-        fetch('items/')
+        // 1. Fetch the code from the items folder
+        fetch('items/') 
             .then(response => response.text())
             .then(htmlText => {
                 
@@ -17,7 +16,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 const parser = new DOMParser();
                 const doc = parser.parseFromString(htmlText, 'text/html');
                 
-                // 3. Grab all ad-cards from that file
+                // 3. Grab all ad-cards
                 const allItems = Array.from(doc.querySelectorAll('.ad-card'));
                 
                 if (allItems.length > 0) {
@@ -27,11 +26,26 @@ document.addEventListener("DOMContentLoaded", () => {
                     // 5. Pick the first 4
                     const selected = shuffled.slice(0, 4);
                     
-                    // 6. Inject them into the Home Page
-                    homeGrid.innerHTML = ""; // Clear loading state
+                    // 6. Inject them (AND FIX THE IMAGES)
+                    homeGrid.innerHTML = ""; 
+                    
                     selected.forEach(card => {
+                        // --- IMAGE FIX START ---
+                        const img = card.querySelector('img');
+                        if (img) {
+                            // Get the raw path (e.g., "../img/pic.png")
+                            const rawSrc = img.getAttribute('src');
+                            
+                            // If it starts with "../", remove it so it becomes "img/pic.png"
+                            if (rawSrc && rawSrc.startsWith('../')) {
+                                img.setAttribute('src', rawSrc.replace('../', ''));
+                            }
+                        }
+                        // --- IMAGE FIX END ---
+
                         homeGrid.appendChild(card);
                     });
+                    
                 } else {
                     homeGrid.innerHTML = "<p style='padding:10px; color:#777;'>No items found.</p>";
                 }
@@ -70,13 +84,13 @@ document.addEventListener("DOMContentLoaded", () => {
     //  GLOBAL & INDEX PAGE LOGIC (Existing Code)
     // ============================================
 
-    // --- PROMO SYSTEM ---
+   // --- PROMO SYSTEM ---
     const promoData = {
         hasAd: true, 
-        title: "Flash Sale: 50% Off!",
-        text: "Get original iPhone chargers at half price today only at Hostel B!",
-        img: "https://via.placeholder.com/400x300", 
-        link: "items.html" 
+        title: "Place Your Ad Here!",
+        text: "DM us to place your ads here. Your ad will be featured on this screen for 24 hours!",
+        img: "img/ads.png",  // Used your logo, or put "img/ads.png" if you have one
+        link: "#"       // Directs them to the contact page to DM you
     };
 
     const modal = document.getElementById('promo-modal');
