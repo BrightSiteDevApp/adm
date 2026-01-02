@@ -116,7 +116,7 @@ document.addEventListener("DOMContentLoaded", () => {
    // --- VENDOR GRID SHUFFLE (Index Page) ---
     const allVendors = [
         // Change "img" from the placeholder URL to "img/person.png"
-        { id: "V001", name: "Campus Tech", cat: "Gadgets", loc: "Hostel A", img: "img/person.png" },
+        { id: "V001", name: "Campus Tech", cat: "Gadgets", loc: "Hostel A", img: "/img/person.png" },
         { id: "V002", name: "Mama Tee Food", cat: "Food", loc: "Student Centre", img: "img/person.png" },
         { id: "V003", name: "Styles by John", cat: "Fashion", loc: "Off Campus", img: "img/person.png" },
         { id: "V004", name: "Book Haven", cat: "Books", loc: "Library Area", img: "img/person.png" },
