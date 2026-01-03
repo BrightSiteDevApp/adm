@@ -418,17 +418,16 @@ if (faqSearch) {
     }
 
     // ===========================
-    // PWA INSTALLATION LOGIC
+    // PWA INSTALLATION LOGIC (FINAL BEST VERSION)
     // ===========================
     
     // 1. Register Service Worker
-    // Use "./sw.js" so it looks in the current folder, not the root of the server
-if ('serviceWorker' in navigator) {
-    // We use the full path to be safe on GitHub Pages
-    navigator.serviceWorker.register('https://brightsitedevapp.github.io/adm/sw.js')
-        .then(() => console.log('Service Worker Registered'))
-        .catch((err) => console.log('SW Failed:', err));
-}
+    // We use the FULL LINK so it works even when you are in subfolders like ID/V001/
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('https://brightsitedevapp.github.io/adm/sw.js')
+            .then(reg => console.log('✅ Service Worker Registered!', reg))
+            .catch(err => console.error('❌ SW Failed to Register:', err));
+    }
 
     // 2. Handle the Install Prompt
     let deferredPrompt;
@@ -436,6 +435,8 @@ if ('serviceWorker' in navigator) {
     const installBtn = document.getElementById('install-btn');
 
     window.addEventListener('beforeinstallprompt', (e) => {
+        console.log("📢 Install Prompt Fired! (Browser is ready to install)"); // Debug Log
+        
         // Prevent Chrome 67 and earlier from automatically showing the prompt
         e.preventDefault();
         // Stash the event so it can be triggered later.
@@ -443,7 +444,10 @@ if ('serviceWorker' in navigator) {
         
         // Wait 3 seconds, then show our custom popup
         setTimeout(() => {
-            if (installPopup) installPopup.style.display = 'block';
+            if (installPopup) {
+                console.log("🚀 Showing Popup Now"); // Debug Log
+                installPopup.style.display = 'block';
+            }
         }, 3000);
     });
 
