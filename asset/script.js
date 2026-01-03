@@ -153,7 +153,7 @@ document.addEventListener("DOMContentLoaded", () => {
         title: "Place Your Ad Here!",
         text: "DM us to place your ads here. Your ad will be featured on this screen for 24 hours!",
         img: "img/ads.png",  // Used your logo, or put "img/ads.png" if you have one
-        link: "#"       // Directs them to the contact page to DM you
+        link: "https://wa.me/2348144516127?text=I%20want%20to%20run%20ads%20on%20ADM"       // Directs them to the contact page to DM you
     };
 
     const modal = document.getElementById('promo-modal');
