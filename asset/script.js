@@ -23,8 +23,8 @@ document.addEventListener("DOMContentLoaded", () => {
                     // 4. Shuffle them randomly
                     const shuffled = allItems.sort(() => 0.5 - Math.random());
                     
-                    // 5. Pick the first 4
-                    const selected = shuffled.slice(0, 4);
+                    // 5. Pick the first 10
+                    const selected = shuffled.slice(0, 10);
                     
                     // 6. Inject them (AND FIX THE IMAGES)
                     homeGrid.innerHTML = ""; 
@@ -54,6 +54,69 @@ document.addEventListener("DOMContentLoaded", () => {
                 console.error("Error loading items:", err);
                 homeGrid.innerHTML = "<p>Could not load items.</p>";
             });
+            // ============================================
+    //  MAGIC 2: LOAD RANDOM VENDORS FROM vendors/
+    // ============================================
+    const vendorGrid = document.getElementById('vendor-grid');
+
+    // Only run if we are on the Home Page
+    if (vendorGrid) {
+        
+        // 1. Fetch the code from the vendors folder
+        fetch('vendors/') 
+            .then(response => response.text())
+            .then(htmlText => {
+                
+                // 2. Convert text to real HTML
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(htmlText, 'text/html');
+                
+                // 3. Grab all vendor-cards
+                const allVendors = Array.from(doc.querySelectorAll('.vendor-card'));
+                
+                if (allVendors.length > 0) {
+                    // 4. Shuffle them randomly
+                    const shuffled = allVendors.sort(() => 0.5 - Math.random());
+                    
+                    // 5. Pick the first 10 (so it fits nicely)
+                    const selected = shuffled.slice(0, 10);
+                    
+                    // 6. Clear the placeholder content
+                    vendorGrid.innerHTML = ""; 
+                    
+                    selected.forEach(card => {
+                        // --- FIX 1: IMAGES ---
+                        // Changes "../img/person.png" to "img/person.png"
+                        const img = card.querySelector('img');
+                        if (img) {
+                            const rawSrc = img.getAttribute('src');
+                            if (rawSrc && rawSrc.startsWith('../')) {
+                                img.setAttribute('src', rawSrc.replace('../', ''));
+                            }
+                        }
+
+                        // --- FIX 2: BUTTON LINKS ---
+                        // Changes onclick="window.location.href='../ID/V001/'" to "ID/V001/"
+                        const btn = card.querySelector('button');
+                        if (btn) {
+                            const rawClick = btn.getAttribute('onclick');
+                            if (rawClick && rawClick.includes('../')) {
+                                btn.setAttribute('onclick', rawClick.replace('../', ''));
+                            }
+                        }
+
+                        vendorGrid.appendChild(card);
+                    });
+                    
+                } else {
+                    vendorGrid.innerHTML = "<p style='padding:10px; color:#777;'>No vendors found.</p>";
+                }
+            })
+            .catch(err => {
+                console.error("Error loading vendors:", err);
+                vendorGrid.innerHTML = "<p>Could not load vendors.</p>";
+            });
+    }
     }
 
     // ============================================

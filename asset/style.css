@@ -1055,3 +1055,177 @@ body.dark-mode .back-btn {
     color: #d63031 !important;
     border: 1px solid #d63031;
 }
+
+/* =======================================================
+   FINAL DARK MODE FIXES (ALL PAGES MERGED)
+   ======================================================= */
+
+/* --- 1. GENERAL COMPONENTS (Buttons, Cards, Popups) --- */
+
+/* "Jobs / Safety / FAQ" Buttons */
+body.dark-mode .info-card {
+    background-color: #2d2d2d !important;
+    color: #fff !important;
+    border: 1px solid #444 !important;
+    box-shadow: none !important;
+}
+body.dark-mode .info-card a {
+    color: #fff !important;
+}
+
+/* Category Circles (Home Page Icons) */
+body.dark-mode .cat-icon {
+    background-color: #2d2d2d !important;
+    border: 1px solid #444 !important;
+    color: #fff !important;
+}
+body.dark-mode .cat {
+    color: #bbb !important;
+}
+
+/* Review Cards */
+body.dark-mode .review-card {
+    background-color: #1e1e1e !important;
+    border: 1px solid #333 !important;
+    color: #fff !important;
+}
+body.dark-mode .review-name {
+    color: #fff !important;
+}
+
+/* Install Popup & Modals */
+body.dark-mode #install-popup,
+body.dark-mode .modal-content {
+    background-color: #2d2d2d !important;
+    color: #fff !important;
+    box-shadow: 0 5px 20px rgba(0,0,0,0.5) !important;
+}
+body.dark-mode #install-popup p {
+    color: #ccc !important;
+}
+
+/* --- 2. SEARCH BARS (Home & Sub-pages) --- */
+
+/* Main Search Box Container */
+body.dark-mode .search-box,
+body.dark-mode .search-wrapper {
+    background-color: transparent !important;
+}
+/* Sub-page specific wrapper */
+body.dark-mode .search-wrapper {
+    background-color: #333 !important;
+    border: 1px solid #555 !important;
+}
+
+/* Input Fields (Both Home & Sub-pages) */
+body.dark-mode #main-search,
+body.dark-mode .search-input {
+    background-color: #333 !important;
+    color: #fff !important;
+    border: 1px solid #555 !important;
+}
+/* Sub-page input needs transparency to blend with wrapper */
+body.dark-mode .search-input {
+    background-color: transparent !important; 
+    border: none !important; 
+}
+
+/* Dropdowns & Placeholders */
+body.dark-mode #search-type {
+    background-color: #333 !important;
+    color: #fff !important;
+    border: 1px solid #555 !important;
+}
+body.dark-mode input::placeholder {
+    color: #bbb !important;
+}
+
+/* Search Icons & Back Buttons */
+body.dark-mode .fa-search,
+body.dark-mode .search-icon {
+    background-color: transparent !important;
+    color: #ccc !important;
+}
+body.dark-mode .back-btn {
+    background-color: #333 !important;
+    color: #fff !important;
+    border: 1px solid #555 !important;
+}
+
+
+/* --- 3. VENDOR PROFILES & LISTINGS --- */
+
+/* Main Profile Containers (White boxes) */
+body.dark-mode .profile-section,
+body.dark-mode .vendor-header,
+body.dark-mode .profile-card,
+body.dark-mode .store-profile-wrapper,
+body.dark-mode .container-white { 
+    background-color: #1e1e1e !important;
+    color: #fff !important;
+    border: none !important;
+    box-shadow: none !important;
+}
+
+/* Vendor ID Badge (V001) */
+body.dark-mode .vendor-id {
+    background-color: #333 !important;
+    color: #fff !important;
+    border: 1px solid #555 !important;
+}
+
+/* Text Colors (Names, Descriptions) */
+body.dark-mode .business-name,
+body.dark-mode .profile-name,
+body.dark-mode h1, body.dark-mode h2, body.dark-mode h3, body.dark-mode h4 {
+    color: #fff !important;
+}
+body.dark-mode .business-desc,
+body.dark-mode .profile-bio,
+body.dark-mode p {
+    color: #ccc !important;
+}
+
+/* Status Badges (Open/Closed) */
+body.dark-mode #shop-status {
+    background-color: #333 !important;
+    border: 1px solid #555 !important;
+}
+
+/* Social Icons */
+body.dark-mode .social-links a,
+body.dark-mode .contact-icons i {
+    background-color: transparent !important;
+    color: #fff !important;
+}
+
+
+/* --- 4. FAQ PAGE --- */
+
+/* FAQ Containers */
+body.dark-mode .faq-item {
+    background-color: #1e1e1e !important;
+    border-bottom: 1px solid #333 !important;
+}
+body.dark-mode .faq-container div:first-child {
+    color: #aaa !important; /* "General Information" title */
+}
+
+/* Questions & Arrows */
+body.dark-mode .faq-question span {
+    color: #fff !important;
+}
+body.dark-mode .faq-question .arrow {
+    color: #bbb !important;
+}
+
+/* Answers (Dropdowns) */
+body.dark-mode .faq-answer,
+body.dark-mode .faq-item.active .faq-answer {
+    background-color: #1e1e1e !important;
+    color: #ddd !important;
+    border-top: 1px solid #333 !important;
+}
+body.dark-mode .faq-answer a {
+    color: #2d8eff !important;
+}
