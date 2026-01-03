@@ -422,10 +422,13 @@ if (faqSearch) {
     // ===========================
     
     // 1. Register Service Worker
-    if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('/adm/sw.js')
-            .then(() => console.log('Service Worker Registered'));
-    }
+    // Use "./sw.js" so it looks in the current folder, not the root of the server
+if ('serviceWorker' in navigator) {
+    // We use the full path to be safe on GitHub Pages
+    navigator.serviceWorker.register('https://brightsitedevapp.github.io/adm/sw.js')
+        .then(() => console.log('Service Worker Registered'))
+        .catch((err) => console.log('SW Failed:', err));
+}
 
     // 2. Handle the Install Prompt
     let deferredPrompt;
