@@ -3,16 +3,46 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
-  <title>AFIT Digital Market</title>
   
+  <title>AFIT Digital Market (ADM) | Buy & Sell on Campus</title>
+  <meta name="description" content="AFIT Digital Market (AFIT DGM) is the official student marketplace for AFIT. Buy and sell phones, food, fashion, and services directly on campus. Safe, fast, and student-verified.">
+  <meta name="keywords" content="Afit digital market, afit dgm, ADM, AFIT market, buy and sell in AFIT, AFIT vendors, student marketplace, AFIT Kaduna">
+  <meta name="author" content="Brightsitedev">
+  <meta name="robots" content="index, follow">
+
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://afitdgm.store/">
+  <meta property="og:title" content="AFIT Digital Market - The Campus Marketplace">
+  <meta property="og:description" content="Join the largest student market in AFIT. Find verified vendors for food, gadgets, and fashion.">
+  <meta property="og:image" content="https://afitdgm.store/img/logo-blue.png">
+
+  <meta property="twitter:card" content="summary_large_image">
+  <meta property="twitter:url" content="https://afitdgm.store/">
+  <meta property="twitter:title" content="AFIT Digital Market (AFIT DGM)">
+  <meta property="twitter:description" content="The easiest way to buy and sell on AFIT campus. Check out today's deals!">
+  <meta property="twitter:image" content="https://afitdgm.store/img/logo-blue.png">
+
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link rel="stylesheet" href="asset/style.css">
-   <!-- Favicon -->
   <link rel="shortcut icon" href="img/logo-blue.png" type="image/svg+xml">
   <link rel="manifest" href="manifest.json">
-
+  
+  <link rel="canonical" href="https://afitdgm.store/">
 </head>
 <body data-page="home">
+
+  <div style="background: #222; color: #fff; font-size: 11px; padding: 5px; white-space: nowrap; overflow: hidden;">
+    <div style="display: inline-block; animation: scroll-left 15s linear infinite;">
+        📢 <span style="color: #f1c40f;">NEWS:</span> Exam Timetable is out check AFIT News channel  •  New commandant  •  Exams starts on 26th Jan 2026
+    </div>
+</div>
+
+<style>
+@keyframes scroll-left {
+    from { transform: translateX(100%); }
+    to { transform: translateX(-100%); }
+}
+</style>
 
   <div class="app-container">
   <div class="header">
@@ -104,6 +134,21 @@
       <div class="trending-grid" id="home-items-grid"></div>
     </section>
 
+    <section  class="trust-banner" style="display: flex; justify-content: space-around; background: #f9f9f9; padding: 15px; margin: 20px 0; border-radius: 8px;">
+    <div style="text-align: center;">
+        <i class="fas fa-user-check" style="color: #2d8eff; font-size: 20px;"></i>
+        <div style="font-size: 10px; margin-top: 5px; font-weight: bold;">Verified Vendors</div>
+    </div>
+    <div style="text-align: center;">
+        <i class="fas fa-handshake" style="color: #2d8eff; font-size: 20px;"></i>
+        <div style="font-size: 10px; margin-top: 5px; font-weight: bold;">Campus Meetups</div>
+    </div>
+    <div style="text-align: center;">
+        <i class="fas fa-headset" style="color: #2d8eff; font-size: 20px;"></i>
+        <div style="font-size: 10px; margin-top: 5px; font-weight: bold;">Admin Support</div>
+    </div>
+</section>
+
    <section class="vendor-section-wrapper" style="padding: 0 14px 20px;">
         <div class="section-header">
             <div class="trending-title">Verified Vendors</div>
@@ -178,5 +223,16 @@
     <button id="install-btn" style="background: #2d8eff; color: white; border: none; padding: 10px 30px; border-radius: 20px; font-weight: bold; width: 100%;">Install Now</button>
     <button onclick="document.getElementById('install-popup').style.display='none'" style="background: none; border: none; color: #999; font-size: 12px; margin-top: 10px;">Maybe later</button>
 </div>
+
+<!-- Begin of Chaport Live Chat code -->
+<script type="text/javascript">
+(function(w,d,v3){
+w.chaportConfig = {
+appId : '695935cd783cb76f48a392a4',
+};
+
+if(w.chaport)return;v3=w.chaport={};v3._q=[];v3._l={};v3.q=function(){v3._q.push(arguments)};v3.on=function(e,fn){if(!v3._l[e])v3._l[e]=[];v3._l[e].push(fn)};var s=d.createElement('script');s.type='text/javascript';s.async=true;s.src='https://app.chaport.com/javascripts/insert.js';var ss=d.getElementsByTagName('script')[0];ss.parentNode.insertBefore(s,ss)})(window, document);
+</script>
+<!-- End of Chaport Live Chat code -->
 </body>
 </html>

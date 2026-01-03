@@ -1229,3 +1229,37 @@ body.dark-mode .faq-item.active .faq-answer {
 body.dark-mode .faq-answer a {
     color: #2d8eff !important;
 }
+/* ===========================
+   DARK MODE: TRUST BANNER FIX
+   =========================== */
+
+/* 1. The Container Box */
+body.dark-mode .trust-banner {
+    background-color: #1e1e1e !important; /* Overrides the light #f9f9f9 */
+    border: 1px solid #333 !important;    /* Adds a subtle border */
+    color: #fff !important;               /* Forces text to be white */
+}
+
+/* 2. The Text inside (Verified Vendors, etc.) */
+body.dark-mode .trust-banner div {
+    color: #ddd !important; /* Light Grey text */
+}
+
+/* 3. The Icons (Optional - keeps them bright blue or tweaks them) */
+body.dark-mode .trust-banner i {
+    /* The blue #2d8eff usually looks fine, but if you want it lighter: */
+    /* color: #5dade2 !important; */ 
+}
+/* Dark Mode for About Us Developer Box */
+body.dark-mode .dev-box {
+    background-color: #1e1e1e !important; /* Dark background */
+    border: 1px solid #333 !important;    /* Subtle border */
+    color: #ddd !important;               /* Light text */
+}
+body.dark-mode .dev-box a {
+    color: #4da3ff !important; /* Make the website link readable */
+}
+/* Fix Contact Page Text in Dark Mode */
+body.dark-mode .content-page-wrapper p {
+    color: #ccc !important;
+}
