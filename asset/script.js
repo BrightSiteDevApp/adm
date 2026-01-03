@@ -418,54 +418,71 @@ if (faqSearch) {
     }
 
     // ===========================
-    // PWA INSTALLATION LOGIC (FINAL BEST VERSION)
+    // PWA INSTALLATION LOGIC (MANUAL BUTTON SUPPORT)
     // ===========================
     
     // 1. Register Service Worker
-    // We use the FULL LINK so it works even when you are in subfolders like ID/V001/
     if ('serviceWorker' in navigator) {
         navigator.serviceWorker.register('https://brightsitedevapp.github.io/adm/sw.js')
-            .then(reg => console.log('✅ Service Worker Registered!', reg))
-            .catch(err => console.error('❌ SW Failed to Register:', err));
+            .then(reg => console.log('✅ Service Worker Registered'))
+            .catch(err => console.error('❌ SW Failed:', err));
     }
 
-    // 2. Handle the Install Prompt
+    // 2. Variable to store the event
     let deferredPrompt;
-    const installPopup = document.getElementById('install-popup');
-    const installBtn = document.getElementById('install-btn');
+    
+    // Get Elements
+    const manualInstallContainer = document.getElementById('manual-install-container');
+    const manualInstallBtn = document.getElementById('manual-install-btn');
+    const popupInstallBtn = document.getElementById('install-btn'); // From the popup
+    const popup = document.getElementById('install-popup');
 
+    // 3. Listen for the "Ready to Install" event
     window.addEventListener('beforeinstallprompt', (e) => {
-        console.log("📢 Install Prompt Fired! (Browser is ready to install)"); // Debug Log
+        console.log("📢 Browser is ready to install!"); 
         
-        // Prevent Chrome 67 and earlier from automatically showing the prompt
-        e.preventDefault();
-        // Stash the event so it can be triggered later.
-        deferredPrompt = e;
+        e.preventDefault(); // Stop automatic mini-infobar
+        deferredPrompt = e; // Save event for later
         
-        // Wait 3 seconds, then show our custom popup
+        // A. Show the Manual Button in Footer
+        if (manualInstallContainer) {
+            manualInstallContainer.style.display = 'block';
+        }
+
+        // B. Show Popup after 3 seconds (Optional, kept from before)
         setTimeout(() => {
-            if (installPopup) {
-                console.log("🚀 Showing Popup Now"); // Debug Log
-                installPopup.style.display = 'block';
-            }
+            if (popup) popup.style.display = 'block';
         }, 3000);
     });
 
-    if (installBtn) {
-        installBtn.addEventListener('click', async () => {
-            if (deferredPrompt) {
-                // Show the native prompt
-                deferredPrompt.prompt();
-                
-                // Wait for the user to respond to the prompt
-                const { outcome } = await deferredPrompt.userChoice;
-                console.log(`User response to the install prompt: ${outcome}`);
-                
-                // We've used the prompt, and can't use it again, throw it away
-                deferredPrompt = null;
-                
-                // Hide our popup
-                installPopup.style.display = 'none';
-            }
-        });
+    // 4. Function to Trigger Install
+    async function triggerInstall() {
+        if (deferredPrompt) {
+            deferredPrompt.prompt(); // Show native prompt
+            
+            const { outcome } = await deferredPrompt.userChoice;
+            console.log(`User choice: ${outcome}`);
+            
+            deferredPrompt = null; // Reset
+            
+            // Hide UI
+            if (popup) popup.style.display = 'none';
+            if (manualInstallContainer) manualInstallContainer.style.display = 'none';
+        }
     }
+
+    // 5. Attach Click Events
+    if (manualInstallBtn) {
+        manualInstallBtn.addEventListener('click', triggerInstall);
+    }
+    
+    if (popupInstallBtn) {
+        popupInstallBtn.addEventListener('click', triggerInstall);
+    }
+
+    // 6. Check if already installed
+    window.addEventListener('appinstalled', () => {
+        console.log('✅ App Installed Successfully');
+        if (manualInstallContainer) manualInstallContainer.style.display = 'none';
+        if (popup) popup.style.display = 'none';
+    });
