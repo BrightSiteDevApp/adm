@@ -9,31 +9,38 @@
   <link rel="stylesheet" href="asset/style.css">
    <!-- Favicon -->
   <link rel="shortcut icon" href="img/logo-blue.png" type="image/svg+xml">
+  <link rel="manifest" href="manifest.json">
 
 </head>
 <body data-page="home">
 
   <div class="app-container">
-    
-   <div class="header">
-      <div class="header-top">
-       <a href="/"><img src="img/logo-white.png" alt="AFIT Digital Market" class="site-logo"> </a> 
-        
-        <div class="notification-icon-box" id="notif-btn">
-            <i class="far fa-bell"></i>
-        </div>
-      </div>
-      <div class="search-box">
-        <select id="search-type">
-          <option value="product">Product</option>
-          <option value="vendor">Vendor ID</option>
-          <!--
-          <option value="hostel">Hostels</option> -->
-        </select>
-        <input type="text" id="main-search" placeholder="Search..." />
-        <i class="fas fa-search" style="padding:10px; color:#777;"></i>
+  <div class="header">
+    <div class="header-top">
+      <img src="img/logo-white.png" alt="AFIT Market" class="site-logo">
+      
+      <div style="display: flex; gap: 10px; align-items: center;">
+
+          <div class="notification-icon-box" id="theme-toggle">
+              <i class="fas fa-moon"></i>
+          </div>
+
+          <div class="notification-icon-box" id="notif-btn">
+              <i class="far fa-bell"></i>
+          </div>
+
       </div>
     </div>
+
+    <div class="search-box">
+      <select id="search-type">
+        <option value="product">Product</option>
+        <option value="vendor">Vendor ID</option>
+        </select>
+      <input type="text" id="main-search" placeholder="Search..." />
+      <i class="fas fa-search" style="padding:10px; color:#777;"></i>
+    </div>
+</div>
 
    <section class="info-cards">
       <div class="info-card"><i class="fas fa-briefcase"></i> Jobs</div>
@@ -162,5 +169,13 @@
   </div> 
 
   <script src="asset/script.js"></script>
+  <div id="install-popup" style="display: none; position: fixed; bottom: 20px; left: 5%; width: 90%; background: white; padding: 20px; border-radius: 15px; box-shadow: 0 5px 20px rgba(0,0,0,0.2); z-index: 1000; text-align: center; animation: slideUp 0.5s ease;">
+    <img src="img/logo-blue.png" style="width: 50px; margin-bottom: 10px;">
+    <h3 style="margin: 0; font-size: 16px;">Install AFIT Market App</h3>
+    <p style="font-size: 12px; color: #777; margin: 5px 0 15px;">Get better experience and faster access!</p>
+
+    <button id="install-btn" style="background: #2d8eff; color: white; border: none; padding: 10px 30px; border-radius: 20px; font-weight: bold; width: 100%;">Install Now</button>
+    <button onclick="document.getElementById('install-popup').style.display='none'" style="background: none; border: none; color: #999; font-size: 12px; margin-top: 10px;">Maybe later</button>
+</div>
 </body>
 </html>

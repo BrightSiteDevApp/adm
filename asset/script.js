@@ -341,3 +341,124 @@ if (faqSearch) {
             }
         });
     }
+
+    // ===========================
+    // DARK MODE LOGIC
+    // ===========================
+    const themeToggle = document.getElementById('theme-toggle');
+    const body = document.body;
+    const icon = themeToggle ? themeToggle.querySelector('i') : null;
+
+    // 1. Check LocalStorage when page loads
+    // If user previously chose dark, apply it immediately
+    if (localStorage.getItem('theme') === 'dark') {
+        body.classList.add('dark-mode');
+        if(icon) {
+            icon.classList.remove('fa-moon');
+            icon.classList.add('fa-sun'); // Change icon to Sun
+        }
+    }
+
+    // 2. Listen for Click
+    if (themeToggle) {
+        themeToggle.addEventListener('click', () => {
+            body.classList.toggle('dark-mode');
+
+            if (body.classList.contains('dark-mode')) {
+                // IT IS DARK: Save 'dark' and show Sun icon
+                localStorage.setItem('theme', 'dark');
+                if(icon) {
+                    icon.classList.remove('fa-moon');
+                    icon.classList.add('fa-sun');
+                }
+            } else {
+                // IT IS LIGHT: Save 'light' and show Moon icon
+                localStorage.setItem('theme', 'light');
+                if(icon) {
+                    icon.classList.remove('fa-sun');
+                    icon.classList.add('fa-moon');
+                }
+            }
+        });
+    }
+
+    // ===========================
+    // 3. LIVE SHOP STATUS LOGIC (SMART VERSION)
+    // ===========================
+    const statusBadge = document.getElementById('shop-status');
+    
+    if (statusBadge) {
+        
+        // CHECK 1: Is this a 24/7 Online Vendor?
+        const isOnline = statusBadge.getAttribute('data-online') === "true";
+
+        if (isOnline) {
+            // ALWAYS OPEN
+            statusBadge.innerText = "🟢 Online 24/7";
+            statusBadge.classList.add('status-open');
+        } 
+        else {
+            // CHECK 2: Regular Physical Shop (Time Check)
+            const now = new Date();
+            const day = now.getDay(); // 0 = Sunday
+            const hour = now.getHours(); // 0 - 23
+            
+            const openHour = 9;  // 9 AM
+            const closeHour = 20; // 8 PM
+            
+            // Closed on Sunday OR before 9am OR after 8pm
+            if (day === 0 || hour < openHour || hour >= closeHour) {
+                statusBadge.innerText = "🔴 Closed Now";
+                statusBadge.classList.add('status-closed');
+            } else {
+                statusBadge.innerText = "🟢 Open Now";
+                statusBadge.classList.add('status-open');
+            }
+        }
+    }
+
+    // ===========================
+    // PWA INSTALLATION LOGIC
+    // ===========================
+    
+    // 1. Register Service Worker
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('/adm/sw.js')
+            .then(() => console.log('Service Worker Registered'));
+    }
+
+    // 2. Handle the Install Prompt
+    let deferredPrompt;
+    const installPopup = document.getElementById('install-popup');
+    const installBtn = document.getElementById('install-btn');
+
+    window.addEventListener('beforeinstallprompt', (e) => {
+        // Prevent Chrome 67 and earlier from automatically showing the prompt
+        e.preventDefault();
+        // Stash the event so it can be triggered later.
+        deferredPrompt = e;
+        
+        // Wait 3 seconds, then show our custom popup
+        setTimeout(() => {
+            if (installPopup) installPopup.style.display = 'block';
+        }, 3000);
+    });
+
+    if (installBtn) {
+        installBtn.addEventListener('click', async () => {
+            if (deferredPrompt) {
+                // Show the native prompt
+                deferredPrompt.prompt();
+                
+                // Wait for the user to respond to the prompt
+                const { outcome } = await deferredPrompt.userChoice;
+                console.log(`User response to the install prompt: ${outcome}`);
+                
+                // We've used the prompt, and can't use it again, throw it away
+                deferredPrompt = null;
+                
+                // Hide our popup
+                installPopup.style.display = 'none';
+            }
+        });
+    }

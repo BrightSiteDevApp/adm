@@ -15,14 +15,20 @@
 
   <div class="app-container">
     
-    <div class="header">
-      <a href="../" class="back-btn"><i class="fas fa-arrow-left"></i></a>
-      
-      <div class="search-wrapper">
+    <div class="header" style="display: flex; align-items: center; gap: 10px;">
+    
+    <a href="../" class="back-btn"><i class="fas fa-arrow-left"></i></a>
+    
+    <div class="search-wrapper" style="flex: 1;">
         <i class="fas fa-search search-icon"></i>
         <input type="text" id="vendor-search" class="search-input" placeholder="Search Vendor Name or ID...">
-      </div>
     </div>
+
+    <div class="notification-icon-box" id="theme-toggle" style="margin: 0; position: relative;">
+        <i class="fas fa-moon"></i>
+    </div>
+
+</div>
 
     <div class="category-list" id="vendor-list-container">
 
