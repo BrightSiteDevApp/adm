@@ -23,8 +23,8 @@ document.addEventListener("DOMContentLoaded", () => {
                     // 4. Shuffle them randomly
                     const shuffled = allItems.sort(() => 0.5 - Math.random());
                     
-                    // 5. Pick the first 10
-                    const selected = shuffled.slice(0, 10);
+                    // 5. Pick the first 15
+                    const selected = shuffled.slice(0, 15);
                     
                     // 6. Inject them (AND FIX THE IMAGES)
                     homeGrid.innerHTML = ""; 
@@ -78,8 +78,8 @@ document.addEventListener("DOMContentLoaded", () => {
                     // 4. Shuffle them randomly
                     const shuffled = allVendors.sort(() => 0.5 - Math.random());
                     
-                    // 5. Pick the first 10 (so it fits nicely)
-                    const selected = shuffled.slice(0, 10);
+                    // 5. Pick the first 15 (so it fits nicely)
+                    const selected = shuffled.slice(0, 15);
                     
                     // 6. Clear the placeholder content
                     vendorGrid.innerHTML = ""; 
@@ -446,40 +446,51 @@ if (faqSearch) {
     }
 
     // ===========================
-    // 3. LIVE SHOP STATUS LOGIC (SMART VERSION)
-    // ===========================
-    const statusBadge = document.getElementById('shop-status');
+// 3. LIVE SHOP STATUS LOGIC (ULTIMATE VERSION)
+// ===========================
+const statusBadge = document.getElementById('shop-status');
+
+if (statusBadge) {
+    // 1. Get Settings from HTML (or use defaults if not found)
+    // If data-open="8" is in HTML, use it. If not, default to 9 (9am).
+    const openHour = parseInt(statusBadge.getAttribute('data-open')) || 9; 
     
-    if (statusBadge) {
-        
-        // CHECK 1: Is this a 24/7 Online Vendor?
-        const isOnline = statusBadge.getAttribute('data-online') === "true";
+    // If data-close="17" is in HTML, use it. If not, default to 20 (8pm).
+    const closeHour = parseInt(statusBadge.getAttribute('data-close')) || 20; 
+    
+    // Check if this shop opens on Sunday (default is false/closed)
+    const opensOnSunday = statusBadge.getAttribute('data-sunday') === "true";
 
-        if (isOnline) {
-            // ALWAYS OPEN
-            statusBadge.innerText = "🟢 Online 24/7";
-            statusBadge.classList.add('status-open');
-        } 
-        else {
-            // CHECK 2: Regular Physical Shop (Time Check)
-            const now = new Date();
-            const day = now.getDay(); // 0 = Sunday
-            const hour = now.getHours(); // 0 - 23
-            
-            const openHour = 9;  // 9 AM
-            const closeHour = 20; // 8 PM
-            
-            // Closed on Sunday OR before 9am OR after 8pm
-            if (day === 0 || hour < openHour || hour >= closeHour) {
-                statusBadge.innerText = "🔴 Closed Now";
-                statusBadge.classList.add('status-closed');
-            } else {
-                statusBadge.innerText = "🟢 Open Now";
-                statusBadge.classList.add('status-open');
-            }
-        }
+    // Check if it is a 24/7 online store
+    const isOnline247 = statusBadge.getAttribute('data-online') === "true";
+
+    // 2. Get Current Time
+    const now = new Date();
+    const currentDay = now.getDay(); // 0 = Sunday, 1 = Monday...
+    const currentHour = now.getHours(); // 0 - 23
+
+    // 3. The Logic
+    if (isOnline247) {
+        // CASE A: Online Store (Always Open)
+        statusBadge.innerText = "🟢 Online 24/7";
+        statusBadge.classList.add('status-open');
+    } 
+    else if (currentDay === 0 && !opensOnSunday) {
+        // CASE B: It's Sunday, and this shop does NOT open on Sundays
+        statusBadge.innerText = "🔴 Closed (Sunday)";
+        statusBadge.classList.add('status-closed');
     }
-
+    else if (currentHour < openHour || currentHour >= closeHour) {
+        // CASE C: It's too early or too late
+        statusBadge.innerText = "🔴 Closed Now";
+        statusBadge.classList.add('status-closed');
+    } 
+    else {
+        // CASE D: Open!
+        statusBadge.innerText = "🟢 Open Now";
+        statusBadge.classList.add('status-open');
+    }
+}
     // ===========================
     // PWA INSTALLATION LOGIC (MANUAL BUTTON SUPPORT)
     // ===========================

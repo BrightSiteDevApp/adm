@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+    
+    <title>Campus Gist & News | AFIT Digital Market</title>
+    <meta name="description" content="Latest news, exam updates, and gist from AFIT Campus. Stay updated with AFIT Digital Market Blog.">
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="../asset/style.css">
+    
+    <link rel="icon" href="../img/app-logo.png" type="image/png" sizes="32x32">
+    <link rel="icon" href="../img/app-logo.png" type="image/png" sizes="192x192">
+    <link rel="apple-touch-icon" href="../img/app-logo.png">
+    <link rel="shortcut icon" href="../favicon.ico">
+</head>
+<body>
+
+<div class="app-container">
+    
+    <div class="header">
+        <a href="../" class="back-btn"><i class="fas fa-arrow-left"></i></a>
+        <span style="font-weight:bold;">Campus Gist</span>
+        <div class="notification-icon-box" id="theme-toggle" style="margin-left:auto;">
+            <i class="fas fa-moon"></i>
+        </div>
+    </div>
+
+    <div class="blog-header">
+        <h2 style="margin:0;">AFIT Updates</h2>
+        <p style="font-size:12px; margin-top:5px; opacity:0.9;">Exams, Gossip, and Important Notices.</p>
+    </div>
+
+    <div class="blog-list">
+
+
+
+        <!----  BLOG LIST  
+
+        <div class="blog-card" onclick="openBlog(this)">
+            <img src="../img/logo-blue.png" class="blog-thumb">
+            <div class="blog-info">
+                <span class="blog-date">Jan 03, 2026</span>
+                <div class="blog-title">Exam Timetable Released: What You Need to Know</div>
+                <div class="blog-snippet">The provisional timetable for 1st Semester exams is out. Check your department notice board...</div>
+                
+                <div class="full-content" style="display:none;">
+                    <p>The management has released the provisional timetable for the upcoming exams starting January 26th.</p>
+                    <p><strong>Key Points:</strong></p>
+                    <ul>
+                        <li>Computer Science exams start on Day 1.</li>
+                        <li>No ID Card, No Entry policy is strictly enforced.</li>
+                        <li>Library will be open 24/7 starting next week.</li>
+                    </ul>
+                    <p>Please ensure you have paid your dues to avoid embarrassment at the exam hall.</p>
+                </div>
+            </div>
+        </div>   -->
+
+        
+
+        <div style="text-align: center; margin-top: 60px; color: #999;">
+            <i class="fas fa-newspaper" style="font-size: 50px; margin-bottom: 15px; opacity: 0.3;"></i>
+            <h3 style="font-size: 16px; color: #555;">No Updates Yet</h3>
+            <p style="font-size: 13px; max-width: 250px; margin: 0 auto; line-height: 1.5;">Check back later for the latest news on exams and campus events.</p>
+        </div>
+
+
+        </div>
+
+</div>
+
+<div id="blogModal" class="blog-modal" onclick="closeBlog(event)">
+    <div class="blog-modal-content" onclick="event.stopPropagation()">
+        
+        <div class="close-blog-btn" onclick="closeBlogForce()">
+            <i class="fas fa-times"></i>
+        </div>
+
+        <img id="modalImg" src="" class="modal-hero-img">
+
+        <div class="modal-body">
+            <h3 id="modalTitle" class="modal-title">Title Here</h3>
+            <span id="modalDate" class="modal-date">Date Here</span>
+            <div id="modalText" class="modal-text"></div>
+            
+            <br>
+            <button onclick="closeBlogForce()" class="chat-btn" style="width:100%;">Close News</button>
+        </div>
+    </div>
+</div>
+
+<script src="../asset/script.js"></script>
+<script>
+    // Blog Logic
+    function openBlog(card) {
+        const thumbSrc = card.querySelector('.blog-thumb').src;
+        const title = card.querySelector('.blog-title').innerText;
+        const date = card.querySelector('.blog-date').innerText;
+        const fullHTML = card.querySelector('.full-content').innerHTML;
+
+        document.getElementById('modalImg').src = thumbSrc;
+        document.getElementById('modalTitle').innerText = title;
+        document.getElementById('modalDate').innerText = date;
+        document.getElementById('modalText').innerHTML = fullHTML;
+        document.getElementById('blogModal').style.display = 'flex';
+        document.body.style.overflow = 'hidden';
+    }
+
+    function closeBlogForce() {
+        document.getElementById('blogModal').style.display = 'none';
+        document.body.style.overflow = 'auto';
+    }
+
+    function closeBlog(event) {
+        if (event.target.id === 'blogModal') {
+            closeBlogForce();
+        }
+    }
+</script>
+
+</body>
+</html>
