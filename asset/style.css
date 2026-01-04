@@ -1714,3 +1714,74 @@ body.dark-mode .blog-snippet { color: #aaa !important; }
 body.dark-mode .blog-modal-content { background: #1e1e1e !important; }
 body.dark-mode .modal-title { color: #fff !important; }
 body.dark-mode .modal-text { color: #ccc !important; }
+
+ /* Custom Form Styles */
+      .app-form {
+          background: white;
+          padding: 20px;
+          border-radius: 10px;
+          margin-top: 15px;
+          text-align: left;
+          color: #333;
+      }
+      .form-group {
+          margin-bottom: 15px;
+      }
+      .form-label {
+          display: block;
+          font-size: 12px;
+          font-weight: bold;
+          margin-bottom: 5px;
+          color: #555;
+      }
+      .form-input, .form-select, .form-textarea {
+          width: 100%;
+          padding: 10px;
+          border: 1px solid #ddd;
+          border-radius: 8px;
+          font-size: 13px;
+          background: #f9f9f9;
+          outline: none;
+          font-family: inherit;
+      }
+      .form-textarea {
+          resize: vertical;
+          min-height: 80px;
+      }
+      .form-input:focus, .form-textarea:focus {
+          border-color: #2d8eff;
+          background: #fff;
+      }
+      .apply-btn {
+          width: 100%;
+          background: #2d8eff;
+          color: white;
+          border: none;
+          padding: 12px;
+          border-radius: 25px;
+          font-size: 14px;
+          font-weight: bold;
+          cursor: pointer;
+          margin-top: 10px;
+      }
+      .notice-box {
+          background: #e3f2fd;
+          border-left: 4px solid #2d8eff;
+          padding: 10px;
+          margin-top: 20px;
+          border-radius: 4px;
+          font-size: 11px;
+          color: #0d47a1;
+          line-height: 1.5;
+      }
+
+      /* Dark Mode Overrides */
+      body.dark-mode .app-form { background: #1e1e1e; color: #fff; }
+      body.dark-mode .form-label { color: #ccc; }
+      body.dark-mode .form-input, body.dark-mode .form-select, body.dark-mode .form-textarea { 
+          background: #2a2a2a; border-color: #444; color: #fff; 
+      }
+      body.dark-mode .notice-box { background: #1a3a5a; border-color: #4da3ff; color: #d0e6ff; }
+
+
+      

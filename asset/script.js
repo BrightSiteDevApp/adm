@@ -571,3 +571,30 @@ if ('serviceWorker' in navigator) {
             .catch(err => console.log('Service Worker Failed:', err));
     });
 }
+// Example: Run this when form is valid
+function triggerConfetti() {
+    confetti({
+        particleCount: 100,
+        spread: 70,
+        origin: { y: 0.6 }
+    });
+}
+
+// Function to share content
+async function shareContent(title, text, url) {
+    if (navigator.share) {
+        try {
+            await navigator.share({
+                title: title,
+                text: text,
+                url: url
+            });
+            console.log('Shared successfully');
+        } catch (err) {
+            console.log('Error sharing:', err);
+        }
+    } else {
+        // Fallback for browsers that don't support native share
+        alert("Copy this link: " + url);
+    }
+}
