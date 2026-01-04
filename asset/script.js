@@ -598,3 +598,18 @@ async function shareContent(title, text, url) {
         alert("Copy this link: " + url);
     }
 }
+// ===========================
+// PRELOADER LOGIC
+// ===========================
+window.addEventListener("load", function () {
+    const preloader = document.getElementById("preloader");
+    
+    if (preloader) {
+        // Wait a tiny bit (0.5s) so the user actually sees the logo
+        // otherwise it might flash too fast on fast internet
+        setTimeout(() => {
+            preloader.style.opacity = "0";
+            preloader.style.visibility = "hidden";
+        }, 500); 
+    }
+});

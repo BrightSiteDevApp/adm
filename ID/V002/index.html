@@ -22,6 +22,13 @@
 
 </head>
 <body data-page="vendor-profile">
+  <div id="preloader">
+    <div class="loader-content">
+        <img src="../../img/logo-blue.png" alt="Loading..." class="loader-logo">
+        <div class="loading-bar"></div>
+    </div>
+</div>
+
 
   <div class="app-container">
     
@@ -84,6 +91,10 @@
         </a>
         <a href="#" style="text-decoration:none; color:#1877F2;"> <i class="fab fa-facebook fa-lg"></i>
         </a>
+        <button onclick="shareContent('Check out this Vendor!', 'I found this store on AFIT Market', window.location.href)" 
+            style="background:none; border:none; color:#2d8eff; cursor:pointer; font-size: 16px; padding: 0;">
+        <i class="fas fa-share-alt"></i>
+    </button>
       </div>
 
       <div class="business-meta">
