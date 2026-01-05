@@ -613,3 +613,24 @@ window.addEventListener("load", function () {
         }, 500); 
     }
 });
+
+// ===========================
+// HAPTIC FEEDBACK (VIBRATION)
+// ===========================
+function triggerHaptic() {
+    // Only works on Android devices usually
+    if (navigator.vibrate) {
+        navigator.vibrate(15); // Vibrate for 15 milliseconds (very short)
+    }
+}
+
+// Add vibration to all buttons and links automatically
+document.addEventListener("DOMContentLoaded", () => {
+    const buttons = document.querySelectorAll("button, a, .info-card");
+    
+    buttons.forEach(btn => {
+        btn.addEventListener("click", () => {
+            triggerHaptic();
+        });
+    });
+});
