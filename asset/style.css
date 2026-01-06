@@ -1849,4 +1849,91 @@ body.dark-mode .modal-text { color: #ccc !important; }
 body.dark-mode #preloader {
     background: #121212;
 }
+
+/* VERIFICATION BADGES */
+.tick-gold {
+    color: #f1c40f; /* Gold Color */
+    margin-left: 5px;
+}
+
+.tick-blue {
+    color: #2d8eff; /* Blue Color */
+    margin-left: 5px;
+}
+
+/* ===========================
+   CATEGORY PAGE SEARCH STYLES
+   =========================== */
+
+/* 1. The Container Bar (Full Width) */
+.cat-search-container {
+    padding: 10px 15px;
+    background: white; /* Default Light */
+    border-bottom: 1px solid #eee;
+}
+
+/* 2. The Inner Rounded Box */
+.cat-search-box {
+    background: #f4f6f8; /* Light Grey */
+    border-radius: 20px;
+    padding: 8px 15px;
+    display: flex;
+    align-items: center;
+}
+
+/* --- DARK MODE OVERRIDES --- */
+
+/* Turn the Container Dark */
+body.dark-mode .cat-search-container {
+    background-color: #1e1e1e !important;
+    border-bottom: 1px solid #333 !important;
+}
+
+/* Turn the Inner Box Darker Grey */
+body.dark-mode .cat-search-box {
+    background-color: #2d2d2d !important;
+    border: 1px solid #444 !important; /* Subtle border */
+}
+
+/* Ensure the Search Icon and Text are Light */
+body.dark-mode .cat-search-box input,
+body.dark-mode .cat-search-box i {
+    color: #ccc !important;
+    background: transparent !important;
+}
       
+/* REVIEW FILTER BUTTONS */
+.filter-btn {
+    padding: 6px 15px;
+    border: 1px solid #ddd;
+    background: white;
+    border-radius: 20px;
+    font-size: 12px;
+    cursor: pointer;
+    white-space: nowrap;
+    color: #555;
+    transition: all 0.2s;
+}
+
+.filter-btn.active {
+    background: var(--primary-blue);
+    color: white;
+    border-color: var(--primary-blue);
+}
+
+/* Dark Mode Support */
+body.dark-mode .filter-btn {
+    background: #2d2d2d;
+    border-color: #444;
+    color: #ccc;
+}
+body.dark-mode .filter-btn.active {
+    background: var(--primary-blue);
+    color: white;
+}
+/* Product Skeleton Image (Square instead of Circle) */
+.sk-img-rect {
+    width: 100%;
+    height: 120px;
+    border-radius: 8px; /* Square with rounded corners */
+}

@@ -1,241 +1,152 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <!-- Google tag (gtag.js) -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-70VSGR5WBW"></script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
-
-  gtag('config', 'G-70VSGR5WBW');
-</script>
-
-<script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
-<script>
-  window.OneSignalDeferred = window.OneSignalDeferred || [];
-  OneSignalDeferred.push(async function(OneSignal) {
-    await OneSignal.init({
-      appId: "f62f27b5-a5a3-4018-aade-0a44f357c7e0",
-    });
-  });
-</script>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
-  
-  <title>Available Items | Buy Phones, Laptops & Food on AFIT Market (ADM)</title>
-  <meta name="description" content="Browse available items for sale by AFIT students. Buy phones, chargers, fashion, and food delivered to your hostel. The #1 student marketplace in AFIT Kaduna.">
-  <meta name="keywords" content="buy items AFIT, phones for sale AFIT, cheap laptops Kaduna, AFIT food delivery, student marketplace items, AFIT DGM shop, hostel delivery AFIT">
-  <meta name="author" content="BrightSiteDev">
-  <meta name="robots" content="index, follow">
-
-  <meta property="og:type" content="website">
-  <meta property="og:title" content="Shop Available Items - AFIT Digital Market">
-  <meta property="og:description" content="Looking for a new phone, charger, or food? See what's for sale on AFIT Campus right now.">
-  <meta property="og:url" content="https://afitdgm.store/items/">
-  <meta property="og:image" content="https://afitdgm.store/img/logo-blue.png">
-
-  <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="Buy & Sell on AFIT Market">
-  <meta name="twitter:description" content="Browse hundreds of student listings. Phones, fashion, food, and more.">
-  <meta name="twitter:image" content="https://afitdgm.store/img/logo-blue.png">
-
-  <link rel="canonical" href="https://afitdgm.store/items/">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <link rel="stylesheet" href="../asset/style.css">
-  
-   <link rel="icon" href="../img/app-logo.png" type="image/png" sizes="32x32">
-<link rel="icon" href="../img/app-logo.png" type="image/png" sizes="192x192">
-<link rel="apple-touch-icon" href="../img/app-logo.png">
-<link rel="shortcut icon" href="../favicon.ico">
-</head>
-<body>
-  <div id="preloader">
-    <div class="loader-content">
-        <img src="../img/logo-blue.png" alt="Loading..." class="loader-logo">
-        <div class="loading-bar"></div>
-    </div>
-</div>
-
-
-  <div class="app-container">
-    
-    <div class="header" style="display: flex; align-items: center; gap: 10px;">
-    
-    <a href="../" class="back-btn"><i class="fas fa-arrow-left"></i></a>
-    
-    <div class="search-wrapper" style="flex: 1;">
-        <i class="fas fa-search search-icon"></i>
-        <input type="text" id="main-search" class="search-input" placeholder="Search all items...">
-    </div>
-
-    <div class="notification-icon-box" id="theme-toggle" style="margin: 0; position: relative;">
-        <i class="fas fa-moon"></i>
-    </div>
-
-</div>
-
-    <div style="padding: 15px; font-weight:bold; color:#555; border-bottom:1px solid #eee;">
-        Available Campus Items & Services 
-    </div>
-
-    <div class="trending-grid" id="all-items-container" style="padding-top:15px;">
-        
-      <div class="ad-card">
-        <img class="ad-img" src="../../img/logo-blue.png" alt="Item">
-        <div class="ad-info">
-          <div class="ad-price">₦000,000</div>
-          <div class="ad-title">product name</div>
-          <div class="ad-desc">Neatly used, comes with receipt and pouch.</div>
-          <div class="ad-location">Vendor: V000 | location</div>
-          <a href="#" class="chat-btn">Get Item</a>
-        </div>
-      </div>
-
-
-      <!----rest 
-      <div class="ad-card">
-        <img class="ad-img" src="https://via.placeholder.com/300x200" alt="Item">
-        <div class="ad-info">
-          <div class="ad-price">₦95,000</div>
-          <div class="ad-title">Original Charger</div>
-          <div class="ad-location">Vendor: V001 | Hostel B</div>
-          <a href="#" class="chat-btn">Get Item</a>
-        </div>
-      </div>
-
-      <div class="ad-card">
-        <img class="ad-img" src="https://via.placeholder.com/300x200" alt="Item">
-        <div class="ad-info">
-          <div class="ad-price">₦4,500</div>
-          <div class="ad-title">Power Bank 20k mAh</div>
-          <div class="ad-location">Vendor: V005 | Block C</div>
-          <a href="#" class="chat-btn">Get Item</a>
-        </div>
-      </div>
-
-      <div class="ad-card">
-        <img class="ad-img" src="https://via.placeholder.com/300x200" alt="Item">
-        <div class="ad-info">
-          <div class="ad-price">₦12,000</div>
-          <div class="ad-title">Airpods Pro (Copy)</div>
-          <div class="ad-location">Vendor: V002 | Off Campus</div>
-          <a href="#" class="chat-btn">Get Item</a>
-        </div>
-      </div>
-
-      <div class="ad-card">
-        <img class="ad-img" src="https://via.placeholder.com/300x200" alt="Item">
-        <div class="ad-info">
-          <div class="ad-price">₦500</div>
-          <div class="ad-title">Project Binding</div>
-          <div class="ad-location">Vendor: V004 | Library</div>
-          <a href="#" class="chat-btn">Get Item</a>
-        </div>
-      </div>
-
-      <div class="ad-card">
-        <img class="ad-img" src="https://via.placeholder.com/300x200" alt="Item">
-        <div class="ad-info">
-          <div class="ad-price">₦2,500</div>
-          <div class="ad-title">Reading Table Lamp</div>
-          <div class="ad-location">Vendor: V003 | Hostel A</div>
-          <a href="#" class="chat-btn">Get Item</a>
-        </div>
-      </div>
-
-      <div class="ad-card">
-        <img class="ad-img" src="https://via.placeholder.com/300x200" alt="Item">
-        <div class="ad-info">
-          <div class="ad-price">₦15,000</div>
-          <div class="ad-title">Wireless Mouse</div>
-          <div class="ad-location">Vendor: V003 | Hostel A</div>
-          <a href="#" class="chat-btn">Get Item</a>
-        </div>
-      </div>
--->
-    </div>
-
-    
-    <footer class="site-footer">
-        
-        <div class="footer-newsletter" style="margin-bottom: 20px; padding-bottom: 20px; border-bottom: 1px solid #444;">
-            <h4 style="color: white; margin-bottom: 8px; font-size: 14px;">Join our Community</h4>
-            <p style="font-size: 11px; color: #aaa; margin-bottom: 12px;">Get updates on new vendors and flash sales.</p>
-            
-            <form action="https://formspree.io/f/mdakzbpy" method="POST" style="display: flex; justify-content: center; gap: 8px; max-width: 300px; margin: 0 auto;">
-                <input type="email" name="email" placeholder="Enter email" required 
-                       style="width: 70%; padding: 8px 12px; border-radius: 20px; border: none; outline: none; font-size: 12px;">
-                <button type="submit" 
-                        style="width: 30%; background: var(--primary-blue); color: white; border: none; padding: 8px; border-radius: 20px; font-size: 11px; font-weight: bold; cursor: pointer;">
-                    Join
-                </button>
-            </form>
-            </div>
-
-        <div class="footer-links">
-            <a href="../about-us/">About Us</a> | 
-            <a href="../safety/">Safety Tips</a> | 
-            <a href="../t&c/">T & C</a> | 
-            <a href="../contact-us/">Contact</a>
-        </div>
-        
-        <p style="margin-top:10px; color:#777;">&copy; 2026 BrightSiteDev</p>
-    </footer>
-
-  </div>
-  
-  <script src="../asset/script.js"></script>
-
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-70VSGR5WBW"></script>
   <script>
-    document.addEventListener("DOMContentLoaded", () => {
-        const container = document.getElementById('all-items-container');
-        const searchInput = document.getElementById('main-search');
-        
-        // 1. SHUFFLE LOGIC
-        if (container) {
-            const cards = Array.from(container.children);
-            
-            // Shuffle
-            for (let i = cards.length - 1; i > 0; i--) {
-                const j = Math.floor(Math.random() * (i + 1));
-                [cards[i], cards[j]] = [cards[j], cards[i]];
-            }
-            
-            // Re-append shuffled cards
-            container.innerHTML = "";
-            cards.forEach(card => container.appendChild(card));
-        }
-
-        // 2. SEARCH LOGIC & KEYBOARD FIX
-        if (searchInput && container) {
-            
-            // A. Real-time Search
-            searchInput.addEventListener('input', (e) => {
-                const query = e.target.value.toLowerCase().trim();
-                const cards = container.querySelectorAll('.ad-card');
-
-                cards.forEach(card => {
-                    const title = card.querySelector('.ad-title').innerText.toLowerCase();
-                    const location = card.querySelector('.ad-location').innerText.toLowerCase();
-
-                    if (title.includes(query) || location.includes(query)) {
-                        card.style.display = ""; // Show
-                    } else {
-                        card.style.display = "none"; // Hide
-                    }
-                });
-            });
-
-            // B. Close Keyboard on "Enter"
-            searchInput.addEventListener('keyup', (e) => {
-                if (e.key === 'Enter') {
-                    searchInput.blur(); // This command closes the mobile keyboard
-                }
-            });
-        }
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-70VSGR5WBW');
+  </script>
+  <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
+  <script>
+    window.OneSignalDeferred = window.OneSignalDeferred || [];
+    OneSignalDeferred.push(async function(OneSignal) {
+      await OneSignal.init({ appId: "f62f27b5-a5a3-4018-aade-0a44f357c7e0" });
     });
   </script>
 
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+  <title>All Items - AFIT Market</title>
+  
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="../asset/style.css">
+  <link rel="icon" href="../img/app-logo.png">
+</head>
+<body>
+
+  <div class="app-container">
+    <div class="header">
+      <a href="../index.html" class="back-btn"><i class="fas fa-arrow-left"></i></a>
+      <span style="font-weight:bold;">All Available Items</span>
+    </div>
+
+    <div class="cat-search-container">
+        <div class="search-wrapper cat-search-box">
+            <i class="fas fa-search search-icon"></i>
+            <input type="text" id="item-search" class="search-input" placeholder="Search for anything...">
+        </div>
+    </div>
+
+    <div class="trending-grid" id="all-items-container" style="padding: 15px;">
+        
+        <div class="skeleton-card">
+            <div class="skeleton sk-img-rect"></div>
+            <div class="skeleton sk-text-short"></div>
+            <div class="skeleton sk-text-long"></div>
+            <div class="skeleton sk-btn"></div>
+        </div>
+        <div class="skeleton-card">
+            <div class="skeleton sk-img-rect"></div>
+            <div class="skeleton sk-text-short"></div>
+            <div class="skeleton sk-text-long"></div>
+            <div class="skeleton sk-btn"></div>
+        </div>
+        <div class="skeleton-card">
+            <div class="skeleton sk-img-rect"></div>
+            <div class="skeleton sk-text-short"></div>
+            <div class="skeleton sk-text-long"></div>
+            <div class="skeleton sk-btn"></div>
+        </div>
+        <div class="skeleton-card">
+            <div class="skeleton sk-img-rect"></div>
+            <div class="skeleton sk-text-short"></div>
+            <div class="skeleton sk-text-long"></div>
+            <div class="skeleton sk-btn"></div>
+        </div>
+
+    </div>
+
+    <footer class="site-footer">
+        <p style="margin-top:10px; color:#777;">&copy; 2026 BrightSiteDev</p>
+    </footer>
+  </div>
+
+  <script src="../asset/script.js"></script>
+
+ <script>
+    const sheetID = "1SvVUbEnDgqgw2Z_M1ShQkzyFTsnnS6n8mTs7UMXVvF4";
+    const apiRoot = `https://opensheet.elk.sh/${sheetID}`;
+    const ADMIN_PHONE = "2348144516127"; 
+
+    function shuffle(array) { return array.sort(() => 0.5 - Math.random()); }
+
+    document.addEventListener("DOMContentLoaded", () => {
+        // Fetch Vendors first
+        fetch(`${apiRoot}/Vendors`)
+        .then(res => res.json())
+        .then(vendors => {
+            const phoneBook = {};
+            vendors.forEach(v => {
+                const vID = v.vendor_id || v.Vendor_ID;
+                const vPhone = v.whatsapp || v.Whatsapp;
+                if(vID) phoneBook[vID] = String(vPhone).replace(/[^0-9]/g, '');
+            });
+
+            // Fetch Products
+            return fetch(`${apiRoot}/Products`)
+                .then(res => res.json())
+                .then(products => ({ products, phoneBook }));
+        })
+        .then(({ products, phoneBook }) => {
+            const container = document.getElementById('all-items-container');
+            container.innerHTML = ""; 
+
+            const available = products.filter(p => (p.status || p.Status) !== "Sold");
+            const shuffled = shuffle(available);
+
+            if(shuffled.length === 0) {
+                container.innerHTML = "<p style='text-align:center; padding:20px; color:#777;'>No items found.</p>";
+                return;
+            }
+
+            shuffled.forEach(p => {
+                const pName = p.name || p.Name;
+                const pPrice = p.price || p.Price;
+                const pDesc = p.description || p.Description || ""; // NEW
+                const pVendor = p.vendor_id || p.Vendor_ID;
+                const pImage = p.image || p.Image;
+
+                const img = pImage.startsWith('http') ? pImage : `../img/${pImage}`;
+                const vendorPhone = phoneBook[pVendor] || ADMIN_PHONE;
+                const waLink = `https://wa.me/${vendorPhone}?text=${encodeURIComponent(`Hi, I saw "${pName}" on AFIT Market. Is it available?`)}`;
+
+                container.innerHTML += `
+                <div class="ad-card">
+                    <img class="ad-img" src="${img}" alt="${pName}" onerror="this.src='../img/logo-blue.png'">
+                    <div class="ad-info">
+                        <div class="ad-price">${pPrice}</div>
+                        <div class="ad-title">${pName}</div>
+                        <div class="ad-desc">${pDesc}</div> <div class="ad-location">Vendor: ${pVendor}</div>
+                        <a href="${waLink}" class="chat-btn" target="_blank">Get Item</a>
+                    </div>
+                </div>`;
+            });
+
+            const searchInput = document.getElementById('item-search');
+            if (searchInput) {
+                searchInput.addEventListener('input', (e) => {
+                    const query = e.target.value.toLowerCase().trim();
+                    document.querySelectorAll('.ad-card').forEach(card => {
+                        const title = card.querySelector('.ad-title').innerText.toLowerCase();
+                        card.style.display = title.includes(query) ? "" : "none";
+                    });
+                });
+            }
+        })
+        .catch(err => console.error(err));
+    });
+</script>
 </body>
 </html>

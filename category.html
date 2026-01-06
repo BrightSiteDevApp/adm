@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-70VSGR5WBW"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-70VSGR5WBW');
+  </script>
+
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+  <title>Category - AFIT Market</title>
+  
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="asset/style.css">
+  <link rel="icon" href="img/app-logo.png">
+
+  <style>
+      /* Hide content until loaded */
+      #category-grid { min-height: 50vh; }
+  </style>
+</head>
+<body>
+
+  <div id="preloader">
+    <div class="loader-content">
+        <img src="img/logo-blue.png" alt="Loading..." class="loader-logo">
+        <div class="loading-bar"></div>
+    </div>
+  </div>
+
+  <div class="app-container">
+    
+    <div class="header">
+      <a href="index.html" class="back-btn"><i class="fas fa-arrow-left"></i></a>
+      <span style="font-weight:bold; text-transform: capitalize;" id="page-title">Loading...</span>
+    </div>
+
+   <div class="cat-search-container">
+        <div class="search-wrapper cat-search-box">
+            <i class="fas fa-search search-icon"></i>
+            <input type="text" id="cat-search" class="search-input" placeholder="Search in this category...">
+        </div>
+    </div>
+
+    <div style="padding: 15px; font-weight:bold; color:#555; font-size: 14px;">
+        <span id="result-count">Checking stock...</span>
+    </div>
+
+    <div class="trending-grid" id="category-grid">
+        <p style="width:100%; text-align:center; padding:20px; color:#999;">Loading items...</p>
+    </div>
+
+    <footer class="site-footer">
+        <p style="margin-top:10px; color:#777;">&copy; 2026 BrightSiteDev</p>
+    </footer>
+  </div>
+
+  <script src="asset/script.js"></script>
+
+  <script>
+    const sheetID = "1SvVUbEnDgqgw2Z_M1ShQkzyFTsnnS6n8mTs7UMXVvF4";
+    const apiRoot = `https://opensheet.elk.sh/${sheetID}`;
+    const ADMIN_PHONE = "2348144516127"; 
+
+    document.addEventListener("DOMContentLoaded", () => {
+        const params = new URLSearchParams(window.location.search);
+        let category = params.get('cat');
+
+        if(category) {
+            const displayTitle = category.charAt(0).toUpperCase() + category.slice(1);
+            document.title = `${displayTitle} | AFIT Market`;
+            document.getElementById('page-title').innerText = displayTitle;
+            loadCategoryItems(category);
+        } else {
+            window.location.href = "index.html";
+        }
+    });
+
+    function loadCategoryItems(category) {
+        fetch(`${apiRoot}/Vendors`)
+        .then(res => res.json())
+        .then(vendors => {
+            const phoneBook = {};
+            vendors.forEach(v => {
+                const vID = v.vendor_id || v.Vendor_ID;
+                const vPhone = v.whatsapp || v.Whatsapp;
+                if(vID) phoneBook[vID] = String(vPhone).replace(/[^0-9]/g, '');
+            });
+
+            return fetch(`${apiRoot}/Products`)
+            .then(res => res.json())
+            .then(products => {
+                return { products, phoneBook };
+            });
+        })
+        .then(({ products, phoneBook }) => {
+            const grid = document.getElementById('category-grid');
+            grid.innerHTML = ""; 
+
+            const filteredItems = products.filter(p => 
+                (p.status || p.Status) !== "Sold" && 
+                String(p.category || p.Category).toLowerCase().trim() === category.toLowerCase().trim()
+            );
+
+            document.getElementById('result-count').innerText = `${filteredItems.length} items found`;
+
+            if(filteredItems.length === 0) {
+                grid.innerHTML = `
+                <div style="grid-column: 1/-1; text-align:center; padding:40px; color:#888;">
+                    <i class="fas fa-box-open" style="font-size:40px; margin-bottom:10px; opacity:0.5;"></i>
+                    <p>No ${category} available right now.</p>
+                    <a href="index.html" class="chat-btn" style="display:inline-block; width:auto; padding:8px 20px; margin-top:10px; background:#2d8eff;">Browse All</a>
+                </div>`;
+                document.getElementById('preloader').style.display = 'none';
+                return;
+            }
+
+            filteredItems.forEach(p => {
+                const pName = p.name || p.Name;
+                const pPrice = p.price || p.Price;
+                const pDesc = p.description || p.Description || ""; // NEW
+                const pVendor = p.vendor_id || p.Vendor_ID;
+                const pImage = p.image || p.Image;
+
+                const pImg = pImage.startsWith('http') ? pImage : `img/${pImage}`;
+                const vendorPhone = phoneBook[pVendor] || ADMIN_PHONE;
+                const waLink = `https://wa.me/${vendorPhone}?text=${encodeURIComponent(`Hi, I saw "${pName}" on AFIT Market (ID: ${pVendor}). Is it available?`)}`;
+
+                grid.innerHTML += `
+                <div class="ad-card">
+                    <img class="ad-img" src="${pImg}" alt="${pName}" onerror="this.src='img/logo-blue.png'">
+                    <div class="ad-info">
+                        <div class="ad-price">${pPrice}</div>
+                        <div class="ad-title">${pName}</div>
+                        <div class="ad-desc">${pDesc}</div> <div class="ad-location">Vendor: ${pVendor}</div>
+                        <a href="${waLink}" class="chat-btn" target="_blank">Get Item</a>
+                    </div>
+                </div>`;
+            });
+
+            setupSearch();
+            document.getElementById('preloader').style.display = 'none';
+        })
+        .catch(err => {
+            console.error(err);
+            document.getElementById('category-grid').innerHTML = "<p style='text-align:center;'>Error loading items.</p>";
+            document.getElementById('preloader').style.display = 'none';
+        });
+    }
+
+    function setupSearch() {
+        const searchInput = document.getElementById('cat-search');
+        searchInput.addEventListener('input', (e) => {
+            const query = e.target.value.toLowerCase().trim();
+            document.querySelectorAll('.ad-card').forEach(card => {
+                const title = card.querySelector('.ad-title').innerText.toLowerCase();
+                if(title.includes(query)) card.style.display = "";
+                else card.style.display = "none";
+            });
+        });
+    }
+  </script>
+</body>
+</html>

@@ -1,25 +1,23 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <!-- Google tag (gtag.js) -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-70VSGR5WBW"></script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-70VSGR5WBW"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-70VSGR5WBW');
+  </script>
 
-  gtag('config', 'G-70VSGR5WBW');
-</script>
-
-<script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
-<script>
-  window.OneSignalDeferred = window.OneSignalDeferred || [];
-  OneSignalDeferred.push(async function(OneSignal) {
-    await OneSignal.init({
-      appId: "f62f27b5-a5a3-4018-aade-0a44f357c7e0",
+  <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
+  <script>
+    window.OneSignalDeferred = window.OneSignalDeferred || [];
+    OneSignalDeferred.push(async function(OneSignal) {
+      await OneSignal.init({
+        appId: "f62f27b5-a5a3-4018-aade-0a44f357c7e0",
+      });
     });
-  });
-</script>
+  </script>
 
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
@@ -45,10 +43,10 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link rel="stylesheet" href="asset/style.css">
   <link rel="icon" href="img/app-logo.png" type="image/png" sizes="32x32">
-<link rel="icon" href="img/app-logo.png" type="image/png" sizes="192x192">
-<link rel="apple-touch-icon" href="img/app-logo.png">
-<link rel="shortcut icon" href="favicon.ico">
-<link rel="shortcut icon" href="https://afitdgm.store/favicon.ico">
+  <link rel="icon" href="img/app-logo.png" type="image/png" sizes="192x192">
+  <link rel="apple-touch-icon" href="img/app-logo.png">
+  <link rel="shortcut icon" href="favicon.ico">
+  <link rel="shortcut icon" href="https://afitdgm.store/favicon.ico">
   <link rel="manifest" href="manifest.json">
   <link rel="canonical" href="https://afitdgm.store/">
 </head>
@@ -58,12 +56,13 @@
         <img src="img/logo-blue.png" alt="Loading..." class="loader-logo">
         <div class="loading-bar"></div>
     </div>
-</div>
+  </div>
+  
   <div style="background: #222; color: #fff; font-size: 11px; padding: 5px; white-space: nowrap; overflow: hidden;">
     <div style="display: inline-block; animation: scroll-left 15s linear infinite;">
         📢 <span style="color: #f1c40f;">NEWS:</span> Exam Timetable is out check AFIT News channel  •  New commandant  •  Exams starts on 26th Jan 2026
     </div>
-</div>
+  </div>
 
 <style>
 @keyframes scroll-left {
@@ -75,18 +74,15 @@
   <div class="app-container">
   <div class="header">
     <div class="header-top">
-     <a href="/"> <img src="img/logo-white.png" alt="AFIT Market" class="site-logo"> </a>
+      <a href="/"> <img src="img/logo-white.png" alt="AFIT Market" class="site-logo"> </a>
       
       <div style="display: flex; gap: 10px; align-items: center;">
-
           <div class="notification-icon-box" id="theme-toggle">
               <i class="fas fa-moon"></i>
           </div>
-
           <div class="notification-icon-box" id="notif-btn">
               <i class="far fa-bell"></i>
           </div>
-
       </div>
     </div>
 
@@ -107,28 +103,28 @@
     </section>
 
     <section class="categories">
-      <a href="phones/" class="cat" style="text-decoration:none;">
+      <a href="category.html?cat=Phones" class="cat" style="text-decoration:none;">
         <div class="cat-icon"><i class="fas fa-mobile-alt"></i></div> Phones
       </a>
-      <a href="laptops/" class="cat" style="text-decoration:none;">
+      <a href="category.html?cat=Laptops" class="cat" style="text-decoration:none;">
         <div class="cat-icon"><i class="fas fa-laptop"></i></div> Laptops
       </a>
-      <a href="fashion/" class="cat" style="text-decoration:none;">
+      <a href="category.html?cat=Fashion" class="cat" style="text-decoration:none;">
         <div class="cat-icon"><i class="fas fa-tshirt"></i></div> Fashion
       </a>
-      <a href="fashion-accessories/" class="cat" style="text-decoration:none;">
+      <a href="category.html?cat=Fashion Accessories" class="cat" style="text-decoration:none;">
         <div class="cat-icon"><i class="fas fa-glasses"></i></div> Fashion accessories
       </a>
-      <a href="phone-accessories/" class="cat" style="text-decoration:none;">
+      <a href="category.html?cat=Phone Accessories" class="cat" style="text-decoration:none;">
         <div class="cat-icon"><i class="fas fa-headphones"></i></div> Phone accessories
       </a>
-      <a href="gadgets/" class="cat" style="text-decoration:none;">
+      <a href="category.html?cat=Gadgets" class="cat" style="text-decoration:none;">
         <div class="cat-icon"><i class="fas fa-gamepad"></i></div> Gadgets
       </a>
-      <a href="food/" class="cat" style="text-decoration:none;">
+      <a href="category.html?cat=Food" class="cat" style="text-decoration:none;">
         <div class="cat-icon"><i class="fas fa-utensils"></i></div> Food vendors
       </a>
-      <a href="appliances/" class="cat" style="text-decoration:none;">
+      <a href="category.html?cat=Appliances" class="cat" style="text-decoration:none;">
         <div class="cat-icon"><i class="fas fa-blender"></i></div> Appliances
       </a>
     </section>
@@ -138,18 +134,29 @@
             <div class="trending-title">Student Reviews</div>
             <a href="reviews/" style="font-size:12px; color:var(--primary-blue); font-weight:600; text-decoration:none;">See all</a>
         </div>
+        
         <div class="reviews-slider" id="reviews-slider">
-            <div class="review-card">
-                <div class="review-header"><img src="img/person.png" class="review-img" alt="User"><div><div class="review-name">Musa A.</div><div class="stars">⭐⭐⭐⭐⭐</div></div></div>
-                <div class="review-text">"Bought a charger here, delivery was fast to Hostel B!"</div>
+            <div class="skeleton-card" style="min-width: 250px;">
+                <div style="display:flex; gap:10px; margin-bottom:10px;">
+                    <div class="skeleton sk-img" style="width:40px; height:40px;"></div>
+                    <div style="flex:1;">
+                        <div class="skeleton sk-text-short" style="width:60%; margin-bottom:5px;"></div>
+                        <div class="skeleton sk-text-short" style="width:30%;"></div>
+                    </div>
+                </div>
+                <div class="skeleton sk-text-long"></div>
+                <div class="skeleton sk-text-long" style="width:70%;"></div>
             </div>
-            <div class="review-card">
-                <div class="review-header"><img src="img/person.png" class="review-img" alt="User"><div><div class="review-name">Sarah J.</div><div class="stars">⭐⭐⭐⭐</div></div></div>
-                <div class="review-text">"Sold my old textbook in 2 hours. Good platform."</div>
-            </div>
-             <div class="review-card">
-                <div class="review-header"><img src="img/person.png" class="review-img" alt="User"><div><div class="review-name">Emmanuel</div><div class="stars">⭐⭐⭐⭐⭐</div></div></div>
-                <div class="review-text">"The food vendors are the best. Hot rice saved me."</div>
+            <div class="skeleton-card" style="min-width: 250px;">
+                <div style="display:flex; gap:10px; margin-bottom:10px;">
+                    <div class="skeleton sk-img" style="width:40px; height:40px;"></div>
+                    <div style="flex:1;">
+                        <div class="skeleton sk-text-short" style="width:60%; margin-bottom:5px;"></div>
+                        <div class="skeleton sk-text-short" style="width:30%;"></div>
+                    </div>
+                </div>
+                <div class="skeleton sk-text-long"></div>
+                <div class="skeleton sk-text-long" style="width:70%;"></div>
             </div>
         </div>
     </section>
@@ -159,118 +166,85 @@
         <div class="trending-title">Available Items</div>
         <a href="items/" style="font-size:12px; color:var(--primary-blue); font-weight:600; text-decoration:none;">See all</a>
       </div>
-      <div class="trending-grid" id="home-items-grid"></div>
+      
+      <div class="trending-grid" id="home-items-grid">
+        <div class="skeleton-card">
+            <div class="skeleton sk-img-rect"></div>
+            <div class="skeleton sk-text-short"></div>
+            <div class="skeleton sk-text-long"></div>
+            <div class="skeleton sk-btn"></div>
+        </div>
+        <div class="skeleton-card">
+            <div class="skeleton sk-img-rect"></div>
+            <div class="skeleton sk-text-short"></div>
+            <div class="skeleton sk-text-long"></div>
+            <div class="skeleton sk-btn"></div>
+        </div>
+        <div class="skeleton-card">
+            <div class="skeleton sk-img-rect"></div>
+            <div class="skeleton sk-text-short"></div>
+            <div class="skeleton sk-text-long"></div>
+            <div class="skeleton sk-btn"></div>
+        </div>
+        <div class="skeleton-card">
+            <div class="skeleton sk-img-rect"></div>
+            <div class="skeleton sk-text-short"></div>
+            <div class="skeleton sk-text-long"></div>
+            <div class="skeleton sk-btn"></div>
+        </div>
+      </div>
     </section>
 
     <section  class="trust-banner" style="display: flex; justify-content: space-around; background: #f9f9f9; padding: 15px; margin: 20px 0; border-radius: 8px;">
-    <div style="text-align: center;">
-        <i class="fas fa-user-check" style="color: #2d8eff; font-size: 20px;"></i>
-        <div style="font-size: 10px; margin-top: 5px; font-weight: bold;">Verified Vendors</div>
-    </div>
-    <div style="text-align: center;">
-        <i class="fas fa-handshake" style="color: #2d8eff; font-size: 20px;"></i>
-        <div style="font-size: 10px; margin-top: 5px; font-weight: bold;">Campus Meetups</div>
-    </div>
-    <div style="text-align: center;">
-        <i class="fas fa-headset" style="color: #2d8eff; font-size: 20px;"></i>
-        <div style="font-size: 10px; margin-top: 5px; font-weight: bold;">Admin Support</div>
-    </div>
-</section>
+        <div style="text-align: center;"><i class="fas fa-user-check" style="color: #2d8eff; font-size: 20px;"></i><div style="font-size: 10px; margin-top: 5px; font-weight: bold;">Verified Vendors</div></div>
+        <div style="text-align: center;"><i class="fas fa-handshake" style="color: #2d8eff; font-size: 20px;"></i><div style="font-size: 10px; margin-top: 5px; font-weight: bold;">Campus Meetups</div></div>
+        <div style="text-align: center;"><i class="fas fa-headset" style="color: #2d8eff; font-size: 20px;"></i><div style="font-size: 10px; margin-top: 5px; font-weight: bold;">Admin Support</div></div>
+    </section>
 
-<section class="pricing-promo-section" style="padding: 10px 14px 20px;">
-    <div style="border-radius: 12px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.1); margin-bottom: 20px;">
-        <img src="https://i.ibb.co/rfkxX3r9/1.png" alt="Vendor Pricing Plan" style="width: 100%; display: block;">
-    </div>
-
-    <div style="text-align: center;">
-        <a href="https://wa.me/2348144516127?text=I%20want%20to%20register%20as%20a%20vendor" 
-           style="background: #2d8eff; color: white; padding: 12px 35px; border-radius: 30px; text-decoration: none; font-weight: bold; font-size: 14px; box-shadow: 0 4px 10px rgba(45, 142, 255, 0.3); display: inline-block;">
-           Become a Vendor
-        </a>
-    </div>
-</section>
+    <section class="pricing-promo-section" style="padding: 10px 14px 20px;">
+        <div style="border-radius: 12px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.1); margin-bottom: 20px;">
+            <img src="https://i.ibb.co/rfkxX3r9/1.png" alt="Vendor Pricing Plan" style="width: 100%; display: block;">
+        </div>
+        <div style="text-align: center;">
+            <a href="https://wa.me/2348144516127?text=I%20want%20to%20register%20as%20a%20vendor" 
+               style="background: #2d8eff; color: white; padding: 12px 35px; border-radius: 30px; text-decoration: none; font-weight: bold; font-size: 14px; box-shadow: 0 4px 10px rgba(45, 142, 255, 0.3); display: inline-block;">
+               Become a Vendor
+            </a>
+        </div>
+    </section>
 
    <section class="vendor-section-wrapper" style="padding: 0 14px 20px;">
         <div class="section-header">
             <div class="trending-title">Verified Vendors</div>
             <a href="vendors/" style="font-size:12px; color:var(--primary-blue); font-weight:600; text-decoration:none;">See all</a>
         </div>
-        
        <div class="trending-grid" id="vendor-grid">
-    
-    <div class="skeleton-card">
-        <div class="skeleton sk-img"></div>
-        <div class="skeleton sk-text-short"></div>
-        <div class="skeleton sk-text-long"></div>
-        <div class="skeleton sk-btn"></div>
-    </div>
-
-    <div class="skeleton-card">
-        <div class="skeleton sk-img"></div>
-        <div class="skeleton sk-text-short"></div>
-        <div class="skeleton sk-text-long"></div>
-        <div class="skeleton sk-btn"></div>
-    </div>
-
-    <div class="skeleton-card">
-        <div class="skeleton sk-img"></div>
-        <div class="skeleton sk-text-short"></div>
-        <div class="skeleton sk-text-long"></div>
-        <div class="skeleton sk-btn"></div>
-    </div>
-
-    <div class="skeleton-card">
-        <div class="skeleton sk-img"></div>
-        <div class="skeleton sk-text-short"></div>
-        <div class="skeleton sk-text-long"></div>
-        <div class="skeleton sk-btn"></div>
-    </div>
-
-</div>
+            <div class="skeleton-card"><div class="skeleton sk-img"></div><div class="skeleton sk-text-short"></div><div class="skeleton sk-text-long"></div><div class="skeleton sk-btn"></div></div>
+            <div class="skeleton-card"><div class="skeleton sk-img"></div><div class="skeleton sk-text-short"></div><div class="skeleton sk-text-long"></div><div class="skeleton sk-btn"></div></div>
+            <div class="skeleton-card"><div class="skeleton sk-img"></div><div class="skeleton sk-text-short"></div><div class="skeleton sk-text-long"></div><div class="skeleton sk-btn"></div></div>
+            <div class="skeleton-card"><div class="skeleton sk-img"></div><div class="skeleton sk-text-short"></div><div class="skeleton sk-text-long"></div><div class="skeleton sk-btn"></div></div>
+       </div>
     </section>
 
     <footer class="site-footer">
-        
         <div class="footer-newsletter" style="margin-bottom: 20px; padding-bottom: 20px; border-bottom: 1px solid #444;">
             <h4 style="color: white; margin-bottom: 8px; font-size: 14px;">Join our Community</h4>
             <p style="font-size: 11px; color: #aaa; margin-bottom: 12px;">Get updates on new vendors and flash sales.</p>
-            
             <form action="https://formspree.io/f/YOUR_NEWSLETTER_CODE_HERE" method="POST" style="display: flex; justify-content: center; gap: 8px; max-width: 300px; margin: 0 auto;">
-                <input type="email" name="email" placeholder="Enter email" required 
-                       style="width: 70%; padding: 8px 12px; border-radius: 20px; border: none; outline: none; font-size: 12px;">
-                <button type="submit" 
-                        style="width: 30%; background: var(--primary-blue); color: white; border: none; padding: 8px; border-radius: 20px; font-size: 11px; font-weight: bold; cursor: pointer;">
-                    Join
-                </button>
+                <input type="email" name="email" placeholder="Enter email" required style="width: 70%; padding: 8px 12px; border-radius: 20px; border: none; outline: none; font-size: 12px;">
+                <button type="submit" style="width: 30%; background: var(--primary-blue); color: white; border: none; padding: 8px; border-radius: 20px; font-size: 11px; font-weight: bold; cursor: pointer;">Join</button>
             </form>
-            </div>
-            
-            <div id="manual-install-container" style="display: none; margin-bottom: 20px;">
-        <button id="manual-install-btn" style="background: transparent; border: 1px solid #777; color: #ccc; padding: 8px 20px; border-radius: 20px; font-size: 12px; cursor: pointer;">
-            <i class="fas fa-download" style="margin-right: 5px;"></i> Install App
-        </button>
-    </div>
-
-
-        <div class="footer-links">
-            <a href="about-us/">About Us</a> | 
-            <a href="faq/">FAQ</a> | 
-            <a href="t&c/">T & C</a> | 
-            <a href="contact-us/">Contact</a>
         </div>
-        
+        <div id="manual-install-container" style="display: none; margin-bottom: 20px;">
+            <button id="manual-install-btn" style="background: transparent; border: 1px solid #777; color: #ccc; padding: 8px 20px; border-radius: 20px; font-size: 12px; cursor: pointer;">
+                <i class="fas fa-download" style="margin-right: 5px;"></i> Install App
+            </button>
+        </div>
+        <div class="footer-links">
+            <a href="about-us/">About Us</a> | <a href="faq/">FAQ</a> | <a href="t&c/">T & C</a> | <a href="contact-us/">Contact</a>
+        </div>
         <p style="margin-top:10px; color:#777;">&copy; 2026 BrightSiteDev</p>
     </footer>
-<!-- NAV 
-    <nav class="bottom-nav">
-      <a href="index.html" class="nav-item active"><i class="fas fa-home"></i><span>Home</span></a>
-      <a href="#" class="nav-item"><i class="far fa-heart"></i><span>Saved</span></a>
-      <a href="#" class="nav-item nav-sell"><i class="fas fa-plus"></i></a>
-      <a href="#" class="nav-item"><i class="far fa-comment-dots"></i><span>Messages</span></a>
-      <a href="#" class="nav-item"><i class="far fa-user"></i><span>Profile</span></a>
-    </nav>
-
-    -->
 
     <div id="promo-modal" class="modal-overlay">
       <div class="modal-content">
@@ -284,21 +258,146 @@
   </div> 
 
   <script src="asset/script.js"></script>
+  
   <div id="install-popup" style="display: none; position: fixed; bottom: 20px; left: 5%; width: 90%; background: white; padding: 20px; border-radius: 15px; box-shadow: 0 5px 20px rgba(0,0,0,0.2); z-index: 1000; text-align: center; animation: slideUp 0.5s ease;">
     <img src="img/logo-blue.png" style="width: 50px; margin-bottom: 10px;">
     <h3 style="margin: 0; font-size: 16px;">Install AFIT Market App</h3>
     <p style="font-size: 12px; color: #777; margin: 5px 0 15px;">Get better experience and faster access!</p>
-
     <button id="install-btn" style="background: #2d8eff; color: white; border: none; padding: 10px 30px; border-radius: 20px; font-weight: bold; width: 100%;">Install Now</button>
     <button onclick="document.getElementById('install-popup').style.display='none'" style="background: none; border: none; color: #999; font-size: 12px; margin-top: 10px;">Maybe later</button>
-</div>
+  </div>
 
-<a href="https://wa.me/2349153375488?text=Hello%20Admin,%20I%20need%20assistance%20with%20AFIT%20Market" 
-   class="whatsapp-float" 
-   target="_blank">
+  <a href="https://wa.me/2349153375488?text=Hello%20Admin,%20I%20need%20assistance%20with%20AFIT%20Market" class="whatsapp-float" target="_blank">
     <i class="fab fa-whatsapp my-float"></i>
     <span class="tooltip-text">Chat with Admin</span>
-    
-</a>
+  </a>
+
+<script>
+    // ✅ UNLIMITED OPENSHEET API
+    const sheetID = "1SvVUbEnDgqgw2Z_M1ShQkzyFTsnnS6n8mTs7UMXVvF4";
+    const apiRoot = `https://opensheet.elk.sh/${sheetID}`;
+    const ADMIN_PHONE = "2348144516127"; 
+
+    function shuffle(array) { return array.sort(() => 0.5 - Math.random()); }
+
+    document.addEventListener("DOMContentLoaded", () => {
+        
+        // 1. REVIEWS
+        fetch(`${apiRoot}/Reviews`)
+        .then(res => res.json())
+        .then(data => {
+            const container = document.getElementById('reviews-slider');
+            if(container && data.length > 0) {
+                container.innerHTML = ""; 
+                const shuffled = shuffle(data).slice(0, 5); 
+
+                shuffled.forEach(r => {
+                    const starCount = parseInt(r.stars || r.Stars) || 5;
+                    const starString = "⭐".repeat(starCount);
+                    let img = r.image || r.Image || "person.png";
+                    if(!img.startsWith('http')) img = `img/${img}`;
+
+                    const name = r.name || r.Name || "Student";
+                    const txt = r.review || r.Review || "Great service!";
+
+                    container.innerHTML += `
+                    <div class="review-card">
+                        <div class="review-header">
+                            <img src="${img}" class="review-img" alt="User" onerror="this.src='img/person.png'">
+                            <div>
+                                <div class="review-name">${name}</div>
+                                <div class="stars">${starString}</div>
+                            </div>
+                        </div>
+                        <div class="review-text">"${txt}"</div>
+                    </div>`;
+                });
+            }
+        }).catch(err => console.error("Reviews Error:", err));
+
+        // 2. VENDORS & ITEMS (Fixed Scope)
+        fetch(`${apiRoot}/Vendors`)
+        .then(res => res.json())
+        .then(vendors => {
+            const phoneBook = {};
+            vendors.forEach(v => {
+                const vID = v.vendor_id || v.Vendor_ID;
+                const vPhone = v.whatsapp || v.Whatsapp;
+                if(vID) phoneBook[vID] = String(vPhone).replace(/[^0-9]/g, '');
+            });
+
+            renderVendors(vendors);
+
+            // Return both promise and phoneBook data
+            return fetch(`${apiRoot}/Products`)
+                .then(res => res.json())
+                .then(products => ({ products, phoneBook }));
+        })
+        .then(({ products, phoneBook }) => {
+            const itemGrid = document.getElementById("home-items-grid");
+            if(itemGrid) {
+                const available = products.filter(p => (p.status || p.Status) !== "Sold");
+                const random = shuffle(available).slice(0, 15);
+                itemGrid.innerHTML = ""; 
+
+                random.forEach(p => {
+                    const pName = p.name || p.Name;
+                    const pPrice = p.price || p.Price;
+                    const pDesc = p.description || p.Description || ""; 
+                    const pVendor = p.vendor_id || p.Vendor_ID;
+                    const pImage = p.image || p.Image;
+
+                    const img = pImage.startsWith('http') ? pImage : `img/${pImage}`;
+                    const vendorPhone = phoneBook[pVendor] || ADMIN_PHONE;
+                    const waLink = `https://wa.me/${vendorPhone}?text=${encodeURIComponent(`Hi, I saw "${pName}" on AFIT Market. Is it available?`)}`;
+
+                    itemGrid.innerHTML += `
+                    <div class="ad-card">
+                        <img class="ad-img" src="${img}" alt="${pName}" onerror="this.src='img/logo-blue.png'">
+                        <div class="ad-info">
+                            <div class="ad-price">${pPrice}</div>
+                            <div class="ad-title">${pName}</div>
+                            <div class="ad-desc">${pDesc}</div>
+                            <div class="ad-location">Vendor: ${pVendor}</div>
+                            <a href="${waLink}" class="chat-btn" target="_blank">Get Item</a>
+                        </div>
+                    </div>`;
+                });
+            }
+        })
+        .catch(err => console.error("Data Error:", err));
+    });
+
+    function renderVendors(data) {
+        const vendorGrid = document.getElementById("vendor-grid");
+        if(vendorGrid) {
+            const random = shuffle(data).slice(0, 15);
+            vendorGrid.innerHTML = "";
+
+            random.forEach(v => {
+                const vName = v.business_name || v.Business_Name;
+                const vDesc = v.description || v.Description;
+                const vImage = v.image || v.Image;
+                const vID = v.vendor_id || v.Vendor_ID;
+                const vVerified = String(v.verified || v.Verified || "").toLowerCase().trim();
+
+                const vImg = vImage.startsWith('http') ? vImage : `img/${vImage}`;
+                let badgeHtml = "";
+                
+                if (vVerified === "gold") badgeHtml = '<i class="fas fa-check-circle tick-gold"></i>';
+                else if (vVerified === "blue") badgeHtml = '<i class="fas fa-check-circle tick-blue"></i>';
+
+                vendorGrid.innerHTML += `
+                <div class="vendor-card">
+                    <img src="${vImg}" class="vendor-logo" alt="${vName}" onerror="this.src='img/person.png'">
+                    <span class="vendor-id">${vID}</span>
+                    <div class="vendor-name">${vName} ${badgeHtml}</div>
+                    <div class="vendor-cat">${vDesc.substring(0, 20)}...</div>
+                    <button class="view-vendor-btn" onclick="window.location.href='profile.html?vendor=${vID}'">View Vendor</button>
+                </div>`;
+            });
+        }
+    }
+</script>
 </body>
 </html>

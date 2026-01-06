@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-70VSGR5WBW"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-70VSGR5WBW');
+  </script>
+
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+  <title>Vendor Profile - AFIT Market</title>
+  
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="asset/style.css">
+  
+  <link rel="icon" href="img/app-logo.png" type="image/png" sizes="32x32">
+  <link rel="icon" href="img/app-logo.png" type="image/png" sizes="192x192">
+  <link rel="apple-touch-icon" href="img/app-logo.png">
+
+  <style>
+      /* Hide content until loaded */
+      #profile-content { display: none; }
+  </style>
+</head>
+<body data-page="vendor-profile">
+
+  <div id="preloader">
+    <div class="loader-content">
+        <img src="img/logo-blue.png" alt="Loading..." class="loader-logo">
+        <div class="loading-bar"></div>
+    </div>
+  </div>
+
+  <div class="app-container">
+    
+    <div class="header">
+      <a href="index.html" class="back-btn"><i class="fas fa-arrow-left"></i></a>
+      <span style="font-weight:bold;">Store Profile</span>
+    </div>
+
+    <div id="profile-content">
+        <section class="profile-section">
+            <img id="p-img" src="img/person.png" alt="Vendor Logo" class="profile-img">
+            
+            <div class="business-name">
+                <span id="p-name">Loading...</span> 
+                <span id="p-badge"></span>
+            </div>
+            
+            <div style="margin-bottom: 8px;">
+                <span id="p-id" style="background:#eee; color:#555; font-size:10px; padding:2px 8px; border-radius:10px; font-family:monospace; font-weight:bold;">
+                ID: ...
+                </span>
+            </div>
+
+            <p id="p-desc" class="business-description">
+                Loading description...
+            </p>
+
+            <div style="font-size: 12px; color: #555; margin: 10px 0; display: flex; align-items: center; justify-content: center; gap: 8px;">
+                <span><i class="far fa-clock" style="color:#2d8eff;"></i> Mon - Sat: 9am - 8pm</span>
+                <span id="shop-status" style="font-weight: bold; font-size: 11px; padding: 2px 8px; border-radius: 10px; background: #eee; color: #777;">
+                    Checking...
+                </span>
+            </div>
+
+            <div style="display: flex; gap: 20px; justify-content: center; margin: 15px 0;">
+                <a id="link-phone" href="#" style="text-decoration:none; color:#333;">
+                    <i class="fas fa-phone-alt fa-lg"></i>
+                </a>
+                <a id="link-insta" href="#" style="text-decoration:none; color:#E1306C; display:none;"> 
+                    <i class="fab fa-instagram fa-lg"></i>
+                </a>
+                <button onclick="shareVendor()" style="background:none; border:none; color:#2d8eff; cursor:pointer; font-size: 16px; padding: 0;">
+                    <i class="fas fa-share-alt"></i>
+                </button>
+            </div>
+
+            <div class="business-meta">
+                <span><i class="fas fa-map-marker-alt"></i> <span id="p-location">Location</span></span>
+                <span><i class="fas fa-user-shield"></i> Joined: <span id="p-date">Date</span></span>
+            </div>
+            
+            <a id="btn-contact" href="#" style="display:inline-block; margin-top:15px; background:#25D366; color:white; padding:10px 25px; border-radius:30px; text-decoration:none; font-weight:bold; font-size:14px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+                <i class="fab fa-whatsapp"></i> Contact Shop
+            </a>
+
+            <div style="margin-top: 15px;">
+                <a href="https://forms.gle/pgHNnm7tUydg5zu57" style="color: #2d8eff; font-size: 12px; text-decoration: none; font-weight: 600;">
+                    <i class="far fa-star"></i> Drop a Review
+                </a>
+            </div>
+
+            <div style="margin-top: 10px;">
+                <a href="https://forms.gle/rmweoNk7yfgMkwtk8" style="color: #d9534f; font-size: 11px; text-decoration: none;">
+                    <i class="fas fa-flag"></i> Report Vendor
+                </a>
+            </div>
+        </section>
+
+        <h2 class="products-title">Items from this Store</h2>
+        
+        <div class="trending-grid" id="vendor-grid">
+            
+            <div class="skeleton-card">
+                <div class="skeleton sk-img-rect"></div> <div class="skeleton sk-text-short"></div>
+                <div class="skeleton sk-text-long"></div>
+                <div class="skeleton sk-btn"></div>
+            </div>
+            <div class="skeleton-card">
+                <div class="skeleton sk-img-rect"></div>
+                <div class="skeleton sk-text-short"></div>
+                <div class="skeleton sk-text-long"></div>
+                <div class="skeleton sk-btn"></div>
+            </div>
+            <div class="skeleton-card">
+                <div class="skeleton sk-img-rect"></div>
+                <div class="skeleton sk-text-short"></div>
+                <div class="skeleton sk-text-long"></div>
+                <div class="skeleton sk-btn"></div>
+            </div>
+            <div class="skeleton-card">
+                <div class="skeleton sk-img-rect"></div>
+                <div class="skeleton sk-text-short"></div>
+                <div class="skeleton sk-text-long"></div>
+                <div class="skeleton sk-btn"></div>
+            </div>
+
+        </div>
+    </div>
+
+    <div id="error-message" style="display:none; text-align:center; padding:50px;">
+        <i class="fas fa-exclamation-circle" style="font-size:40px; color:#ccc;"></i>
+        <h3 style="margin-top:10px; color:#555;">Vendor Not Found</h3>
+        <p style="color:#888;">This vendor ID does not exist.</p>
+        <a href="index.html" class="chat-btn" style="display:inline-block; margin-top:10px; background:#2d8eff;">Go Home</a>
+    </div>
+
+    <footer class="site-footer">
+        <p style="margin-top:10px; color:#777;">&copy; 2026 BrightSiteDev</p>
+    </footer>
+  </div>
+
+  <script src="asset/script.js"></script>
+
+  <script>
+    const sheetID = "1SvVUbEnDgqgw2Z_M1ShQkzyFTsnnS6n8mTs7UMXVvF4";
+    const apiRoot = `https://opensheet.elk.sh/${sheetID}`;
+
+    document.addEventListener("DOMContentLoaded", () => {
+        const params = new URLSearchParams(window.location.search);
+        let vendorID = params.get('vendor');
+
+        if(vendorID) {
+            vendorID = vendorID.trim();
+            loadProfile(vendorID);
+        } else {
+            showError("Missing Vendor ID", "The link is broken. No ID found.");
+        }
+    });
+
+    function loadProfile(id) {
+        fetch(`${apiRoot}/Vendors`)
+        .then(res => {
+            if (!res.ok) throw new Error("Connection Failed");
+            return res.json();
+        })
+        .then(data => {
+            const v = data.find(item => (item.vendor_id || item.Vendor_ID) === id);
+
+            if(!v) {
+                showError("Vendor Not Found", `ID "${id}" does not exist.`);
+            } else {
+                renderVendor(v, id);
+                const rawPhone = v.whatsapp || v.Whatsapp || "";
+                const cleanPhone = String(rawPhone).replace(/[^0-9]/g, '');
+                loadProducts(id, cleanPhone); 
+                document.getElementById('profile-content').style.display = 'block';
+                document.getElementById('preloader').style.display = 'none';
+            }
+        })
+        .catch(err => {
+            console.error("Fetch Error:", err);
+            showError("Connection Error", "Check your internet connection.");
+        });
+    }
+
+    function renderVendor(v, id) {
+        const vName = v.business_name || v.Business_Name || v.name || v.Name || "Unknown";
+        document.title = `${vName} - Profile`;
+
+        document.getElementById('p-name').innerText = vName;
+        document.getElementById('p-id').innerText = `ID: ${id}`;
+        document.getElementById('p-desc').innerText = v.description || v.Description || "No description available.";
+        document.getElementById('p-location').innerText = v.location || v.Location || "AFIT Campus";
+        document.getElementById('p-date').innerText = v.date_joined || v.Date_Joined || "Recent";
+
+        let imgSrc = v.image || v.Image || "person.png"; 
+        if (!imgSrc.startsWith('http')) imgSrc = `img/${imgSrc}`;
+        document.getElementById('p-img').src = imgSrc;
+
+        const phone = v.whatsapp || v.Whatsapp || "";
+        document.getElementById('link-phone').href = `tel:${phone}`;
+        document.getElementById('btn-contact').href = `https://wa.me/${phone}`;
+
+        const instaLink = v.instagram || v.Instagram;
+        if(instaLink) {
+            const insta = document.getElementById('link-insta');
+            insta.href = `https://instagram.com/${instaLink}`;
+            insta.style.display = 'inline-block';
+        }
+
+        let status = String(v.verified || v.Verified || "").toLowerCase().trim();
+        const badgeSpan = document.getElementById('p-badge');
+        
+        if (status === "gold") {
+            badgeSpan.innerHTML = '<i class="fas fa-check-circle tick-gold"></i>';
+        } else if (status === "blue") {
+            badgeSpan.innerHTML = '<i class="fas fa-check-circle tick-blue"></i>';
+        }
+    }
+
+    function loadProducts(id, vendorPhone) {
+        fetch(`${apiRoot}/Products`)
+        .then(res => res.json())
+        .then(data => {
+            const grid = document.getElementById('vendor-grid');
+            grid.innerHTML = ""; 
+
+            const myProducts = data.filter(p => (p.vendor_id || p.Vendor_ID) === id && (p.status || p.Status) !== "Sold");
+
+            if(myProducts.length === 0) {
+                grid.innerHTML = "<p style='width:100%; text-align:center; padding:20px; color:#777;'>No items listed yet.</p>";
+                return;
+            }
+
+            myProducts.forEach(p => {
+                const pName = p.name || p.Name;
+                const pPrice = p.price || p.Price;
+                const pDesc = p.description || p.Description || ""; // NEW
+                const pCategory = p.category || p.Category;
+                const pImage = p.image || p.Image;
+
+                let pImg = pImage || "logo-blue.png";
+                if (!pImg.startsWith('http')) pImg = `img/${pImg}`;
+                
+                grid.innerHTML += `
+                <div class="ad-card">
+                    <img class="ad-img" src="${pImg}" alt="${pName}" onerror="this.src='img/logo-blue.png'">
+                    <div class="ad-info">
+                        <div class="ad-price">${pPrice}</div>
+                        <div class="ad-title">${pName}</div>
+                        <div class="ad-desc">${pDesc}</div> <div class="ad-location">Category: ${pCategory}</div>
+                        <a href="https://wa.me/${vendorPhone}?text=I%20want%20to%20buy%20${pName}%20from%20${id}" class="chat-btn">Get Item</a>
+                    </div>
+                </div>`;
+            });
+        });
+    }
+
+    function showError(title, msg) {
+        document.getElementById('preloader').style.display = 'none';
+        const errorBox = document.getElementById('error-message');
+        errorBox.style.display = 'block';
+        errorBox.querySelector('h3').innerText = title;
+        errorBox.querySelector('p').innerText = msg;
+    }
+    
+    window.shareVendor = function() {
+        if (navigator.share) {
+            navigator.share({ title: document.title, url: window.location.href });
+        } else {
+            alert("Link copied!");
+        }
+    }
+</script>
+</body>
+</html>
