@@ -1937,3 +1937,9 @@ body.dark-mode .filter-btn.active {
     height: 120px;
     border-radius: 8px; /* Square with rounded corners */
 }
+/* Fix for Card Height Spacing */
+.trending-grid .ad-card {
+    height: auto !important;   /* Force the card to fit content height */
+    align-self: start;         /* Stop the card from stretching to fill the grid row */
+    padding-bottom: 10px;      /* Optional: Adds a tiny breathing room at the bottom */
+}
