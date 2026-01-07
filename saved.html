@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Saved Items - AFIT Market</title>
+    
+    <link rel="stylesheet" href="asset/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="icon" href="img/app-logo.png">
+</head>
+<body data-page="saved">
+
+    <script>
+        if (localStorage.getItem('theme') === 'dark') {
+            document.body.classList.add('dark-mode');
+        }
+    </script>
+
+    <div class="app-container">
+        <div class="header">
+            <a href="account.html" class="back-btn"><i class="fas fa-arrow-left"></i></a>
+            <span style="font-weight:bold;">Saved Items</span>
+             <div class="notification-icon-box" id="theme-toggle" style="margin-left:auto;">
+                <i class="fas fa-moon"></i>
+            </div>
+        </div>
+
+        <div id="preloader">
+            <div class="loader-content">
+                <img src="img/logo-blue.png" alt="Loading..." class="loader-logo">
+                <div class="loading-bar"></div>
+            </div>
+        </div>
+
+        <div id="saved-grid" class="trending-grid" style="padding: 15px;">
+            </div>
+
+        <div id="empty-state" style="display:none; text-align:center; padding:50px; color:#888;">
+            <i class="far fa-heart" style="font-size:40px; margin-bottom:15px; opacity:0.5;"></i>
+            <p>You haven't saved any items yet.</p>
+            <a href="index.html" class="chat-btn" style="display:inline-block; width:auto; margin-top:15px;">Start Shopping</a>
+        </div>
+    </div>
+
+    <script src="asset/script.js"></script>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getAuth, onAuthStateChanged } 
+        from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+        import { getFirestore, collection, getDocs, doc, deleteDoc } 
+        from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+        // CONFIG
+        const firebaseConfig = {
+            apiKey: "AIzaSyA1eQbrJpH9OtDNDN7z9oTFTRSAE7vCFbg",
+            authDomain: "afit-market-auth.firebaseapp.com",
+            projectId: "afit-market-auth",
+            storageBucket: "afit-market-auth.firebasestorage.app",
+            messagingSenderId: "894920886640",
+            appId: "1:894920886640:web:77d0a6b39bf89ff8f767b5"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        // Sheet Data for Phones
+        const sheetID = "1SvVUbEnDgqgw2Z_M1ShQkzyFTsnnS6n8mTs7UMXVvF4";
+        const apiRoot = `https://opensheet.elk.sh/${sheetID}`;
+        const ADMIN_PHONE = "2348144516127";
+        let globalPhoneBook = {};
+
+        // 1. Check Login
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                // If logged in, fetch vendors first (for phone numbers), then fetch saved items
+                loadPhoneBook().then(() => {
+                    loadSavedItems(user.uid);
+                });
+            } else {
+                // If not logged in, go to login
+                window.location.href = "login.html";
+            }
+        });
+
+        // 2. Fetch Phonebook from Sheet (So buttons work)
+        async function loadPhoneBook() {
+            try {
+                const res = await fetch(`${apiRoot}/Vendors`);
+                const vendors = await res.json();
+                vendors.forEach(v => {
+                    const vID = v.vendor_id || v.Vendor_ID;
+                    const vPhone = v.whatsapp || v.Whatsapp;
+                    if(vID) globalPhoneBook[vID] = String(vPhone).replace(/[^0-9]/g, '');
+                });
+            } catch (err) {
+                console.error("Error loading phonebook:", err);
+            }
+        }
+
+        // 3. Fetch Saved Items from Firestore
+        async function loadSavedItems(uid) {
+            const grid = document.getElementById('saved-grid');
+            const preloader = document.getElementById('preloader');
+            const emptyState = document.getElementById('empty-state');
+
+            try {
+                const querySnapshot = await getDocs(collection(db, "users", uid, "saved_items"));
+                
+                if (querySnapshot.empty) {
+                    preloader.style.display = 'none';
+                    emptyState.style.display = 'block';
+                    return;
+                }
+
+                grid.innerHTML = "";
+
+                querySnapshot.forEach((docSnap) => {
+                    const data = docSnap.data();
+                    const pID = docSnap.id; // The ID we used to save it
+                    const pName = data.name;
+                    const pPrice = data.price;
+                    const pVendor = data.vendor;
+                    let pImage = data.image;
+
+                    // Fix Image URL
+                    const img = pImage.startsWith('http') ? pImage : `img/${pImage}`;
+
+                    // Get Phone
+                    const vendorPhone = globalPhoneBook[pVendor] || ADMIN_PHONE;
+                    const waLink = `https://wa.me/${vendorPhone}?text=${encodeURIComponent(`Hi, I saw "${pName}" on AFIT Market. Is it available?`)}`;
+
+                    grid.innerHTML += `
+                    <div class="ad-card" id="card-${pID}" style="position:relative;">
+                        
+                        <button onclick="removeSavedItem('${pID}')" 
+                                style="position:absolute; top:10px; right:10px; background:rgba(255,255,255,0.9); border:none; border-radius:50%; width:30px; height:30px; display:flex; align-items:center; justify-content:center; cursor:pointer; box-shadow:0 2px 5px rgba(0,0,0,0.1); z-index:10;">
+                            <i class="fas fa-trash-alt" style="color:#ff4757; font-size:14px;"></i>
+                        </button>
+
+                        <img class="ad-img" src="${img}" alt="${pName}" onerror="this.src='img/logo-blue.png'">
+                        <div class="ad-info">
+                            <div class="ad-price">${pPrice}</div>
+                            <div class="ad-title">${pName}</div>
+                            <div class="ad-location">Vendor: ${pVendor}</div>
+                            <a href="${waLink}" class="chat-btn" target="_blank">Get Item</a>
+                        </div>
+                    </div>`;
+                });
+
+                preloader.style.display = 'none';
+
+            } catch (err) {
+                console.error("Error loading saved items:", err);
+                preloader.style.display = 'none';
+                grid.innerHTML = "<p>Error loading items.</p>";
+            }
+        }
+
+        // 4. Global Function to Remove Item
+        window.removeSavedItem = async function(docID) {
+            if(!confirm("Remove this item?")) return;
+
+            const user = auth.currentUser;
+            if(!user) return;
+
+            // Remove from screen immediately
+            const card = document.getElementById(`card-${docID}`);
+            if(card) card.style.opacity = "0.5";
+
+            try {
+                // Remove from Database
+                await deleteDoc(doc(db, "users", user.uid, "saved_items", docID));
+                
+                // Animate removal
+                if(card) {
+                    card.style.transform = "scale(0)";
+                    setTimeout(() => card.remove(), 300);
+                }
+            } catch (err) {
+                alert("Could not remove item. Check connection.");
+                if(card) card.style.opacity = "1";
+            }
+        }
+
+    </script>
+
+</body>
+</html>

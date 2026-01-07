@@ -45,7 +45,9 @@
             cursor: pointer;
             text-decoration: none;
             color: #333;
+            transition: transform 0.2s;
         }
+        .action-card:active { transform: scale(0.95); }
         .action-card i { font-size: 20px; color: #2d8eff; margin-bottom: 8px; display: block; }
         .action-card span { font-size: 12px; font-weight: bold; }
 
@@ -63,17 +65,48 @@
             margin-bottom: 10px;
             border: 1px solid #ddd;
             border-radius: 8px;
-            box-sizing: border-box; /* Fix padding issue */
+            box-sizing: border-box; 
+        }
+
+        /* --- DARK MODE OVERRIDES --- */
+        body.dark-mode .action-card,
+        body.dark-mode .edit-form {
+            background: #2a2a2a;
+            color: #fff;
+            box-shadow: none;
+            border: 1px solid #444;
+        }
+        body.dark-mode .action-card span { color: #fff; }
+        body.dark-mode .form-input {
+            background: #333;
+            border: 1px solid #555;
+            color: white;
+        }
+        body.dark-mode .profile-header-card {
+            box-shadow: none;
+            border-bottom: 1px solid #333;
+        }
+        body.dark-mode .profile-pic-large {
+            border-color: #2a2a2a;
         }
     </style>
 </head>
-<body>
+<body data-page="account">
+
+    <script>
+        if (localStorage.getItem('theme') === 'dark') {
+            document.body.classList.add('dark-mode');
+        }
+    </script>
 
     <div class="app-container">
         
         <div class="header">
             <a href="index.html" class="back-btn"><i class="fas fa-arrow-left"></i></a>
             <span style="font-weight:bold;">My Account</span>
+             <div class="notification-icon-box" id="theme-toggle" style="margin-left:auto;">
+                <i class="fas fa-moon"></i>
+            </div>
         </div>
 
         <div id="loading-state" style="text-align:center; padding:50px;">
@@ -98,11 +131,11 @@
             </div>
 
             <div class="action-grid">
-                <div class="action-card">
+                <a href="saved.html" class="action-card">
                     <i class="fas fa-heart" style="color:#ff4757;"></i>
                     <span>Saved Items</span>
-                </div>
-                <div class="action-card">
+                </a>
+                <div class="action-card" onclick="alert('Coming soon!')">
                     <i class="fas fa-store"></i>
                     <span>My Orders</span>
                 </div>
@@ -120,7 +153,7 @@
             </div>
 
             <div style="padding: 20px;">
-                <button id="btn-logout" class="chat-btn" style="background:#fff; border:1px solid #ff4757; color:#ff4757;">
+                <button id="btn-logout" class="chat-btn" style="background:transparent; border:1px solid #ff4757; color:#ff4757;">
                     Logout
                 </button>
             </div>
@@ -128,7 +161,7 @@
 
     </div>
 
-    <script type="module">
+    <script src="asset/script.js"></script> <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getAuth, onAuthStateChanged, signOut, updateProfile } 
         from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
@@ -181,7 +214,7 @@
         // Logout Logic
         document.getElementById('btn-logout').addEventListener('click', () => {
             signOut(auth).then(() => {
-                window.location.href = "index.html"; // Go home after logout
+                window.location.href = "index.html"; 
             });
         });
 
@@ -209,7 +242,7 @@
 
             updateProfile(auth.currentUser, updates).then(() => {
                 alert("Profile Updated!");
-                location.reload(); // Reload to see changes
+                location.reload(); 
             }).catch((error) => {
                 console.error(error);
                 alert("Error updating profile.");

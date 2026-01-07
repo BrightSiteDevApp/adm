@@ -129,10 +129,104 @@
 
   <script src="asset/script.js"></script>
 
-  <script>
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+    import { getAuth, onAuthStateChanged, signInWithPopup, GoogleAuthProvider } 
+    from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+    import { getFirestore, doc, setDoc, deleteDoc, collection, getDocs } 
+    from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+    // ✅ YOUR FIREBASE CONFIG
+    const firebaseConfig = {
+        apiKey: "AIzaSyA1eQbrJpH9OtDNDN7z9oTFTRSAE7vCFbg",
+        authDomain: "afit-market-auth.firebaseapp.com",
+        projectId: "afit-market-auth",
+        storageBucket: "afit-market-auth.firebasestorage.app",
+        messagingSenderId: "894920886640",
+        appId: "1:894920886640:web:77d0a6b39bf89ff8f767b5"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    // Global Variables
+    let savedItemIds = new Set();
     const sheetID = "1SvVUbEnDgqgw2Z_M1ShQkzyFTsnnS6n8mTs7UMXVvF4";
     const apiRoot = `https://opensheet.elk.sh/${sheetID}`;
 
+    // -- AUTH CHECK --
+    onAuthStateChanged(auth, async (user) => {
+        if (user) {
+            try {
+                const querySnapshot = await getDocs(collection(db, "users", user.uid, "saved_items"));
+                savedItemIds.clear();
+                querySnapshot.forEach((doc) => {
+                    savedItemIds.add(doc.id);
+                });
+                updateHeartIcons(); 
+            } catch (e) {
+                console.error("Error loading wishlist:", e);
+            }
+        } else {
+            savedItemIds.clear();
+            updateHeartIcons();
+        }
+    });
+
+    // -- SAVE ITEM FUNCTION --
+    window.toggleSave = async function(id, name, price, image, vendor) {
+        const user = auth.currentUser;
+        if (!user) {
+            if(confirm("You need to sign in to save items. Go to login page?")) {
+                window.location.href = "login.html";
+            }
+            return;
+        }
+
+        const btn = document.getElementById(`save-${id}`);
+        const icon = btn.querySelector('i');
+        const userRef = doc(db, "users", user.uid, "saved_items", id);
+
+        if (savedItemIds.has(id)) {
+            // REMOVE
+            icon.classList.replace('fas', 'far');
+            icon.style.color = '#777';
+            savedItemIds.delete(id);
+            await deleteDoc(userRef);
+        } else {
+            // SAVE
+            icon.classList.replace('far', 'fas');
+            icon.style.color = '#ff4757';
+            savedItemIds.add(id);
+            await setDoc(userRef, {
+                product_id: id,
+                name: name,
+                price: price,
+                image: image,
+                vendor: vendor,
+                saved_at: new Date()
+            });
+        }
+    };
+
+    function updateHeartIcons() {
+        document.querySelectorAll('.save-btn').forEach(btn => {
+            const id = btn.id.replace('save-', '');
+            const icon = btn.querySelector('i');
+            if (savedItemIds.has(id)) {
+                icon.classList.remove('far');
+                icon.classList.add('fas');
+                icon.style.color = '#ff4757';
+            } else {
+                icon.classList.remove('fas');
+                icon.classList.add('far');
+                icon.style.color = '#777';
+            }
+        });
+    }
+
+    // -- LOAD PROFILE DATA --
     document.addEventListener("DOMContentLoaded", () => {
         const params = new URLSearchParams(window.location.search);
         let vendorID = params.get('vendor');
@@ -158,12 +252,9 @@
                 showError("Vendor Not Found", `ID "${id}" does not exist.`);
             } else {
                 renderVendor(v, id);
-                
                 const rawPhone = v.whatsapp || v.Whatsapp || "";
                 const cleanPhone = String(rawPhone).replace(/[^0-9]/g, '');
-                
                 loadProducts(id, cleanPhone); 
-                
                 document.getElementById('profile-content').style.display = 'block';
                 document.getElementById('preloader').style.display = 'none';
             }
@@ -199,7 +290,7 @@
             insta.style.display = 'inline-block';
         }
 
-        // --- VERIFICATION BADGE ---
+        // Verification Badge
         let status = String(v.verified || v.Verified || "").toLowerCase().trim();
         const badgeSpan = document.getElementById('p-badge');
         if (status === "gold") {
@@ -208,21 +299,16 @@
             badgeSpan.innerHTML = '<i class="fas fa-check-circle tick-blue"></i>';
         }
 
-        // --- DYNAMIC OPEN/CLOSE LOGIC (UPDATED) ---
-        
-        // 1. Check if "24/7" mode is enabled
+        // Open/Close Logic
         const is247 = String(v.online_247 || v.Online_247 || "").toLowerCase().trim() === "true";
         const statusBadge = document.getElementById('shop-status');
         const hoursText = document.getElementById('p-hours');
 
         if (is247) {
-            // Force Online for Digital Services
             hoursText.innerText = "Digital Service (24/7)";
             statusBadge.innerText = "🟢 Online 24/7";
             statusBadge.className = "status-open";
-        } 
-        else {
-            // Use Standard Time Logic
+        } else {
             const openTime = parseInt(v.open_time || v.Open_Time || 9);
             const closeTime = parseInt(v.close_time || v.Close_Time || 21);
             
@@ -236,7 +322,7 @@
 
             const now = new Date();
             const currentHour = now.getHours();
-            const currentDay = now.getDay(); // 0 is Sunday
+            const currentDay = now.getDay(); 
 
             if (currentDay === 0) { 
                 statusBadge.innerText = "🔴 Closed (Sunday)";
@@ -258,7 +344,6 @@
             const grid = document.getElementById('vendor-grid');
             grid.innerHTML = ""; 
 
-            // Filter products for THIS vendor
             const myProducts = data.filter(p => (p.vendor_id || p.Vendor_ID) === id && (p.status || p.Status) !== "Sold");
 
             if(myProducts.length === 0) {
@@ -275,8 +360,22 @@
                 let pImg = pImage || "logo-blue.png";
                 if (!pImg.startsWith('http')) pImg = `img/${pImg}`;
                 
+                // Create ID for saving
+                const pID = (id + "-" + pName).replace(/\s+/g, '-').toLowerCase();
+                const isSaved = savedItemIds.has(pID);
+                const heartClass = isSaved ? 'fas' : 'far';
+                const heartColor = isSaved ? '#ff4757' : '#777';
+
                 grid.innerHTML += `
-                <div class="ad-card">
+                <div class="ad-card" style="position:relative;">
+                    
+                    <button onclick="toggleSave('${pID}', '${pName}', '${pPrice}', '${pImage}', '${id}')" 
+                            class="save-btn" 
+                            id="save-${pID}"
+                            style="position:absolute; top:10px; right:10px; background:white; border:none; border-radius:50%; width:30px; height:30px; display:flex; align-items:center; justify-content:center; cursor:pointer; box-shadow:0 2px 5px rgba(0,0,0,0.2); z-index:10;">
+                        <i class="${heartClass} fa-heart" style="color:${heartColor}; font-size:16px;"></i>
+                    </button>
+
                     <img class="ad-img" src="${pImg}" alt="${pName}" onerror="this.src='img/logo-blue.png'">
                     <div class="ad-info">
                         <div class="ad-price">${pPrice}</div>

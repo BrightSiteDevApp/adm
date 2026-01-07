@@ -42,6 +42,9 @@
           <div class="notification-icon-box" id="notif-btn">
               <i class="far fa-bell"></i>
           </div>
+          <a href="saved.html" class="notification-icon-box" style="text-decoration:none; color:inherit;">
+    <i class="far fa-heart"></i>
+</a>
           
           <a href="account.html" class="notification-icon-box" id="header-profile-btn" style="overflow: hidden; padding: 0;">
               <i class="far fa-user" style="padding: 8px;"></i>
@@ -224,9 +227,12 @@
   </a>
 
 <script type="module">
+    // 1. Import Authentication AND Database functions
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
     import { getAuth, onAuthStateChanged, signInWithPopup, GoogleAuthProvider } 
     from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+    import { getFirestore, doc, setDoc, deleteDoc, collection, getDocs } 
+    from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
     // ✅ YOUR FIREBASE CONFIG
     const firebaseConfig = {
@@ -240,23 +246,40 @@
 
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
+    const db = getFirestore(app); // Initialize Database
     const provider = new GoogleAuthProvider();
 
+    // Global Variables
+    let savedItemIds = new Set(); // Stores IDs of items the user liked
+
     // -- FIREBASE AUTH STATE CHECK --
-    onAuthStateChanged(auth, (user) => {
+    onAuthStateChanged(auth, async (user) => {
         const headerBtn = document.getElementById('header-profile-btn');
         
         if (user) {
             // LOGGED IN: Show Profile Picture
             headerBtn.innerHTML = `<img src="${user.photoURL}" class="header-profile-img" alt="Profile">`;
-            // Do NOT show login popup if logged in
-        } else {
-            // NOT LOGGED IN: Show Default Icon
-            headerBtn.innerHTML = `<i class="far fa-user" style="padding: 8px;"></i>`;
             
-            // SHOW LOGIN POPUP after 5 seconds (Only if not logged in)
+            // FETCH SAVED ITEMS from Database
+            try {
+                const querySnapshot = await getDocs(collection(db, "users", user.uid, "saved_items"));
+                savedItemIds.clear();
+                querySnapshot.forEach((doc) => {
+                    savedItemIds.add(doc.id);
+                });
+                updateHeartIcons(); // Turn hearts red for saved items
+            } catch (e) {
+                console.error("Error loading wishlist:", e);
+            }
+
+        } else {
+            // NOT LOGGED IN
+            headerBtn.innerHTML = `<i class="far fa-user" style="padding: 8px;"></i>`;
+            savedItemIds.clear();
+            updateHeartIcons(); // Reset hearts to empty
+            
+            // Show popup after 5 seconds if not logged in
             setTimeout(() => {
-                // Optional: Check if already dismissed in this session
                 if(!sessionStorage.getItem('loginPopupDismissed')) {
                     document.getElementById('login-modal').style.display = 'flex';
                 }
@@ -270,13 +293,72 @@
             .then((result) => {
                 document.getElementById('login-modal').style.display = 'none';
                 sessionStorage.setItem('loginPopupDismissed', 'true');
-                // Page will likely reload or UI updates via onAuthStateChanged
             }).catch((error) => {
                 alert("Login failed: " + error.message);
             });
     });
 
-    // -- DATA LOADING SCRIPT (Standard JS logic) --
+    // -- SAVE ITEM FUNCTION (Global) --
+    // This runs when you click the Heart button
+    window.toggleSave = async function(id, name, price, image, vendor) {
+        const user = auth.currentUser;
+        
+        // 1. If not logged in, show login popup
+        if (!user) {
+            document.getElementById('login-modal').style.display = 'flex';
+            return;
+        }
+
+        const btn = document.getElementById(`save-${id}`);
+        const icon = btn.querySelector('i');
+        const userRef = doc(db, "users", user.uid, "saved_items", id);
+
+        // 2. Save or Remove
+        if (savedItemIds.has(id)) {
+            // REMOVE
+            icon.classList.replace('fas', 'far'); // Make heart hollow
+            icon.style.color = '#777';
+            savedItemIds.delete(id);
+            await deleteDoc(userRef);
+        } else {
+            // SAVE
+            icon.classList.replace('far', 'fas'); // Make heart solid
+            icon.style.color = '#ff4757';
+            savedItemIds.add(id);
+            
+            // Animation effect
+            btn.style.transform = "scale(1.2)";
+            setTimeout(() => btn.style.transform = "scale(1)", 200);
+
+            await setDoc(userRef, {
+                product_id: id,
+                name: name,
+                price: price,
+                image: image,
+                vendor: vendor,
+                saved_at: new Date()
+            });
+        }
+    };
+
+    // -- HELPER: Update all hearts on screen based on saved list --
+    function updateHeartIcons() {
+        document.querySelectorAll('.save-btn').forEach(btn => {
+            const id = btn.id.replace('save-', '');
+            const icon = btn.querySelector('i');
+            if (savedItemIds.has(id)) {
+                icon.classList.remove('far');
+                icon.classList.add('fas');
+                icon.style.color = '#ff4757';
+            } else {
+                icon.classList.remove('fas');
+                icon.classList.add('far');
+                icon.style.color = '#777';
+            }
+        });
+    }
+
+    // -- DATA LOADING SCRIPT --
     const sheetID = "1SvVUbEnDgqgw2Z_M1ShQkzyFTsnnS6n8mTs7UMXVvF4";
     const apiRoot = `https://opensheet.elk.sh/${sheetID}`;
     const ADMIN_PHONE = "2348144516127"; 
@@ -288,7 +370,6 @@
 
     function shuffle(array) { return array.sort(() => 0.5 - Math.random()); }
 
-    // Init Data Load
     setupMainSearch(); 
     
     // 1. REVIEWS
@@ -371,7 +452,7 @@
         }
     }
 
-    // --- RENDER FUNCTIONS ---
+    // --- RENDER ITEMS FUNCTION (WITH SAVE BUTTON) ---
     function renderItems(data) {
         const itemGrid = document.getElementById("home-items-grid");
         if(!itemGrid) return;
@@ -386,12 +467,29 @@
             const pDesc = p.description || p.Description || ""; 
             const pVendor = p.vendor_id || p.Vendor_ID;
             const pImage = p.image || p.Image;
+            
+            // Create a ID for saving (Vendor + Name combined)
+            const pID = (pVendor + "-" + pName).replace(/\s+/g, '-').toLowerCase();
+
             const img = pImage.startsWith('http') ? pImage : `img/${pImage}`;
             const vendorPhone = globalPhoneBook[pVendor] || ADMIN_PHONE;
             const waLink = `https://wa.me/${vendorPhone}?text=${encodeURIComponent(`Hi, I saw "${pName}" on AFIT Market. Is it available?`)}`;
 
+            // Check if saved
+            const isSaved = savedItemIds.has(pID);
+            const heartClass = isSaved ? 'fas' : 'far';
+            const heartColor = isSaved ? '#ff4757' : '#777';
+
             itemGrid.innerHTML += `
-            <div class="ad-card">
+            <div class="ad-card" style="position:relative;">
+                
+                <button onclick="toggleSave('${pID}', '${pName}', '${pPrice}', '${pImage}', '${pVendor}')" 
+                        class="save-btn" 
+                        id="save-${pID}"
+                        style="position:absolute; top:10px; right:10px; background:white; border:none; border-radius:50%; width:30px; height:30px; display:flex; align-items:center; justify-content:center; cursor:pointer; box-shadow:0 2px 5px rgba(0,0,0,0.2); z-index:10;">
+                    <i class="${heartClass} fa-heart" style="color:${heartColor}; font-size:16px;"></i>
+                </button>
+
                 <img class="ad-img" src="${img}" alt="${pName}" onerror="this.src='img/logo-blue.png'">
                 <div class="ad-info">
                     <div class="ad-price">${pPrice}</div>
@@ -434,6 +532,5 @@
         });
     }
 </script>
-
 </body>
 </html>
