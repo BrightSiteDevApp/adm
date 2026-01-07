@@ -1943,3 +1943,61 @@ body.dark-mode .filter-btn.active {
     align-self: start;         /* Stop the card from stretching to fill the grid row */
     padding-bottom: 10px;      /* Optional: Adds a tiny breathing room at the bottom */
 }
+      /* FIX: Force the profile button to be a specific small circle */
+      #header-profile-btn {
+          width: 35px !important;  /* Fixed width */
+          height: 35px !important; /* Fixed height */
+          padding: 0 !important;   /* Remove padding so image fits */
+          border-radius: 50%;      /* Make it round */
+          overflow: hidden;        /* Cut off corners */
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          border: 1px solid #eee;  /* Thin border */
+      }
+
+      /* Image fits perfectly inside */
+      .header-profile-img {
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+      }
+      
+      /* Login Modal Styles */
+      .login-modal-overlay {
+          position: fixed;
+          top: 0; left: 0;
+          width: 100%; height: 100%;
+          background: rgba(0,0,0,0.5);
+          display: none; 
+          justify-content: center;
+          align-items: center;
+          z-index: 2000;
+          animation: fadeIn 0.3s ease;
+      }
+      .login-box {
+          background: white;
+          padding: 25px;
+          border-radius: 15px;
+          text-align: center;
+          width: 90%;
+          max-width: 320px;
+          position: relative;
+      }
+      .google-btn-small {
+          background: white;
+          color: #333;
+          border: 1px solid #ddd;
+          padding: 10px 15px;
+          border-radius: 25px;
+          font-weight: bold;
+          font-size: 13px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 10px;
+          cursor: pointer;
+          margin-top: 15px;
+          width: 100%;
+          box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+      }

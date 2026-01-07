@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Profile - AFIT Market</title>
+    <link rel="stylesheet" href="asset/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="icon" href="img/app-logo.png">
+
+    <style>
+        .profile-header-card {
+            background: linear-gradient(135deg, #2d8eff, #6c5ce7);
+            color: white;
+            padding: 30px 20px;
+            text-align: center;
+            border-radius: 0 0 20px 20px;
+            box-shadow: 0 4px 15px rgba(45, 142, 255, 0.3);
+        }
+        .profile-pic-large {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            border: 4px solid white;
+            object-fit: cover;
+            margin-bottom: 10px;
+            background: #fff;
+        }
+        .profile-name { font-size: 20px; font-weight: bold; margin-bottom: 5px; }
+        .profile-email { font-size: 12px; opacity: 0.8; margin-bottom: 15px; }
+        
+        .action-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            padding: 20px;
+            margin-top: -30px;
+        }
+        .action-card {
+            background: white;
+            padding: 15px;
+            border-radius: 12px;
+            text-align: center;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+            cursor: pointer;
+            text-decoration: none;
+            color: #333;
+        }
+        .action-card i { font-size: 20px; color: #2d8eff; margin-bottom: 8px; display: block; }
+        .action-card span { font-size: 12px; font-weight: bold; }
+
+        .edit-form {
+            display: none; /* Hidden by default */
+            background: white;
+            margin: 20px;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+        .form-input {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 10px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            box-sizing: border-box; /* Fix padding issue */
+        }
+    </style>
+</head>
+<body>
+
+    <div class="app-container">
+        
+        <div class="header">
+            <a href="index.html" class="back-btn"><i class="fas fa-arrow-left"></i></a>
+            <span style="font-weight:bold;">My Account</span>
+        </div>
+
+        <div id="loading-state" style="text-align:center; padding:50px;">
+            <p>Loading profile...</p>
+        </div>
+
+        <div id="logged-out-state" style="display:none; text-align:center; padding:50px;">
+            <img src="img/logo-blue.png" style="width:60px; margin-bottom:20px;">
+            <h3>You are not logged in</h3>
+            <p style="color:#777; margin-bottom:20px;">Sign in to view your profile.</p>
+            <a href="login.html" class="chat-btn" style="background:#2d8eff;">Go to Login</a>
+        </div>
+
+        <div id="profile-view" style="display:none;">
+            <div class="profile-header-card">
+                <img id="user-img" src="" class="profile-pic-large" alt="User">
+                <div class="profile-name" id="user-name">...</div>
+                <div class="profile-email" id="user-email">...</div>
+                <button onclick="toggleEdit()" style="background:rgba(255,255,255,0.2); color:white; border:none; padding:5px 15px; border-radius:15px; font-size:11px; cursor:pointer;">
+                    <i class="fas fa-pen"></i> Edit Profile
+                </button>
+            </div>
+
+            <div class="action-grid">
+                <div class="action-card">
+                    <i class="fas fa-heart" style="color:#ff4757;"></i>
+                    <span>Saved Items</span>
+                </div>
+                <div class="action-card">
+                    <i class="fas fa-store"></i>
+                    <span>My Orders</span>
+                </div>
+            </div>
+
+            <div id="edit-form" class="edit-form">
+                <h4 style="margin-bottom:15px;">Edit Details</h4>
+                <label style="font-size:12px; color:#777;">Display Name</label>
+                <input type="text" id="new-name" class="form-input" placeholder="Enter Name">
+                
+                <label style="font-size:12px; color:#777;">Profile Picture URL (Optional)</label>
+                <input type="text" id="new-pic" class="form-input" placeholder="Paste image link here...">
+                
+                <button id="save-btn" class="chat-btn" style="width:100%; margin-top:5px;">Save Changes</button>
+            </div>
+
+            <div style="padding: 20px;">
+                <button id="btn-logout" class="chat-btn" style="background:#fff; border:1px solid #ff4757; color:#ff4757;">
+                    Logout
+                </button>
+            </div>
+        </div>
+
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getAuth, onAuthStateChanged, signOut, updateProfile } 
+        from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+
+        // YOUR CONFIG
+        const firebaseConfig = {
+            apiKey: "AIzaSyA1eQbrJpH9OtDNDN7z9oTFTRSAE7vCFbg",
+            authDomain: "afit-market-auth.firebaseapp.com",
+            projectId: "afit-market-auth",
+            storageBucket: "afit-market-auth.firebasestorage.app",
+            messagingSenderId: "894920886640",
+            appId: "1:894920886640:web:77d0a6b39bf89ff8f767b5"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+
+        // UI Elements
+        const loadingState = document.getElementById('loading-state');
+        const loggedOutState = document.getElementById('logged-out-state');
+        const profileView = document.getElementById('profile-view');
+        
+        const userName = document.getElementById('user-name');
+        const userEmail = document.getElementById('user-email');
+        const userImg = document.getElementById('user-img');
+
+        // Check Login Status
+        onAuthStateChanged(auth, (user) => {
+            loadingState.style.display = 'none';
+            
+            if (user) {
+                // Show Profile
+                profileView.style.display = 'block';
+                loggedOutState.style.display = 'none';
+
+                // Populate Data
+                userName.innerText = user.displayName || "User";
+                userEmail.innerText = user.email;
+                userImg.src = user.photoURL || "img/person.png";
+
+                // Pre-fill edit form
+                document.getElementById('new-name').value = user.displayName;
+            } else {
+                // Show Login Prompt
+                profileView.style.display = 'none';
+                loggedOutState.style.display = 'block';
+            }
+        });
+
+        // Logout Logic
+        document.getElementById('btn-logout').addEventListener('click', () => {
+            signOut(auth).then(() => {
+                window.location.href = "index.html"; // Go home after logout
+            });
+        });
+
+        // Edit Profile Logic
+        window.toggleEdit = function() {
+            const form = document.getElementById('edit-form');
+            form.style.display = form.style.display === 'block' ? 'none' : 'block';
+        };
+
+        // Save Changes Logic
+        document.getElementById('save-btn').addEventListener('click', () => {
+            const newName = document.getElementById('new-name').value;
+            const newPic = document.getElementById('new-pic').value;
+            const btn = document.getElementById('save-btn');
+
+            if(!newName) return alert("Name cannot be empty");
+
+            btn.innerText = "Saving...";
+            
+            // Build update object
+            const updates = { displayName: newName };
+            if(newPic && newPic.startsWith('http')) {
+                updates.photoURL = newPic;
+            }
+
+            updateProfile(auth.currentUser, updates).then(() => {
+                alert("Profile Updated!");
+                location.reload(); // Reload to see changes
+            }).catch((error) => {
+                console.error(error);
+                alert("Error updating profile.");
+                btn.innerText = "Save Changes";
+            });
+        });
+
+    </script>
+</body>
+</html>

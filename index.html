@@ -28,77 +28,8 @@
   <link rel="stylesheet" href="asset/style.css">
   <link rel="icon" href="img/app-logo.png">
 
-  <style>
-      /* Style for the Header Profile Image */
-      .header-profile-img {
-          width: 100%;
-          height: 100%;
-          border-radius: 50%;
-          object-fit: cover;
-          border: 1px solid #2d8eff;
-      }
-      
-      /* Login Modal Styles */
-      .login-modal-overlay {
-          position: fixed;
-          top: 0; left: 0;
-          width: 100%; height: 100%;
-          background: rgba(0,0,0,0.5);
-          display: none; /* Hidden by default */
-          justify-content: center;
-          align-items: center;
-          z-index: 2000;
-          animation: fadeIn 0.3s ease;
-      }
-      .login-box {
-          background: white;
-          padding: 25px;
-          border-radius: 15px;
-          text-align: center;
-          width: 90%;
-          max-width: 320px;
-          position: relative;
-      }
-      .google-btn-small {
-          background: white;
-          color: #333;
-          border: 1px solid #ddd;
-          padding: 10px 15px;
-          border-radius: 25px;
-          font-weight: bold;
-          font-size: 13px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          gap: 10px;
-          cursor: pointer;
-          margin-top: 15px;
-          width: 100%;
-          box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-      }
-  </style>
-</head>
-<body data-page="home">
-  <div id="preloader">
-    <div class="loader-content">
-        <img src="img/logo-blue.png" alt="Loading..." class="loader-logo">
-        <div class="loading-bar"></div>
-    </div>
-  </div>
+
   
-  <div style="background: #222; color: #fff; font-size: 11px; padding: 5px; white-space: nowrap; overflow: hidden;">
-    <div style="display: inline-block; animation: scroll-left 15s linear infinite;">
-        📢 <span style="color: #f1c40f;">NEWS:</span> Exam Timetable is out check AFIT News channel  •  New commandant  •  Exams starts on 26th Jan 2026
-    </div>
-  </div>
-
-<style>
-@keyframes scroll-left {
-    from { transform: translateX(100%); }
-    to { transform: translateX(-100%); }
-}
-</style>
-
   <div class="app-container">
   <div class="header">
     <div class="header-top">
@@ -112,7 +43,7 @@
               <i class="far fa-bell"></i>
           </div>
           
-          <a href="login.html" class="notification-icon-box" id="header-profile-btn" style="overflow: hidden; padding: 0;">
+          <a href="account.html" class="notification-icon-box" id="header-profile-btn" style="overflow: hidden; padding: 0;">
               <i class="far fa-user" style="padding: 8px;"></i>
           </a>
       </div>
