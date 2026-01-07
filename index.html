@@ -21,48 +21,24 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
   <title>AFIT Digital Market (ADM) | Buy & Sell on Campus</title>
   <meta name="description" content="AFIT Digital Market (AFIT DGM) is the official student marketplace for AFIT. Buy and sell phones, food, fashion, and services directly on campus. Safe, fast, and student-verified.">
-  
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link rel="stylesheet" href="asset/style.css"> 
   <link rel="icon" href="img/app-logo.png">
 
   <style>
-      /* GLOBAL ANNOUNCEMENT BANNER */
-      #global-announcement {
-          background: #ff4757; color: white; padding: 8px;
-          display: none; 
-      }
-      #announce-text {
-          font-size: 13px; font-weight: bold; width: 100%; white-space: nowrap; overflow: hidden;
-      }
+      #global-announcement { background: #ff4757; color: white; padding: 8px; display: none; }
+      #announce-text { font-size: 13px; font-weight: bold; width: 100%; white-space: nowrap; overflow: hidden; }
 
-      /* PRODUCT DETAIL MODAL */
-      .product-modal {
-          display: none; position: fixed; top: 0; left: 0;
-          width: 100%; height: 100%; background: rgba(0,0,0,0.8);
-          z-index: 3000; justify-content: center; align-items: center; padding: 20px;
-      }
-      .pm-content {
-          background: white; width: 100%; max-width: 400px;
-          border-radius: 15px; overflow: hidden; position: relative;
-          max-height: 90vh; overflow-y: auto;
-          animation: zoomIn 0.2s ease;
-      }
+      .product-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 3000; justify-content: center; align-items: center; padding: 20px; }
+      .pm-content { background: white; width: 100%; max-width: 400px; border-radius: 15px; overflow: hidden; position: relative; max-height: 90vh; overflow-y: auto; animation: zoomIn 0.2s ease; }
       .pm-img { width: 100%; height: 250px; object-fit: cover; background: #eee; }
       .pm-body { padding: 20px; }
       .pm-title { font-size: 20px; font-weight: bold; margin: 0; color: #333; }
       .pm-price { font-size: 18px; color: #2d8eff; font-weight: bold; margin: 5px 0 10px; }
       .pm-desc { font-size: 14px; color: #555; line-height: 1.5; margin-bottom: 20px; }
       
-      /* SAFETY BOX */
-      .safety-box {
-          background: #fff3cd; border: 1px solid #ffeeba;
-          color: #856404; padding: 12px; border-radius: 8px;
-          font-size: 12px; display: flex; gap: 10px; align-items: start;
-          margin-bottom: 20px;
-      }
+      .safety-box { background: #fff3cd; border: 1px solid #ffeeba; color: #856404; padding: 12px; border-radius: 8px; font-size: 12px; display: flex; gap: 10px; align-items: start; margin-bottom: 20px; }
       
-      /* SIMILAR ITEMS */
       .similar-section { margin-top: 20px; border-top: 1px solid #eee; padding-top: 15px; }
       .similar-header { font-size: 13px; font-weight: bold; color: #777; margin-bottom: 10px; }
       .similar-grid { display: flex; gap: 10px; overflow-x: auto; padding-bottom: 5px; scrollbar-width: none; }
@@ -71,13 +47,7 @@
       .sim-img { width: 110px; height: 110px; object-fit: cover; border-radius: 10px; background: #eee; }
       .sim-price { font-size: 11px; font-weight: bold; margin-top: 5px; color: #333; }
 
-      .close-pm {
-          position: absolute; top: 15px; right: 15px;
-          background: rgba(0,0,0,0.5); color: white;
-          width: 30px; height: 30px; border-radius: 50%;
-          display: flex; justify-content: center; align-items: center;
-          cursor: pointer; font-size: 16px; z-index: 10;
-      }
+      .close-pm { position: absolute; top: 15px; right: 15px; background: rgba(0,0,0,0.5); color: white; width: 30px; height: 30px; border-radius: 50%; display: flex; justify-content: center; align-items: center; cursor: pointer; font-size: 16px; z-index: 10; }
       
       .ad-img { cursor: pointer; }
       @keyframes zoomIn { from { transform: scale(0.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
@@ -87,11 +57,9 @@
 <body>
 
   <div class="app-container">
-    
     <div class="header">
         <div class="header-top">
           <a href="/"> <img src="img/logo-white.png" alt="AFIT Market" class="site-logo"> </a>
-          
           <div style="display: flex; gap: 10px; align-items: center;">
               <div class="notification-icon-box" id="theme-toggle"><i class="fas fa-moon"></i></div>
               <div class="notification-icon-box" id="notif-btn"><i class="far fa-bell"></i></div>
@@ -99,7 +67,6 @@
               <a href="account.html" class="notification-icon-box" id="header-profile-btn" style="overflow: hidden; padding: 0;"><i class="far fa-user" style="padding: 8px;"></i></a>
           </div>
         </div>
-
         <div class="search-box">
           <select id="search-type">
             <option value="product">Product</option>
@@ -285,7 +252,7 @@
     import { getFirestore, doc, setDoc, deleteDoc, collection, getDocs, query, getDoc } 
     from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-    // FIREBASE CONFIG
+    // CONFIG
     const firebaseConfig = {
         apiKey: "AIzaSyA1eQbrJpH9OtDNDN7z9oTFTRSAE7vCFbg",
         authDomain: "afit-market-auth.firebaseapp.com",
@@ -314,14 +281,16 @@
     initData();
     loadAnnouncement(); 
 
-    // FETCH GLOBAL ANNOUNCEMENT
+    // 1. GLOBAL ANNOUNCEMENT
     async function loadAnnouncement() {
         try {
             const docSnap = await getDoc(doc(db, "settings", "global_alert"));
             if(docSnap.exists() && docSnap.data().active) {
                 const banner = document.getElementById('global-announcement');
-                document.getElementById('announce-text').innerText = docSnap.data().message;
-                banner.style.display = 'block';
+                if(banner) {
+                    document.getElementById('announce-text').innerText = docSnap.data().message;
+                    banner.style.display = 'block';
+                }
             }
         } catch(e) { console.error("Banner error:", e); }
     }
@@ -383,20 +352,19 @@
             
             renderStories(allProducts, globalPhoneBook);
             
-            // ✅ FEATURED SORTING LOGIC
+            // ✅ FEATURED & SOLD SORTING
             const featured = [];
             const normal = [];
             
             allProducts.forEach(p => {
-                if (p.status !== "Sold") { // Filter out sold items from main list if you want
+                if ((p.status || p.Status) !== "Sold") { // Only show unsold in main list?
+                    // Actually, let's keep sold items but put them at bottom or just normal list
                     if (p.is_featured === "true") featured.push(p);
                     else normal.push(p);
                 }
             });
 
-            // Shuffle normal items
             const shuffledNormal = shuffle(normal);
-            // Put Featured FIRST, then random others
             const displayList = [...featured, ...shuffledNormal].slice(0, 15);
 
             renderItems(displayList); 
@@ -414,7 +382,7 @@
                 items.push({
                     name: d.name, price: d.price, image: d.image, vendor_id: d.vendor_id,
                     description: d.description, status: d.status, is_story: d.is_story || "false",
-                    is_featured: d.is_featured || "false", // ✅ Load Feature Status
+                    is_featured: d.is_featured || "false",
                     category: d.category 
                 });
             });
@@ -452,6 +420,7 @@
         });
     }
 
+    // ✅ VIEW PRODUCT LOGIC
     window.viewProduct = function(name, price, desc, img, phone, category) {
         document.getElementById('pm-title').innerText = name;
         document.getElementById('pm-price').innerText = price;
@@ -459,33 +428,36 @@
         document.getElementById('pm-img').src = img;
         document.getElementById('pm-btn').href = `https://wa.me/${phone}?text=${encodeURIComponent(`Hi, I saw "${name}" on AFIT Market. Is it available?`)}`;
         
+        // Similar Items Logic
         const similarWrapper = document.getElementById('similar-wrapper');
         const similarGrid = document.getElementById('pm-similar-grid');
-        similarGrid.innerHTML = "";
+        
+        if(similarWrapper && similarGrid) {
+            similarGrid.innerHTML = "";
+            if (category && allProducts.length > 0) {
+                const similarItems = allProducts.filter(p => (p.category || p.Category) === category && (p.name || p.Name) !== name);
+                const picked = similarItems.sort(() => 0.5 - Math.random()).slice(0, 3);
 
-        if (category && allProducts.length > 0) {
-            const similarItems = allProducts.filter(p => (p.category || p.Category) === category && (p.name || p.Name) !== name);
-            const picked = similarItems.sort(() => 0.5 - Math.random()).slice(0, 3);
+                if (picked.length > 0) {
+                    similarWrapper.style.display = 'block';
+                    picked.forEach(p => {
+                        const sName = p.name || p.Name;
+                        const sPrice = p.price || p.Price;
+                        const sImg = (p.image || p.Image).startsWith('http') ? (p.image || p.Image) : `img/${p.image || p.Image}`;
+                        const sVendor = p.vendor_id || p.Vendor_ID;
+                        const sPhone = globalPhoneBook[sVendor] || ADMIN_PHONE;
+                        const safeName = sName.replace(/'/g, "\\'");
+                        const safeDesc = (p.description || "No description").replace(/'/g, "\\'").replace(/\n/g, " ");
 
-            if (picked.length > 0) {
-                similarWrapper.style.display = 'block';
-                picked.forEach(p => {
-                    const sName = p.name || p.Name;
-                    const sPrice = p.price || p.Price;
-                    const sImg = (p.image || p.Image).startsWith('http') ? (p.image || p.Image) : `img/${p.image || p.Image}`;
-                    const sVendor = p.vendor_id || p.Vendor_ID;
-                    const sPhone = globalPhoneBook[sVendor] || ADMIN_PHONE;
-                    const safeName = sName.replace(/'/g, "\\'");
-                    const safeDesc = (p.description || "No description").replace(/'/g, "\\'").replace(/\n/g, " ");
-
-                    similarGrid.innerHTML += `
-                    <div class="sim-card" onclick="viewProduct('${safeName}', '${sPrice}', '${safeDesc}', '${sImg}', '${sPhone}', '${category}')">
-                        <img src="${sImg}" class="sim-img" onerror="this.src='img/logo-blue.png'">
-                        <div class="sim-price">${sPrice}</div>
-                    </div>`;
-                });
+                        similarGrid.innerHTML += `
+                        <div class="sim-card" onclick="viewProduct('${safeName}', '${sPrice}', '${safeDesc}', '${sImg}', '${sPhone}', '${category}')">
+                            <img src="${sImg}" class="sim-img" onerror="this.src='img/logo-blue.png'">
+                            <div class="sim-price">${sPrice}</div>
+                        </div>`;
+                    });
+                } else { similarWrapper.style.display = 'none'; }
             } else { similarWrapper.style.display = 'none'; }
-        } else { similarWrapper.style.display = 'none'; }
+        }
 
         document.getElementById('product-modal').style.display = 'flex';
     };
@@ -494,41 +466,54 @@
         document.getElementById('product-modal').style.display = 'none';
     };
 
+    // ✅ SMART HISTORY ADD
     window.addToHistory = function(id, name, price, image, vendor) {
         let history = JSON.parse(localStorage.getItem('adm_history')) || [];
         history = history.filter(item => item.id !== id);
-        history.unshift({ id, name, price, image, vendor });
+        history.unshift({ 
+            id, name, price, image, vendor,
+            seenAt: Date.now() 
+        });
         if(history.length > 6) history.pop();
         localStorage.setItem('adm_history', JSON.stringify(history));
     };
 
+    // ✅ SMART HISTORY LOAD
     function loadRecentItems() {
-        const history = JSON.parse(localStorage.getItem('adm_history')) || [];
+        let history = JSON.parse(localStorage.getItem('adm_history')) || [];
         const container = document.getElementById('recent-grid');
         const section = document.getElementById('recent-section');
+        const TEN_MINUTES = 10 * 60 * 1000;
+
+        history = history.filter(item => {
+            const isFresh = (Date.now() - (item.seenAt || 0)) < TEN_MINUTES;
+            const isVendorValid = globalPhoneBook[item.vendor]; // Check if vendor exists
+            return isFresh && isVendorValid;
+        });
+        localStorage.setItem('adm_history', JSON.stringify(history));
 
         if(history.length > 0 && container) {
-            const cleanHistory = history.filter(p => !suspendedVendors.has(p.vendor));
-            if (cleanHistory.length > 0) {
-                section.style.display = 'block';
-                container.innerHTML = "";
-                cleanHistory.forEach(p => {
-                    const vendorPhone = globalPhoneBook[p.vendor] || ADMIN_PHONE;
-                    const img = p.image.startsWith('http') ? p.image : `img/${p.image}`;
-                    const category = "General"; 
-                    
-                    container.innerHTML += `
-                    <div class="ad-card" style="min-width: 140px;"> 
-                        <img class="ad-img" src="${img}" alt="${p.name}" onerror="this.src='img/logo-blue.png'"
-                             onclick="viewProduct('${p.name}', '${p.price}', 'Check details...', '${img}', '${vendorPhone}', '${category}')">
-                        <div class="ad-info">
-                            <div class="ad-price" style="font-size:12px;">${p.price}</div>
-                            <div class="ad-title" style="font-size:11px;">${p.name}</div>
-                            <a href="#" onclick="viewProduct('${p.name}', '${p.price}', 'Check details...', '${img}', '${vendorPhone}', '${category}')" class="chat-btn" style="padding:4px 10px; font-size:10px;">Get</a>
-                        </div>
-                    </div>`;
-                });
-            }
+            section.style.display = 'block';
+            container.innerHTML = "";
+            history.forEach(p => {
+                const vendorPhone = globalPhoneBook[p.vendor] || ADMIN_PHONE;
+                const img = p.image.startsWith('http') ? p.image : `img/${p.image}`;
+                const category = "General"; 
+                const safeName = p.name.replace(/'/g, "\\'");
+
+                container.innerHTML += `
+                <div class="ad-card" style="min-width: 140px;"> 
+                    <img class="ad-img" src="${img}" alt="${p.name}" onerror="this.src='img/logo-blue.png'"
+                         onclick="viewProduct('${safeName}', '${p.price}', 'Check details...', '${img}', '${vendorPhone}', '${category}')">
+                    <div class="ad-info">
+                        <div class="ad-price" style="font-size:12px;">${p.price}</div>
+                        <div class="ad-title" style="font-size:11px;">${p.name}</div>
+                        <a href="#" onclick="viewProduct('${safeName}', '${p.price}', 'Check details...', '${img}', '${vendorPhone}', '${category}')" class="chat-btn" style="padding:4px 10px; font-size:10px;">Get</a>
+                    </div>
+                </div>`;
+            });
+        } else if(section) {
+            section.style.display = 'none';
         }
     }
 
@@ -651,7 +636,7 @@
             const pDesc = p.description || p.Description || "No description provided.";
             const pCat = p.category || p.Category || "General";
             const pStatus = p.status || p.Status || "Active"; 
-            const isFeatured = p.is_featured === "true"; // Check Featured
+            const isFeatured = p.is_featured === "true"; 
             
             const pID = (pVendor + "-" + pName).replace(/\s+/g, '-').toLowerCase();
             const img = pImage.startsWith('http') ? pImage : `img/${pImage}`;
@@ -660,15 +645,12 @@
             const heartClass = isSaved ? 'fas' : 'far';
             const heartColor = isSaved ? '#ff4757' : '#777';
 
-            // Safe strings for onclick
             const safeName = pName.replace(/'/g, "\\'");
             const safeDesc = pDesc.replace(/'/g, "\\'").replace(/\n/g, " ");
 
-            // SOLD LOGIC
+            // SOLD & SPONSORED LOGIC
             const isSold = pStatus === "Sold";
             const opacity = isSold ? 'opacity:0.6;' : '';
-            
-            // BADGE LOGIC (Sold > Sponsored)
             let badge = '';
             if (isSold) {
                 badge = '<span style="background:red; color:white; font-size:9px; padding:2px 5px; position:absolute; top:10px; left:10px; border-radius:4px; z-index:10;">SOLD</span>';

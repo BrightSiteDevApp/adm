@@ -155,6 +155,7 @@
     let pageVendorEmail = null; 
     const sheetID = "1SvVUbEnDgqgw2Z_M1ShQkzyFTsnnS6n8mTs7UMXVvF4";
     const apiRoot = `https://opensheet.elk.sh/${sheetID}`;
+    const ADMIN_PHONE = "2348144516127"; // Admin fallback
 
     onAuthStateChanged(auth, async (user) => {
         if (user) {
@@ -218,7 +219,6 @@
     });
 
     function loadProfile(id) {
-        // ⛔ CHECK SUSPENSION FIRST
         getDoc(doc(db, "vendor_status", id)).then(docSnap => {
             if (docSnap.exists() && docSnap.data().status === "suspended") {
                 document.getElementById('profile-content').style.display = 'none';
@@ -233,7 +233,6 @@
                 return;
             }
 
-            // If not suspended, load data
             fetch(`${apiRoot}/Vendors`)
             .then(res => { if (!res.ok) throw new Error("Connection Failed"); return res.json(); })
             .then(data => {
@@ -267,6 +266,7 @@
         document.getElementById('btn-contact').href = `https://wa.me/${phone}`;
         const instaLink = v.instagram || v.Instagram;
         if(instaLink) { const insta = document.getElementById('link-insta'); insta.href = `https://instagram.com/${instaLink}`; insta.style.display = 'inline-block'; }
+        
         let status = String(v.verified || v.Verified || "").toLowerCase().trim();
         const badgeSpan = document.getElementById('p-badge');
         if (status === "gold") badgeSpan.innerHTML = '<i class="fas fa-check-circle tick-gold"></i>';
@@ -296,20 +296,41 @@
             grid.innerHTML = ""; 
             const firestoreProducts = await loadVendorFirestoreItems(id);
             const allProducts = [...sheetData, ...firestoreProducts];
-            const myProducts = allProducts.filter(p => (p.vendor_id || p.Vendor_ID) === id && (p.status || p.Status) !== "Sold");
+            // ⚠️ UPDATED: Removed "Sold" check to allow sold items to display
+            const myProducts = allProducts.filter(p => (p.vendor_id || p.Vendor_ID) === id);
+            
             if(myProducts.length === 0) { grid.innerHTML = "<p style='width:100%; text-align:center; padding:20px; color:#777;'>No items listed yet.</p>"; return; }
+            
             myProducts.forEach(p => {
                 const pName = p.name || p.Name; const pPrice = p.price || p.Price; const pCategory = p.category || p.Category; const pImage = p.image || p.Image;
+                const pDesc = p.description || p.Description || "No description.";
+                const pStatus = p.status || p.Status || "Active"; 
+                
                 let pImg = pImage || "logo-blue.png"; if (!pImg.startsWith('http')) pImg = `img/${pImg}`;
                 const pID = (id + "-" + pName).replace(/\s+/g, '-').toLowerCase();
                 const isSaved = savedItemIds.has(pID); const heartClass = isSaved ? 'fas' : 'far'; const heartColor = isSaved ? '#ff4757' : '#777';
+
+                const safeName = pName.replace(/'/g, "\\'");
+                const safeDesc = pDesc.replace(/'/g, "\\'").replace(/\n/g, " ");
+
+                // 🔴 SOLD LOGIC
+                const isSold = pStatus === "Sold";
+                const opacity = isSold ? 'opacity:0.6;' : '';
+                const soldBadge = isSold ? '<span style="background:red; color:white; font-size:9px; padding:2px 5px; position:absolute; top:10px; left:10px; border-radius:4px; z-index:10;">SOLD</span>' : '';
+                const clickAction = isSold ? "" : `onclick="viewProduct('${safeName}', '${pPrice}', '${safeDesc}', '${pImg}', '${vendorPhone}', '${pID}', '${pCategory}')"`;
+                const btnText = isSold ? "Sold" : "Get Item";
+                const btnStyle = isSold ? "background:#777; pointer-events:none;" : "";
+
                 grid.innerHTML += `
-                <div class="ad-card" style="position:relative;">
-                    <button onclick="toggleSave('${pID}', '${pName}', '${pPrice}', '${pImage}', '${id}')" class="save-btn" id="save-${pID}" style="position:absolute; top:10px; right:10px; background:white; border:none; border-radius:50%; width:30px; height:30px; display:flex; align-items:center; justify-content:center; cursor:pointer; box-shadow:0 2px 5px rgba(0,0,0,0.2); z-index:10;"><i class="${heartClass} fa-heart" style="color:${heartColor}; font-size:16px;"></i></button>
-                    <img class="ad-img" src="${pImg}" alt="${pName}" onerror="this.src='img/logo-blue.png'">
+                <div class="ad-card" style="position:relative; ${opacity}">
+                    ${soldBadge}
+                    <button onclick="toggleSave('${pID}', '${safeName}', '${pPrice}', '${pImage}', '${id}')" class="save-btn" id="save-${pID}" style="position:absolute; top:10px; right:10px; background:white; border:none; border-radius:50%; width:30px; height:30px; display:flex; align-items:center; justify-content:center; cursor:pointer; box-shadow:0 2px 5px rgba(0,0,0,0.2); z-index:10;"><i class="${heartClass} fa-heart" style="color:${heartColor}; font-size:16px;"></i></button>
+                    
+                    <img class="ad-img" src="${pImg}" alt="${pName}" onerror="this.src='img/logo-blue.png'" ${clickAction}>
+                    
                     <div class="ad-info">
                         <div class="ad-price">${pPrice}</div><div class="ad-title">${pName}</div><div class="ad-location">Category: ${pCategory}</div>
-                        <a href="https://wa.me/${vendorPhone}?text=I%20want%20to%20buy%20${pName}%20from%20${id}" class="chat-btn">Get Item</a>
+                        <a href="#" ${clickAction} class="chat-btn" style="${btnStyle}">${btnText}</a>
                     </div>
                 </div>`;
             });
@@ -337,6 +358,36 @@
     window.shareVendor = function() {
         if (navigator.share) { navigator.share({ title: document.title, url: window.location.href }); } else { alert("Link copied!"); }
     }
+
+    // ✅ VIEW PRODUCT LOGIC
+    window.viewProduct = function(name, price, desc, img, phone, id, category) {
+        document.getElementById('pm-title').innerText = name;
+        document.getElementById('pm-price').innerText = price;
+        document.getElementById('pm-desc').innerText = desc;
+        document.getElementById('pm-img').src = img;
+        document.getElementById('pm-btn').href = `https://wa.me/${phone}?text=${encodeURIComponent(`Hi, I saw "${name}" on AFIT Market. Is it available?`)}`;
+        
+        // Add to history when viewed
+        addToHistory(id, name, price, img, phone); // Using phone/vendorID loosely here for history key
+
+        document.getElementById('product-modal').style.display = 'flex';
+    };
+
+    window.closeProductModal = function() {
+        document.getElementById('product-modal').style.display = 'none';
+    };
+
+    // ✅ SMART HISTORY ADD
+    window.addToHistory = function(id, name, price, image, vendor) {
+        let history = JSON.parse(localStorage.getItem('adm_history')) || [];
+        history = history.filter(item => item.id !== id);
+        history.unshift({ 
+            id, name, price, image, vendor,
+            seenAt: Date.now() 
+        });
+        if(history.length > 6) history.pop();
+        localStorage.setItem('adm_history', JSON.stringify(history));
+    };
 </script>
 </body>
 </html>

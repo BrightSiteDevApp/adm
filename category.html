@@ -94,37 +94,8 @@
                 querySnapshot.forEach((doc) => { savedItemIds.add(doc.id); });
                 updateHeartIcons(); 
             } catch (e) { console.error("Error loading wishlist:", e); }
-        } else { savedItemIds.clear(); updateHeartIcons(); }
-    });
-
-    window.toggleSave = async function(id, name, price, image, vendor) {
-        const user = auth.currentUser;
-        if (!user) { if(confirm("You need to sign in to save items. Go to login page?")) { window.location.href = "login.html"; } return; }
-        const btn = document.getElementById(`save-${id}`);
-        const icon = btn.querySelector('i');
-        const userRef = doc(db, "users", user.uid, "saved_items", id);
-
-        if (savedItemIds.has(id)) {
-            icon.classList.replace('fas', 'far'); icon.style.color = '#777';
-            savedItemIds.delete(id); await deleteDoc(userRef);
-        } else {
-            icon.classList.replace('far', 'fas'); icon.style.color = '#ff4757';
-            savedItemIds.add(id);
-            await setDoc(userRef, { product_id: id, name: name, price: price, image: image, vendor: vendor, saved_at: new Date() });
         }
-    };
-
-    function updateHeartIcons() {
-        document.querySelectorAll('.save-btn').forEach(btn => {
-            const id = btn.id.replace('save-', '');
-            const icon = btn.querySelector('i');
-            if (savedItemIds.has(id)) {
-                icon.classList.remove('far'); icon.classList.add('fas'); icon.style.color = '#ff4757';
-            } else {
-                icon.classList.remove('fas'); icon.classList.add('far'); icon.style.color = '#777';
-            }
-        });
-    }
+    });
 
     async function loadFirestoreProducts() {
         try {
@@ -133,7 +104,11 @@
             let items = [];
             snapshot.forEach(doc => {
                 const d = doc.data();
-                items.push({ name: d.name, price: d.price, image: d.image, vendor_id: d.vendor_id, description: d.description, category: d.category, status: d.status });
+                items.push({
+                    name: d.name, price: d.price, image: d.image, vendor_id: d.vendor_id,
+                    description: d.description, category: d.category, status: d.status,
+                    condition: d.condition 
+                });
             });
             return items;
         } catch(e) { return []; }
@@ -174,7 +149,6 @@
                 // 5. Combine & Filter
                 let combined = [...sheetProducts, ...firestoreProducts];
                 const filteredItems = combined.filter(p => 
-                    (p.status || p.Status) !== "Sold" && 
                     !suspendedVendors.has(p.vendor_id || p.Vendor_ID) &&
                     String(p.category || p.Category).toLowerCase().trim() === category.toLowerCase().trim()
                 );
@@ -197,30 +171,52 @@
                 filteredItems.forEach(p => {
                     const pName = p.name || p.Name;
                     const pPrice = p.price || p.Price;
-                    const pDesc = p.description || p.Description || ""; 
+                    const pDesc = p.description || p.Description || "No description."; 
                     const pVendor = p.vendor_id || p.Vendor_ID;
                     const pImage = p.image || p.Image;
+                    const pStatus = p.status || p.Status || "Active";
+                    const pCond = p.condition || "Used";
+                    
                     const img = pImage.startsWith('http') ? pImage : `img/${pImage}`;
                     const vendorPhone = phoneBook[pVendor] || ADMIN_PHONE;
-                    const waLink = `https://wa.me/${vendorPhone}?text=${encodeURIComponent(`Hi, I saw "${pName}" on AFIT Market (ID: ${pVendor}). Is it available?`)}`;
+                    
                     const pID = (pVendor + "-" + pName).replace(/\s+/g, '-').toLowerCase();
                     const isSaved = savedItemIds.has(pID);
                     const heartClass = isSaved ? 'fas' : 'far';
                     const heartColor = isSaved ? '#ff4757' : '#777';
 
+                    const safeName = pName.replace(/'/g, "\\'");
+                    const safeDesc = pDesc.replace(/'/g, "\\'").replace(/\n/g, " ");
+
+                    // 🔴 SOLD LOGIC
+                    const isSold = pStatus === "Sold";
+                    const opacity = isSold ? 'opacity:0.6;' : '';
+                    const badge = isSold ? '<span style="background:red; color:white; font-size:9px; padding:2px 5px; position:absolute; top:10px; left:10px; border-radius:4px; z-index:10;">SOLD</span>' : '';
+                    const clickAction = isSold ? "" : `onclick="viewProduct('${safeName}', '${pPrice}', '${safeDesc}', '${img}', '${vendorPhone}')"`;
+                    const btnText = isSold ? "Sold" : "Get Item";
+                    const btnStyle = isSold ? "background:#777; pointer-events:none;" : "";
+
+                    // Condition Badge (Only if not Sold)
+                    const condBadge = (!isSold && pCond === "New") ? 
+                        `<span style="background:#00b894; color:white; font-size:9px; padding:2px 5px; border-radius:4px; position:absolute; top:10px; left:10px; z-index:10;">NEW</span>` : '';
+
                     grid.innerHTML += `
-                    <div class="ad-card" style="position:relative;">
-                        <button onclick="toggleSave('${pID}', '${pName}', '${pPrice}', '${pImage}', '${pVendor}')" 
+                    <div class="ad-card" style="position:relative; ${opacity}">
+                        ${badge}
+                        ${condBadge}
+                        <button onclick="toggleSave('${pID}', '${safeName}', '${pPrice}', '${pImage}', '${pVendor}')" 
                                 class="save-btn" id="save-${pID}"
                                 style="position:absolute; top:10px; right:10px; background:white; border:none; border-radius:50%; width:30px; height:30px; display:flex; align-items:center; justify-content:center; cursor:pointer; box-shadow:0 2px 5px rgba(0,0,0,0.2); z-index:10;">
                             <i class="${heartClass} fa-heart" style="color:${heartColor}; font-size:16px;"></i>
                         </button>
-                        <img class="ad-img" src="${img}" alt="${pName}" onerror="this.src='img/logo-blue.png'">
+                        
+                        <img class="ad-img" src="${img}" alt="${pName}" onerror="this.src='img/logo-blue.png'" ${clickAction}>
+                        
                         <div class="ad-info">
                             <div class="ad-price">${pPrice}</div>
                             <div class="ad-title">${pName}</div>
-                            <div class="ad-desc">${pDesc}</div> <div class="ad-location">Vendor: ${pVendor}</div>
-                            <a href="${waLink}" class="chat-btn" target="_blank">Get Item</a>
+                            <div class="ad-location">Vendor: ${pVendor}</div>
+                            <a href="#" ${clickAction} class="chat-btn" style="${btnStyle}">${btnText}</a>
                         </div>
                     </div>`;
                 });
@@ -240,6 +236,50 @@
             window.location.href = "index.html";
         }
     });
+
+    // ✅ MODAL LOGIC
+    window.viewProduct = function(name, price, desc, img, phone) {
+        document.getElementById('pm-title').innerText = name;
+        document.getElementById('pm-price').innerText = price;
+        document.getElementById('pm-desc').innerText = desc;
+        document.getElementById('pm-img').src = img;
+        document.getElementById('pm-btn').href = `https://wa.me/${phone}?text=${encodeURIComponent(`Hi, I saw "${name}" on AFIT Market. Is it available?`)}`;
+        
+        document.getElementById('product-modal').style.display = 'flex';
+    };
+
+    window.closeProductModal = function() {
+        document.getElementById('product-modal').style.display = 'none';
+    };
+
+    window.toggleSave = async function(id, name, price, image, vendor) {
+        const user = auth.currentUser;
+        if (!user) { if(confirm("Sign in to save items?")) window.location.href = "login.html"; return; }
+        const btn = document.getElementById(`save-${id}`);
+        const icon = btn.querySelector('i');
+        const userRef = doc(db, "users", user.uid, "saved_items", id);
+
+        if (savedItemIds.has(id)) {
+            icon.classList.replace('fas', 'far'); icon.style.color = '#777';
+            savedItemIds.delete(id); await deleteDoc(userRef);
+        } else {
+            icon.classList.replace('far', 'fas'); icon.style.color = '#ff4757';
+            savedItemIds.add(id);
+            await setDoc(userRef, { product_id: id, name: name, price: price, image: image, vendor: vendor, saved_at: new Date() });
+        }
+    };
+
+    function updateHeartIcons() {
+        document.querySelectorAll('.save-btn').forEach(btn => {
+            const id = btn.id.replace('save-', '');
+            const icon = btn.querySelector('i');
+            if (savedItemIds.has(id)) {
+                icon.classList.remove('far'); icon.classList.add('fas'); icon.style.color = '#ff4757';
+            } else {
+                icon.classList.remove('fas'); icon.classList.add('far'); icon.style.color = '#777';
+            }
+        });
+    }
 </script>
 </body>
 </html>
