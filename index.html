@@ -265,6 +265,7 @@
     const db = getFirestore(app);
     const provider = new GoogleAuthProvider();
 
+    // VARIABLES
     let savedItemIds = new Set();
     const sheetID = "1SvVUbEnDgqgw2Z_M1ShQkzyFTsnnS6n8mTs7UMXVvF4";
     const apiRoot = `https://opensheet.elk.sh/${sheetID}`;
@@ -277,7 +278,9 @@
     // -- INIT --
     setupMainSearch();
     loadAds(); 
+    initData(); // ✅ NEW: Starts the data loading process
 
+    // -- AUTH CHECK --
     onAuthStateChanged(auth, async (user) => {
         const headerBtn = document.getElementById('header-profile-btn');
         if (user) {
@@ -308,6 +311,70 @@
             }).catch((error) => { alert("Login failed: " + error.message); });
     });
 
+    // -- CORE DATA LOADER (SHEETS + DATABASE) --
+    async function initData() {
+        try {
+            // 1. Get Blocklist from Firestore (Admin Suspensions)
+            const suspendedSnap = await getDocs(collection(db, "vendor_status"));
+            suspendedSnap.forEach(doc => {
+                if (doc.data().status === "suspended") suspendedVendors.add(doc.id);
+            });
+
+            // 2. Fetch Vendors from Sheet
+            const vendorRes = await fetch(`${apiRoot}/Vendors`);
+            const vendors = await vendorRes.json();
+
+            // Filter out suspended vendors
+            allVendors = vendors.filter(v => !suspendedVendors.has(v.vendor_id || v.Vendor_ID));
+
+            allVendors.forEach(v => {
+                const vID = v.vendor_id || v.Vendor_ID;
+                const vPhone = v.whatsapp || v.Whatsapp;
+                if(vID) globalPhoneBook[vID] = String(vPhone).replace(/[^0-9]/g, '');
+            });
+            
+            renderVendors(allVendors);
+            loadRecentItems();
+
+            // 3. Fetch Products (Google Sheet)
+            const productsRes = await fetch(`${apiRoot}/Products`);
+            const sheetProducts = await productsRes.json();
+
+            // 4. Fetch Products (Firestore Database)
+            const firestoreProducts = await loadFirestoreProducts();
+            
+            // 5. Combine Both & Filter
+            let combined = [...sheetProducts, ...firestoreProducts];
+            allProducts = combined.filter(p => 
+                (p.status || p.Status) !== "Sold" && 
+                !suspendedVendors.has(p.vendor_id || p.Vendor_ID)
+            );
+            
+            renderStories(allProducts, globalPhoneBook);
+            const randomMix = shuffle([...allProducts]).slice(0, 15);
+            renderItems(randomMix); 
+
+        } catch (err) { console.error("Init Error:", err); }
+    }
+
+    // Helper: Get Items from Database
+    async function loadFirestoreProducts() {
+        try {
+            const q = query(collection(db, "products")); 
+            const snapshot = await getDocs(q);
+            let items = [];
+            snapshot.forEach(doc => {
+                const d = doc.data();
+                items.push({
+                    name: d.name, price: d.price, image: d.image, vendor_id: d.vendor_id,
+                    description: d.description, status: d.status, is_story: d.is_story || "false"
+                });
+            });
+            return items;
+        } catch(e) { console.error(e); return []; }
+    }
+
+    // -- UI RENDERING --
     window.toggleSave = async function(id, name, price, image, vendor) {
         const user = auth.currentUser;
         if (!user) { document.getElementById('login-modal').style.display = 'flex'; return; }
@@ -352,14 +419,10 @@
         const section = document.getElementById('recent-section');
 
         if(history.length > 0 && container) {
-            
-            // ⛔ FILTER HISTORY FOR SUSPENDED VENDORS
             const cleanHistory = history.filter(p => !suspendedVendors.has(p.vendor));
-
             if (cleanHistory.length > 0) {
                 section.style.display = 'block';
                 container.innerHTML = "";
-                
                 cleanHistory.forEach(p => {
                     const vendorPhone = globalPhoneBook[p.vendor] || ADMIN_PHONE;
                     const waLink = `https://wa.me/${vendorPhone}?text=${encodeURIComponent(`Hi, I saw "${p.name}" in my recently viewed items. Is it available?`)}`;
@@ -449,7 +512,7 @@
 
     function shuffle(array) { return array.sort(() => 0.5 - Math.random()); }
     
-    // REVIEWS (Unchanged)
+    // REVIEWS
     fetch(`${apiRoot}/Reviews`)
     .then(res => res.json())
     .then(data => {
@@ -465,71 +528,6 @@
             });
         }
     });
-
-    // ⛔ GET SUSPENDED LIST -> VENDORS -> PRODUCTS
-    async function initData() {
-        try {
-            // 1. Get Blocklist from Firestore
-            const suspendedSnap = await getDocs(collection(db, "vendor_status"));
-            suspendedSnap.forEach(doc => {
-                if (doc.data().status === "suspended") suspendedVendors.add(doc.id);
-            });
-
-            // 2. Fetch Vendors from Sheet
-            const vendorRes = await fetch(`${apiRoot}/Vendors`);
-            const vendors = await vendorRes.json();
-
-            // Filter out suspended vendors from list
-            allVendors = vendors.filter(v => !suspendedVendors.has(v.vendor_id || v.Vendor_ID));
-
-            allVendors.forEach(v => {
-                const vID = v.vendor_id || v.Vendor_ID;
-                const vPhone = v.whatsapp || v.Whatsapp;
-                if(vID) globalPhoneBook[vID] = String(vPhone).replace(/[^0-9]/g, '');
-            });
-            
-            renderVendors(allVendors);
-            loadRecentItems();
-
-            // 3. Fetch Products (Sheet)
-            const productsRes = await fetch(`${apiRoot}/Products`);
-            const sheetProducts = await productsRes.json();
-
-            // 4. Fetch Products (Firestore)
-            const firestoreProducts = await loadFirestoreProducts();
-            
-            // 5. Combine and Filter Products against Blocklist
-            let combined = [...sheetProducts, ...firestoreProducts];
-            allProducts = combined.filter(p => 
-                (p.status || p.Status) !== "Sold" && 
-                !suspendedVendors.has(p.vendor_id || p.Vendor_ID)
-            );
-            
-            renderStories(allProducts, globalPhoneBook);
-            const randomMix = shuffle([...allProducts]).slice(0, 15);
-            renderItems(randomMix); 
-
-        } catch (err) { console.error("Init Error:", err); }
-    }
-
-    // Start
-    initData();
-
-    async function loadFirestoreProducts() {
-        try {
-            const q = query(collection(db, "products")); 
-            const snapshot = await getDocs(q);
-            let items = [];
-            snapshot.forEach(doc => {
-                const d = doc.data();
-                items.push({
-                    name: d.name, price: d.price, image: d.image, vendor_id: d.vendor_id,
-                    description: d.description, status: d.status, is_story: d.is_story || "false"
-                });
-            });
-            return items;
-        } catch(e) { return []; }
-    }
 
     function setupMainSearch() {
         const searchInput = document.getElementById('main-search');
