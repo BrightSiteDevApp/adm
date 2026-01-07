@@ -62,8 +62,17 @@
     </div>
 </div>
 
-   <section class="info-cards">
-      <a href="ambassadors/"><div class="info-card"><i class="fas fa-briefcase"></i> ADM Ambassadors</div> </a>
+<section class="stories-container" id="stories-section" style="display:none;">
+        <div style="font-size:12px; font-weight:bold; margin-bottom:8px; color:#555; padding-left:5px;">
+            ⚡ Flash Sales
+        </div>
+        <div class="stories-scroll" id="stories-list">
+            </div>
+    </section>
+
+  <section class="info-cards">
+      <a href="requests.html"><div class="info-card"><i class="fas fa-bullhorn"></i> Requests</div></a>
+      <a href="ambassadors/"><div class="info-card"><i class="fas fa-briefcase"></i> Ambassadors</div> </a>
       <a href="safety/"><div class="info-card"><i class="fas fa-shield-alt"></i> Safety</div></a>
       <a href="blogs/"><div class="info-card"><i class="fas fa-newspaper"></i> Blog</div></a>
     </section>
@@ -129,6 +138,14 @@
         <div class="skeleton-card"><div class="skeleton sk-img-rect"></div><div class="skeleton sk-text-short"></div><div class="skeleton sk-text-long"></div><div class="skeleton sk-btn"></div></div>
         <div class="skeleton-card"><div class="skeleton sk-img-rect"></div><div class="skeleton sk-text-short"></div><div class="skeleton sk-text-long"></div><div class="skeleton sk-btn"></div></div>
       </div>
+    </section>
+
+    <section id="recent-section" style="display:none; margin-top: 20px;">
+        <div class="section-header">
+            <div class="trending-title" style="font-size: 14px; color: #555;">Because you viewed...</div>
+        </div>
+        <div class="trending-grid" id="recent-grid">
+            </div>
     </section>
 
     <section  class="trust-banner" style="display: flex; justify-content: space-around; background: #f9f9f9; padding: 15px; margin: 20px 0; border-radius: 8px;">
@@ -227,14 +244,13 @@
   </a>
 
 <script type="module">
-    // 1. Import Authentication AND Database functions
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
     import { getAuth, onAuthStateChanged, signInWithPopup, GoogleAuthProvider } 
     from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
     import { getFirestore, doc, setDoc, deleteDoc, collection, getDocs } 
     from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-    // ✅ YOUR FIREBASE CONFIG
+    // ✅ FIREBASE CONFIG
     const firebaseConfig = {
         apiKey: "AIzaSyA1eQbrJpH9OtDNDN7z9oTFTRSAE7vCFbg",
         authDomain: "afit-market-auth.firebaseapp.com",
@@ -246,39 +262,38 @@
 
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
-    const db = getFirestore(app); // Initialize Database
+    const db = getFirestore(app);
     const provider = new GoogleAuthProvider();
 
     // Global Variables
-    let savedItemIds = new Set(); // Stores IDs of items the user liked
+    let savedItemIds = new Set();
+    const sheetID = "1SvVUbEnDgqgw2Z_M1ShQkzyFTsnnS6n8mTs7UMXVvF4";
+    const apiRoot = `https://opensheet.elk.sh/${sheetID}`;
+    const ADMIN_PHONE = "2348144516127"; 
+    let allProducts = [];
+    let allVendors = [];
+    let globalPhoneBook = {}; 
 
-    // -- FIREBASE AUTH STATE CHECK --
+    // -- INIT --
+    setupMainSearch();
+    loadAds(); 
+    loadRecentItems(); // NEW: Load history on startup
+
+    // -- AUTH CHECK --
     onAuthStateChanged(auth, async (user) => {
         const headerBtn = document.getElementById('header-profile-btn');
-        
         if (user) {
-            // LOGGED IN: Show Profile Picture
             headerBtn.innerHTML = `<img src="${user.photoURL}" class="header-profile-img" alt="Profile">`;
-            
-            // FETCH SAVED ITEMS from Database
             try {
                 const querySnapshot = await getDocs(collection(db, "users", user.uid, "saved_items"));
                 savedItemIds.clear();
-                querySnapshot.forEach((doc) => {
-                    savedItemIds.add(doc.id);
-                });
-                updateHeartIcons(); // Turn hearts red for saved items
-            } catch (e) {
-                console.error("Error loading wishlist:", e);
-            }
-
+                querySnapshot.forEach((doc) => { savedItemIds.add(doc.id); });
+                updateHeartIcons(); 
+            } catch (e) { console.error("Error loading wishlist:", e); }
         } else {
-            // NOT LOGGED IN
             headerBtn.innerHTML = `<i class="far fa-user" style="padding: 8px;"></i>`;
             savedItemIds.clear();
-            updateHeartIcons(); // Reset hearts to empty
-            
-            // Show popup after 5 seconds if not logged in
+            updateHeartIcons(); 
             setTimeout(() => {
                 if(!sessionStorage.getItem('loginPopupDismissed')) {
                     document.getElementById('login-modal').style.display = 'flex';
@@ -287,92 +302,163 @@
         }
     });
 
-    // -- HANDLE POPUP SIGN IN CLICK --
+    // -- POPUP SIGN IN --
     document.getElementById('popup-google-btn').addEventListener('click', () => {
         signInWithPopup(auth, provider)
             .then((result) => {
                 document.getElementById('login-modal').style.display = 'none';
                 sessionStorage.setItem('loginPopupDismissed', 'true');
-            }).catch((error) => {
-                alert("Login failed: " + error.message);
-            });
+            }).catch((error) => { alert("Login failed: " + error.message); });
     });
 
-    // -- SAVE ITEM FUNCTION (Global) --
-    // This runs when you click the Heart button
+    // -- SAVE ITEM (HEART) --
     window.toggleSave = async function(id, name, price, image, vendor) {
         const user = auth.currentUser;
-        
-        // 1. If not logged in, show login popup
         if (!user) {
             document.getElementById('login-modal').style.display = 'flex';
             return;
         }
-
         const btn = document.getElementById(`save-${id}`);
         const icon = btn.querySelector('i');
         const userRef = doc(db, "users", user.uid, "saved_items", id);
 
-        // 2. Save or Remove
         if (savedItemIds.has(id)) {
-            // REMOVE
-            icon.classList.replace('fas', 'far'); // Make heart hollow
+            icon.classList.replace('fas', 'far');
             icon.style.color = '#777';
             savedItemIds.delete(id);
             await deleteDoc(userRef);
         } else {
-            // SAVE
-            icon.classList.replace('far', 'fas'); // Make heart solid
+            icon.classList.replace('far', 'fas');
             icon.style.color = '#ff4757';
             savedItemIds.add(id);
-            
-            // Animation effect
             btn.style.transform = "scale(1.2)";
             setTimeout(() => btn.style.transform = "scale(1)", 200);
-
             await setDoc(userRef, {
-                product_id: id,
-                name: name,
-                price: price,
-                image: image,
-                vendor: vendor,
-                saved_at: new Date()
+                product_id: id, name: name, price: price, image: image, vendor: vendor, saved_at: new Date()
             });
         }
     };
 
-    // -- HELPER: Update all hearts on screen based on saved list --
     function updateHeartIcons() {
         document.querySelectorAll('.save-btn').forEach(btn => {
             const id = btn.id.replace('save-', '');
             const icon = btn.querySelector('i');
             if (savedItemIds.has(id)) {
-                icon.classList.remove('far');
-                icon.classList.add('fas');
-                icon.style.color = '#ff4757';
+                icon.classList.remove('far'); icon.classList.add('fas'); icon.style.color = '#ff4757';
             } else {
-                icon.classList.remove('fas');
-                icon.classList.add('far');
-                icon.style.color = '#777';
+                icon.classList.remove('fas'); icon.classList.add('far'); icon.style.color = '#777';
             }
         });
     }
 
-    // -- DATA LOADING SCRIPT --
-    const sheetID = "1SvVUbEnDgqgw2Z_M1ShQkzyFTsnnS6n8mTs7UMXVvF4";
-    const apiRoot = `https://opensheet.elk.sh/${sheetID}`;
-    const ADMIN_PHONE = "2348144516127"; 
+    // -- NEW: HISTORY LOGIC (localStorage) --
+    // 1. Save to History when clicked
+    window.addToHistory = function(id, name, price, image, vendor) {
+        let history = JSON.parse(localStorage.getItem('adm_history')) || [];
+        
+        // Remove duplicate if it exists (so we can move it to the top)
+        history = history.filter(item => item.id !== id);
+        
+        // Add new item to front
+        history.unshift({ id, name, price, image, vendor });
+        
+        // Keep only last 6 items
+        if(history.length > 6) history.pop();
+        
+        localStorage.setItem('adm_history', JSON.stringify(history));
+    };
 
-    // GLOBAL VARIABLES
-    let allProducts = [];
-    let allVendors = [];
-    let globalPhoneBook = {}; 
+    // 2. Load History on Homepage
+    function loadRecentItems() {
+        const history = JSON.parse(localStorage.getItem('adm_history')) || [];
+        const container = document.getElementById('recent-grid');
+        const section = document.getElementById('recent-section');
+
+        if(history.length > 0 && container) {
+            section.style.display = 'block';
+            container.innerHTML = "";
+            
+            history.forEach(p => {
+                const waLink = `https://wa.me/?text=I%20saw%20${p.name}`; // Generic link since we might not have phone stored
+                const img = p.image.startsWith('http') ? p.image : `img/${p.image}`;
+                
+                container.innerHTML += `
+                <div class="ad-card" style="min-width: 140px;"> <img class="ad-img" src="${img}" alt="${p.name}" onerror="this.src='img/logo-blue.png'">
+                    <div class="ad-info">
+                        <div class="ad-price" style="font-size:12px;">${p.price}</div>
+                        <div class="ad-title" style="font-size:11px;">${p.name}</div>
+                        <a href="${waLink}" class="chat-btn" style="padding:4px 10px; font-size:10px;">Get Again</a>
+                    </div>
+                </div>`;
+            });
+        }
+    }
+
+    // -- STORIES, ADS, DATA LOADING (Same as before) --
+    function loadAds() {
+        fetch(`${apiRoot}/Ads`)
+        .then(res => res.json())
+        .then(data => {
+            const activeAds = data.filter(ad => String(ad.status || ad.Status).toLowerCase().trim() === "active");
+            if(activeAds.length > 0) {
+                const ad = activeAds[Math.floor(Math.random() * activeAds.length)];
+                const img = ad.image || ad.Image;
+                const title = ad.title || ad.Title || "Special Offer";
+                const text = ad.text || ad.Text || "Check out this deal!";
+                const waPhone = ad.whatsapp || ad.Whatsapp;
+                let link = "#";
+                if(waPhone) {
+                    const cleanPhone = String(waPhone).replace(/[^0-9]/g, '');
+                    link = `https://wa.me/${cleanPhone}?text=Hi,%20I%20saw%20your%20ad%20"${title}"%20on%20AFIT%20Market.`;
+                }
+                const modalImg = document.getElementById('modal-img'); if(modalImg) modalImg.src = img.startsWith('http') ? img : `img/${img}`;
+                const modalTitle = document.getElementById('modal-title'); if(modalTitle) modalTitle.innerText = title;
+                const modalText = document.getElementById('modal-text'); if(modalText) modalText.innerText = text;
+                const modalLink = document.getElementById('modal-link'); if(modalLink) { modalLink.href = link; modalLink.innerText = "Chat on WhatsApp"; }
+                setTimeout(() => {
+                    if(!sessionStorage.getItem('adSeen')) {
+                        const modal = document.getElementById('promo-modal'); if(modal) { modal.style.display = 'flex'; sessionStorage.setItem('adSeen', 'true'); }
+                    }
+                }, 2500);
+            }
+        }).catch(err => console.log("No Ads Found"));
+    }
+    const closeAdBtn = document.querySelector('.close-modal'); if(closeAdBtn) { closeAdBtn.addEventListener('click', () => { document.getElementById('promo-modal').style.display = 'none'; }); }
+
+    function renderStories(products, phoneBook) {
+        const container = document.getElementById('stories-list');
+        const section = document.getElementById('stories-section');
+        const stories = products.filter(p => String(p.is_story || p.Is_Story).toLowerCase() === "true");
+        if(stories.length > 0) {
+            section.style.display = 'block';
+            container.innerHTML = "";
+            stories.forEach(p => {
+                const pName = p.name || p.Name;
+                const pImage = p.image || p.Image;
+                const pPrice = p.price || p.Price;
+                const pVendor = p.vendor_id || p.Vendor_ID;
+                const pDesc = p.description || p.Description || "Flash Sale Item";
+                const img = pImage.startsWith('http') ? pImage : `img/${pImage}`;
+                const vendorPhone = phoneBook[pVendor] || ADMIN_PHONE;
+                const waLink = `https://wa.me/${vendorPhone}?text=${encodeURIComponent(`Hi, I saw your Story Item "${pName}". Is it available?`)}`;
+                const storyDiv = document.createElement('div');
+                storyDiv.className = 'story-item';
+                storyDiv.innerHTML = `<div class="story-ring"><img src="${img}" class="story-img" alt="${pName}" onerror="this.src='img/logo-blue.png'"></div><div class="story-name">${pName}</div>`;
+                storyDiv.addEventListener('click', () => {
+                   document.getElementById('modal-img').src = img;
+                   document.getElementById('modal-title').innerText = pName + " (" + pPrice + ")";
+                   document.getElementById('modal-text').innerText = pDesc;
+                   const btn = document.getElementById('modal-link'); btn.innerText = "Buy Now"; btn.href = waLink;
+                   document.getElementById('promo-modal').style.display = 'flex';
+                   addToHistory(pVendor + "-" + pName, pName, pPrice, pImage, pVendor); // Also save story clicks!
+                });
+                container.appendChild(storyDiv);
+            });
+        }
+    }
 
     function shuffle(array) { return array.sort(() => 0.5 - Math.random()); }
-
-    setupMainSearch(); 
     
-    // 1. REVIEWS
     fetch(`${apiRoot}/Reviews`)
     .then(res => res.json())
     .then(data => {
@@ -383,26 +469,12 @@
             shuffled.forEach(r => {
                 const starCount = parseInt(r.stars || r.Stars) || 5;
                 const starString = "⭐".repeat(starCount);
-                let img = r.image || r.Image || "person.png";
-                if(!img.startsWith('http')) img = `img/${img}`;
-                const name = r.name || r.Name || "Student";
-                const txt = r.review || r.Review || "Great service!";
-                container.innerHTML += `
-                <div class="review-card">
-                    <div class="review-header">
-                        <img src="${img}" class="review-img" alt="User" onerror="this.src='img/person.png'">
-                        <div>
-                            <div class="review-name">${name}</div>
-                            <div class="stars">${starString}</div>
-                        </div>
-                    </div>
-                    <div class="review-text">"${txt}"</div>
-                </div>`;
+                let img = r.image || r.Image || "person.png"; if(!img.startsWith('http')) img = `img/${img}`;
+                container.innerHTML += `<div class="review-card"><div class="review-header"><img src="${img}" class="review-img" onerror="this.src='img/person.png'"><div><div class="review-name">${r.name || "Student"}</div><div class="stars">${starString}</div></div></div><div class="review-text">"${r.review || "Great!"}"</div></div>`;
             });
         }
     }).catch(err => console.error("Reviews Error:", err));
 
-    // 2. VENDORS & ITEMS
     fetch(`${apiRoot}/Vendors`)
     .then(res => res.json())
     .then(vendors => {
@@ -418,12 +490,12 @@
     .then(res => res.json())
     .then(products => {
         allProducts = products.filter(p => (p.status || p.Status) !== "Sold");
+        renderStories(allProducts, globalPhoneBook);
         const randomMix = shuffle([...allProducts]).slice(0, 15);
         renderItems(randomMix); 
     })
     .catch(err => console.error("Data Error:", err));
 
-    // --- SEARCH LOGIC ---
     function setupMainSearch() {
         const searchInput = document.getElementById('main-search');
         const searchType = document.getElementById('search-type');
@@ -438,65 +510,52 @@
                     return;
                 }
                 if (type === 'product') {
-                    const filteredItems = allProducts.filter(p => (p.name || p.Name).toLowerCase().includes(query));
-                    renderItems(filteredItems);
+                    renderItems(allProducts.filter(p => (p.name || p.Name).toLowerCase().includes(query)));
                 } else if (type === 'vendor') {
-                    const filteredVendors = allVendors.filter(v => {
-                        const name = (v.business_name || v.Business_Name).toLowerCase();
-                        const vid = (v.vendor_id || v.Vendor_ID).toLowerCase();
-                        return name.includes(query) || vid.includes(query);
-                    });
-                    renderVendors(filteredVendors);
+                    renderVendors(allVendors.filter(v => (v.business_name || v.Business_Name).toLowerCase().includes(query)));
                 }
             });
         }
     }
 
-    // --- RENDER ITEMS FUNCTION (WITH SAVE BUTTON) ---
     function renderItems(data) {
         const itemGrid = document.getElementById("home-items-grid");
         if(!itemGrid) return;
         itemGrid.innerHTML = ""; 
         if(data.length === 0) {
-            itemGrid.innerHTML = `<div style="grid-column: 1/-1; text-align:center; padding: 20px; color:#777;"><p>No items found matching your search.</p><a href="items/index.html" class="chat-btn" style="background:#2d8eff; display:inline-block; margin-top:10px; width:auto; padding: 8px 20px;">See All Items</a></div>`;
+            itemGrid.innerHTML = `<p style="padding:20px; color:#777; grid-column:1/-1; text-align:center;">No items found.</p>`;
             return;
         }
         data.forEach(p => {
             const pName = p.name || p.Name;
             const pPrice = p.price || p.Price;
-            const pDesc = p.description || p.Description || ""; 
             const pVendor = p.vendor_id || p.Vendor_ID;
             const pImage = p.image || p.Image;
-            
-            // Create a ID for saving (Vendor + Name combined)
             const pID = (pVendor + "-" + pName).replace(/\s+/g, '-').toLowerCase();
-
             const img = pImage.startsWith('http') ? pImage : `img/${pImage}`;
             const vendorPhone = globalPhoneBook[pVendor] || ADMIN_PHONE;
-            const waLink = `https://wa.me/${vendorPhone}?text=${encodeURIComponent(`Hi, I saw "${pName}" on AFIT Market. Is it available?`)}`;
-
-            // Check if saved
+            const waLink = `https://wa.me/${vendorPhone}?text=${encodeURIComponent(`Hi, I saw "${pName}". Is it available?`)}`;
             const isSaved = savedItemIds.has(pID);
             const heartClass = isSaved ? 'fas' : 'far';
             const heartColor = isSaved ? '#ff4757' : '#777';
 
             itemGrid.innerHTML += `
             <div class="ad-card" style="position:relative;">
-                
                 <button onclick="toggleSave('${pID}', '${pName}', '${pPrice}', '${pImage}', '${pVendor}')" 
-                        class="save-btn" 
-                        id="save-${pID}"
+                        class="save-btn" id="save-${pID}"
                         style="position:absolute; top:10px; right:10px; background:white; border:none; border-radius:50%; width:30px; height:30px; display:flex; align-items:center; justify-content:center; cursor:pointer; box-shadow:0 2px 5px rgba(0,0,0,0.2); z-index:10;">
                     <i class="${heartClass} fa-heart" style="color:${heartColor}; font-size:16px;"></i>
                 </button>
-
                 <img class="ad-img" src="${img}" alt="${pName}" onerror="this.src='img/logo-blue.png'">
                 <div class="ad-info">
                     <div class="ad-price">${pPrice}</div>
                     <div class="ad-title">${pName}</div>
-                    <div class="ad-desc">${pDesc}</div>
                     <div class="ad-location">Vendor: ${pVendor}</div>
-                    <a href="${waLink}" class="chat-btn" target="_blank">Get Item</a>
+                    
+                    <a href="${waLink}" class="chat-btn" target="_blank" 
+                       onclick="addToHistory('${pID}', '${pName}', '${pPrice}', '${pImage}', '${pVendor}')">
+                       Get Item
+                    </a>
                 </div>
             </div>`;
         });
@@ -506,10 +565,8 @@
         const vendorGrid = document.getElementById("vendor-grid");
         if(!vendorGrid) return;
         vendorGrid.innerHTML = "";
-        if(data.length === 0) {
-            vendorGrid.innerHTML = `<div style="grid-column: 1/-1; text-align:center; padding: 20px; color:#777;"><p>No vendors found.</p><a href="vendors/index.html" class="chat-btn" style="background:#2d8eff; display:inline-block; margin-top:10px; width:auto; padding: 8px 20px;">See All Vendors</a></div>`;
-            return;
-        }
+        if(data.length === 0) return;
+        
         const displayData = data.length > 15 ? data.slice(0, 15) : data;
         displayData.forEach(v => {
             const vName = v.business_name || v.Business_Name;
@@ -521,9 +578,10 @@
             let badgeHtml = "";
             if (vVerified === "gold") badgeHtml = '<i class="fas fa-check-circle tick-gold"></i>';
             else if (vVerified === "blue") badgeHtml = '<i class="fas fa-check-circle tick-blue"></i>';
+            
             vendorGrid.innerHTML += `
             <div class="vendor-card">
-                <img src="${vImg}" class="vendor-logo" alt="${vName}" onerror="this.src='img/person.png'">
+                <img src="${vImg}" class="vendor-logo" onerror="this.src='img/person.png'">
                 <span class="vendor-id">${vID}</span>
                 <div class="vendor-name">${vName} ${badgeHtml}</div>
                 <div class="vendor-cat">${vDesc.substring(0, 20)}...</div>

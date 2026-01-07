@@ -2082,3 +2082,73 @@ body.dark-mode .filter-btn.active {
         body.dark-mode .profile-pic-large {
             border-color: #2a2a2a;
         }
+
+        /* STORIES / FLASH SALE SECTION */
+.stories-container {
+    padding: 15px 10px 5px 10px;
+    background: #fff;
+    border-bottom: 1px solid #eee;
+    margin-bottom: 10px;
+}
+
+.stories-scroll {
+    display: flex;
+    gap: 15px;
+    overflow-x: auto;
+    padding-bottom: 5px;
+    scrollbar-width: none; /* Hide scrollbar for Firefox */
+}
+.stories-scroll::-webkit-scrollbar {
+    display: none; /* Hide scrollbar for Chrome/Safari */
+}
+
+.story-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 65px;
+    flex-shrink: 0;
+    cursor: pointer;
+}
+
+.story-ring {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    padding: 2px;
+    background: linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888); /* Instagram-like gradient */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 5px;
+}
+
+.story-img {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    border: 2px solid white;
+    object-fit: cover;
+}
+
+.story-name {
+    font-size: 10px;
+    text-align: center;
+    color: #333;
+    width: 100%;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Dark Mode Fix */
+body.dark-mode .stories-container {
+    background: #222;
+    border-color: #333;
+}
+body.dark-mode .story-name {
+    color: #ddd;
+}
+body.dark-mode .story-img {
+    border-color: #222;
+}
