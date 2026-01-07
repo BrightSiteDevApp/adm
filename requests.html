@@ -3,137 +3,290 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Student Requests - AFIT Market</title>
+    <title>Market Requests - AFIT Market</title>
     <link rel="stylesheet" href="asset/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="icon" href="img/app-logo.png">
-
+    
     <style>
-        /* HEADER BOX STYLES */
-        .request-header-box {
+        body { background-color: #f8f9fa; }
+        .req-header {
+            background: white;
             padding: 20px;
-            text-align: center;
-            background: #f9f9f9;
-            border-bottom: 1px solid #eee;
-            color: #333;
+            position: sticky; top: 0; z-index: 100;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .req-list { max-width: 600px; margin: 20px auto; padding: 0 15px; padding-bottom: 80px; }
+        
+        .req-card {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 15px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.03);
+            position: relative;
+            border-left: 4px solid #2d8eff;
+        }
+        .req-title { font-weight: bold; font-size: 16px; color: #333; margin-bottom: 5px; }
+        .req-budget { color: #00b894; font-weight: bold; font-size: 14px; background: #e6fffa; padding: 2px 8px; border-radius: 4px; display: inline-block; }
+        .req-meta { font-size: 12px; color: #888; margin-top: 10px; display: flex; justify-content: space-between; align-items: center; }
+        
+        .btn-call {
+            background: #2d8eff; color: white; border: none;
+            padding: 8px 15px; border-radius: 20px; font-size: 12px;
+            text-decoration: none; display: inline-flex; align-items: center; gap: 5px;
         }
 
-        /* Dark Mode Overrides */
-        body.dark-mode .request-header-box {
-            background: #222 !important;
-            border-bottom: 1px solid #444 !important;
-            color: #fff !important;
+        /* FAB (Floating Add Button) */
+        .fab-add {
+            position: fixed; bottom: 25px; right: 25px;
+            background: #2d8eff; color: white;
+            width: 55px; height: 55px; border-radius: 50%;
+            display: flex; justify-content: center; align-items: center;
+            font-size: 24px; box-shadow: 0 4px 15px rgba(45, 142, 255, 0.4);
+            cursor: pointer; z-index: 200;
         }
-        
-        body.dark-mode .request-header-box h3 { color: #fff !important; }
-        body.dark-mode .request-header-box p { color: #bbb !important; }
+
+        /* Modal */
+        .modal-overlay {
+            display: none; position: fixed; top: 0; left: 0;
+            width: 100%; height: 100%; background: rgba(0,0,0,0.5);
+            z-index: 2000; justify-content: center; align-items: flex-end;
+        }
+        .modal-content {
+            background: white; width: 100%; max-width: 500px;
+            border-radius: 20px 20px 0 0; padding: 25px;
+            animation: slideUp 0.3s ease;
+        }
+        .form-input {
+            width: 100%; padding: 12px; margin-bottom: 15px;
+            border: 1px solid #eee; border-radius: 8px; background: #f9f9f9;
+        }
+        @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+
+        /* Delete Button (Only visible to owner/admin) */
+        .btn-delete {
+            position: absolute; top: 15px; right: 15px;
+            color: #ff4757; background: #fff0f1; border: none;
+            width: 30px; height: 30px; border-radius: 50%;
+            cursor: pointer; display: flex; justify-content: center; align-items: center;
+        }
     </style>
 </head>
-<body data-page="requests">
+<body>
 
-    <script>
-        if (localStorage.getItem('theme') === 'dark') {
-            document.body.classList.add('dark-mode');
-        }
-    </script>
+    <div class="req-header">
+        <a href="account.html" style="color:#333;"><i class="fas fa-arrow-left"></i></a>
+        <h3 style="margin:0; font-size:18px;">Market Requests</h3>
+        <div style="width:20px;"></div>
+    </div>
 
-    <div class="app-container">
-        <div class="header">
-            <a href="index.html" class="back-btn"><i class="fas fa-arrow-left"></i></a>
-            <span style="font-weight:bold;">Student Requests</span>
-            <div class="notification-icon-box" id="theme-toggle" style="margin-left:auto;">
-                <i class="fas fa-moon"></i>
-            </div>
-        </div>
+    <div id="role-badge" style="text-align:center; padding:10px; font-size:12px; color:#777; background:#eee;">
+        Identifying User...
+    </div>
 
-        <div class="request-header-box">
-            <h3>Looking for something?</h3>
-            <p style="font-size: 12px; margin-bottom: 15px;">Post your request here and let vendors find you!</p>
-            
-            <a href="https://docs.google.com/forms/d/e/1FAIpQLSejry_A33x76Y8BxHYnJcv4_sbz0irToz30TNs4s6N55YdT8w/viewform?usp=dialog" target="_blank" class="chat-btn" style="background: #2d8eff; display: inline-block; width: auto; padding: 10px 30px;">
-                <i class="fas fa-plus"></i> Post a Request
-            </a>
-        </div>
-
-        <div id="requests-list" style="padding: 15px;">
-            <div class="skeleton-card" style="width: 100%; display: flex; align-items: center; padding: 15px; margin-bottom: 10px; height: auto;">
-                <div style="flex: 1;">
-                    <div class="skeleton sk-text-short" style="width: 60%; margin-bottom: 10px;"></div>
-                    <div class="skeleton sk-text-short" style="width: 40%;"></div>
-                </div>
-                <div class="skeleton sk-btn" style="width: 80px; height: 30px;"></div>
-            </div>
-            <div class="skeleton-card" style="width: 100%; display: flex; align-items: center; padding: 15px; margin-bottom: 10px; height: auto;">
-                <div style="flex: 1;">
-                    <div class="skeleton sk-text-short" style="width: 50%; margin-bottom: 10px;"></div>
-                    <div class="skeleton sk-text-short" style="width: 30%;"></div>
-                </div>
-                <div class="skeleton sk-btn" style="width: 80px; height: 30px;"></div>
-            </div>
-            <div class="skeleton-card" style="width: 100%; display: flex; align-items: center; padding: 15px; margin-bottom: 10px; height: auto;">
-                <div style="flex: 1;">
-                    <div class="skeleton sk-text-short" style="width: 70%; margin-bottom: 10px;"></div>
-                    <div class="skeleton sk-text-short" style="width: 40%;"></div>
-                </div>
-                <div class="skeleton sk-btn" style="width: 80px; height: 30px;"></div>
-            </div>
+    <div class="req-list" id="requests-container">
+        <div style="text-align:center; padding:40px; color:#999;">
+            <i class="fas fa-circle-notch fa-spin"></i> Loading...
         </div>
     </div>
 
-    <script src="asset/script.js"></script>
+    <div class="fab-add" onclick="openModal()">
+        <i class="fas fa-plus"></i>
+    </div>
 
-    <script>
-        const sheetID = "1SvVUbEnDgqgw2Z_M1ShQkzyFTsnnS6n8mTs7UMXVvF4";
-        const apiRoot = `https://opensheet.elk.sh/${sheetID}`;
+    <div id="request-modal" class="modal-overlay">
+        <div class="modal-content">
+            <h3 style="margin-top:0;">Post a Request</h3>
+            <p style="font-size:12px; color:#777; margin-bottom:20px;">What are you looking for? Vendors will contact you.</p>
+            
+            <input type="text" id="req-title" class="form-input" placeholder="I am looking for... (e.g. iPhone XR)">
+            <input type="text" id="req-budget" class="form-input" placeholder="My Budget (e.g. 120,000)">
+            <input type="tel" id="req-phone" class="form-input" placeholder="WhatsApp Number">
+            
+            <button onclick="submitRequest()" class="chat-btn" style="width:100%; background:#2d8eff;">Post Request</button>
+            <button onclick="closeModal()" style="width:100%; background:none; border:none; color:#777; margin-top:10px;">Cancel</button>
+        </div>
+    </div>
 
-        document.addEventListener("DOMContentLoaded", () => {
-            fetch(`${apiRoot}/Requests`)
-            .then(res => res.json())
-            .then(data => {
-                const container = document.getElementById('requests-list');
-                container.innerHTML = ""; // Clears the skeletons
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+        import { getFirestore, collection, addDoc, getDocs, query, where, orderBy, deleteDoc, doc } 
+        from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-                if(data.length === 0) {
-                    container.innerHTML = "<p style='text-align:center; color:#888; margin-top:20px;'>No requests yet.</p>";
+        // FIREBASE CONFIG
+        const firebaseConfig = {
+            apiKey: "AIzaSyA1eQbrJpH9OtDNDN7z9oTFTRSAE7vCFbg",
+            authDomain: "afit-market-auth.firebaseapp.com",
+            projectId: "afit-market-auth",
+            storageBucket: "afit-market-auth.firebasestorage.app",
+            messagingSenderId: "894920886640",
+            appId: "1:894920886640:web:77d0a6b39bf89ff8f767b5"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        // CONFIG
+        const ADMIN_EMAIL = "afitdgm@gmail.com";
+        const SHEET_API = "https://opensheet.elk.sh/1SvVUbEnDgqgw2Z_M1ShQkzyFTsnnS6n8mTs7UMXVvF4/Vendors";
+        
+        let currentUser = null;
+        let isSuperAdmin = false;
+
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                currentUser = user;
+                isSuperAdmin = user.email.toLowerCase() === ADMIN_EMAIL.toLowerCase();
+                
+                // 1. Check Role
+                const roleText = document.getElementById('role-badge');
+                
+                if (isSuperAdmin) {
+                    roleText.innerHTML = "👑 Admin Mode: Viewing All Requests";
+                    loadRequests('all');
+                } else {
+                    // Check if Vendor
+                    checkIfVendor(user.email).then(isVendor => {
+                        if (isVendor) {
+                            roleText.innerHTML = "🏪 Vendor Mode: Viewing Potential Customers";
+                            loadRequests('all'); // Vendors see EVERYTHING
+                        } else {
+                            roleText.innerHTML = "🎓 Student Mode: Viewing Your Requests Only";
+                            loadRequests('mine'); // Students see ONLY THEIRS
+                        }
+                    });
+                }
+            } else {
+                window.location.href = "login.html";
+            }
+        });
+
+        // CHECK VENDOR STATUS
+        async function checkIfVendor(email) {
+            try {
+                const res = await fetch(SHEET_API);
+                const vendors = await res.json();
+                return vendors.some(v => v.Email && v.Email.toLowerCase().trim() === email.toLowerCase().trim());
+            } catch (e) { return false; }
+        }
+
+        // LOAD REQUESTS
+        async function loadRequests(mode) {
+            const container = document.getElementById('requests-container');
+            container.innerHTML = "";
+            
+            try {
+                let q;
+                const reqRef = collection(db, "public_requests");
+
+                if (mode === 'all') {
+                    // Admin/Vendor: Get ALL, newest first
+                    q = query(reqRef, orderBy("timestamp", "desc"));
+                } else {
+                    // Student: Get ONLY theirs
+                    q = query(reqRef, where("userId", "==", currentUser.uid));
+                }
+
+                const snapshot = await getDocs(q);
+
+                if (snapshot.empty) {
+                    container.innerHTML = `
+                        <div style="text-align:center; padding:50px; color:#aaa;">
+                            <i class="fas fa-inbox" style="font-size:40px; margin-bottom:10px;"></i>
+                            <p>${mode === 'all' ? "No active requests." : "You haven't posted any requests."}</p>
+                        </div>`;
                     return;
                 }
 
-                data.reverse().forEach(req => {
-                    const keys = Object.keys(req);
+                snapshot.forEach(docSnap => {
+                    const d = docSnap.data();
+                    const isOwner = d.userId === currentUser.uid;
                     
-                    const itemKey = keys.find(k => k.toLowerCase().includes("need") || k.toLowerCase().includes("item"));
-                    const item = req[itemKey] || "Unknown Item";
+                    // Format Date
+                    let timeString = "Just now";
+                    if(d.timestamp) {
+                        timeString = new Date(d.timestamp.seconds * 1000).toLocaleDateString();
+                    }
 
-                    const budgetKey = keys.find(k => k.toLowerCase().includes("budget") || k.toLowerCase().includes("price"));
-                    const budget = req[budgetKey] || "Negotiable";
-
-                    const contactKey = keys.find(k => k.toLowerCase().includes("whatsapp") || k.toLowerCase().includes("phone"));
-                    const contact = req[contactKey];
-                    
-                    let waLink = "#";
-                    if(contact) {
-                        const cleanPhone = String(contact).replace(/[^0-9]/g, '');
-                        const message = `Hi, I saw your request for "${item}" on AFIT Market. I have it.`;
-                        waLink = `https://wa.me/${cleanPhone}?text=${encodeURIComponent(message)}`;
+                    // Delete Button Logic (Owner OR Admin can delete)
+                    let deleteBtn = "";
+                    if (isOwner || isSuperAdmin) {
+                        deleteBtn = `<button class="btn-delete" onclick="deleteRequest('${docSnap.id}')"><i class="fas fa-trash"></i></button>`;
                     }
 
                     container.innerHTML += `
-                    <div class="ad-card" style="width: 100%; display: flex; flex-direction: row; align-items: center; padding: 15px; margin-bottom: 10px; height: auto;">
-                        <div style="flex: 1;">
-                            <div class="ad-title" style="font-size: 14px; margin-bottom: 5px;">${item}</div>
-                            <div class="ad-price" style="font-size: 12px; color: #2d8eff;">Budget: ${budget}</div>
+                    <div class="req-card">
+                        ${deleteBtn}
+                        <div class="req-title">${d.title}</div>
+                        <div class="req-budget">Budget: ₦${d.budget}</div>
+                        
+                        <div class="req-meta">
+                            <span><i class="far fa-clock"></i> ${timeString}</span>
+                            <a href="https://wa.me/${d.phone}?text=Hi, I have the ${d.title} you requested on AFIT Market." class="btn-call">
+                                <i class="fab fa-whatsapp"></i> Contact
+                            </a>
                         </div>
-                        <a href="${waLink}" class="chat-btn" style="width: auto; padding: 8px 15px; font-size: 12px; background: #25D366;">
-                            <i class="fab fa-whatsapp"></i> I have this
-                        </a>
                     </div>`;
                 });
-            })
-            .catch(err => {
+
+            } catch (err) {
                 console.error(err);
-                document.getElementById('requests-list').innerHTML = "<p style='text-align:center; margin-top:20px;'>Error loading requests.</p>";
-            });
-        });
+                container.innerHTML = "<p style='text-align:center; color:red;'>Error loading requests.</p>";
+            }
+        }
+
+        // SUBMIT REQUEST
+        window.submitRequest = async function() {
+            const title = document.getElementById('req-title').value;
+            const budget = document.getElementById('req-budget').value;
+            const phone = document.getElementById('req-phone').value;
+            const btn = document.querySelector('.chat-btn'); // The submit button
+
+            if(!title || !budget || !phone) { alert("Please fill all fields"); return; }
+
+            btn.innerText = "Posting...";
+            btn.disabled = true;
+
+            try {
+                await addDoc(collection(db, "public_requests"), {
+                    title: title,
+                    budget: budget,
+                    phone: phone.replace(/[^0-9]/g, ''),
+                    userId: currentUser.uid,
+                    userName: currentUser.displayName || "Student",
+                    timestamp: new Date()
+                });
+
+                alert("Request Posted!");
+                closeModal();
+                
+                // Reload based on logic (Simple reload works best here)
+                location.reload(); 
+
+            } catch (e) {
+                alert("Error: " + e.message);
+                btn.innerText = "Post Request";
+                btn.disabled = false;
+            }
+        };
+
+        // DELETE REQUEST
+        window.deleteRequest = async function(docID) {
+            if(!confirm("Delete this request?")) return;
+            try {
+                await deleteDoc(doc(db, "public_requests", docID));
+                location.reload();
+            } catch(e) { alert("Error deleting."); }
+        }
+
+        // UI HELPERS
+        window.openModal = () => document.getElementById('request-modal').style.display = 'flex';
+        window.closeModal = () => document.getElementById('request-modal').style.display = 'none';
+
     </script>
 </body>
 </html>

@@ -88,10 +88,22 @@
             box-sizing: border-box;
             background: #f9f9f9;
         }
+
+        /* LIMIT POPUP */
+        .limit-alert {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.7); z-index: 3000; justify-content: center; align-items: center; padding: 20px;
+        }
+        .limit-box {
+            background: white; padding: 30px; border-radius: 20px; text-align: center; max-width: 300px;
+            animation: popIn 0.3s ease;
+        }
+        @keyframes popIn { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
         
         /* Dark Mode */
         body.dark-mode .stat-card, 
-        body.dark-mode .upload-content { background: #1e1e1e; color: white; }
+        body.dark-mode .upload-content,
+        body.dark-mode .limit-box { background: #1e1e1e; color: white; }
         body.dark-mode .form-input { background: #333; border-color: #444; color: white; }
         body.dark-mode .stat-num { color: white; }
         body.dark-mode .dash-header { box-shadow: none; border-bottom: 1px solid #333; }
@@ -111,17 +123,21 @@
             <div style="display:flex; justify-content:space-between; align-items:center;">
                 <a href="index.html" style="color:white;"><i class="fas fa-arrow-left"></i> Home</a>
                 <div id="vendor-badge" style="font-size:10px; background:rgba(255,255,255,0.25); padding:4px 10px; border-radius:15px; font-weight:bold;">
-                    Checking Status...
+                    Checking...
                 </div>
             </div>
             <h2 style="margin-top:20px; font-size:22px; margin-bottom: 5px;">Hi, <span id="dash-name">...</span></h2>
-            <p style="font-size:13px; opacity:0.9;">Manage your shop items.</p>
+            
+            <div style="font-size:12px; opacity:0.9; margin-top:5px; display:flex; align-items:center; gap:5px;">
+                <i class="fas fa-crown" style="color:#ffd700;"></i> 
+                Limit: <span id="limit-display">Checking...</span> items
+            </div>
         </div>
 
         <div class="stats-grid">
             <div class="stat-card">
                 <div class="stat-num" id="item-count">0</div>
-                <div class="stat-label">My Items</div>
+                <div class="stat-label">Used Slots</div>
             </div>
             <div class="stat-card">
                 <div class="stat-num" id="view-count">--</div>
@@ -141,7 +157,7 @@
 
     </div>
 
-    <div class="fab-add" id="add-btn" style="display:none;" onclick="openUploadModal()">
+    <div class="fab-add" id="add-btn" style="display:none;" onclick="handleUploadClick()">
         <i class="fas fa-plus"></i>
     </div>
 
@@ -191,6 +207,17 @@
         </div>
     </div>
 
+    <div id="limit-modal" class="limit-alert">
+        <div class="limit-box">
+            <i class="fas fa-lock" style="font-size:50px; color:#ff4757; margin-bottom:20px;"></i>
+            <h3 style="margin:0; color:#333;">Limit Reached!</h3>
+            <p style="color:#777; font-size:14px; margin: 10px 0 20px;">You have used all <b id="alert-limit"></b> slots.</p>
+            <p style="font-size:12px; color:#555;">Upgrade your plan to post more items.</p>
+            <a href="https://wa.me/2348144516127?text=Hi%20Admin,%20I%20want%20to%20upgrade%20my%20vendor%20plan." class="chat-btn" style="width:100%; display:block; margin-top:10px;">Contact Admin</a>
+            <button onclick="closeLimitModal()" style="background:none; border:none; color:#999; margin-top:15px; cursor:pointer;">Close</button>
+        </div>
+    </div>
+
     <script src="asset/script.js"></script>
 
     <script type="module">
@@ -213,11 +240,13 @@
         const auth = getAuth(app);
         const db = getFirestore(app);
 
-        // IMGBB KEY
+        // KEYS & API
         const IMGBB_KEY = "2ac38bef2c73c5a65e7ddf94efe37962";
         const SHEET_API = "https://opensheet.elk.sh/1SvVUbEnDgqgw2Z_M1ShQkzyFTsnnS6n8mTs7UMXVvF4/Vendors";
 
         let currentVendorID = null;
+        let maxItems = 5; // Default Limit
+        let currentCount = 0;
 
         // 1. AUTH & VENDOR CHECK
         onAuthStateChanged(auth, async (user) => {
@@ -236,9 +265,15 @@
 
                     if (myVendorProfile) {
                         currentVendorID = myVendorProfile.Vendor_ID || myVendorProfile.vendor_id;
+                        
+                        // ⚡ FETCH LIMIT FROM SHEET (Default to 5 if empty)
+                        maxItems = parseInt(myVendorProfile.Max_Items) || 5;
+
                         document.getElementById('vendor-badge').innerText = `ID: ${currentVendorID}`;
+                        document.getElementById('limit-display').innerText = maxItems;
                         document.getElementById('add-btn').style.display = 'flex';
                         statusMsg.style.display = 'none';
+                        
                         loadMyItems(currentVendorID);
                     } else {
                         statusMsg.innerHTML = `
@@ -265,7 +300,14 @@
                 const q = query(collection(db, "products"), where("vendor_id", "==", vid));
                 const querySnapshot = await getDocs(q);
                 
-                document.getElementById('item-count').innerText = querySnapshot.size;
+                // ✅ UPDATE COUNT
+                currentCount = querySnapshot.size;
+                document.getElementById('item-count').innerText = `${currentCount} / ${maxItems}`;
+
+                // Color code the counter
+                if(currentCount >= maxItems) {
+                    document.getElementById('item-count').style.color = "#ff4757";
+                }
 
                 if(querySnapshot.empty) {
                     grid.innerHTML = `<p style="grid-column:1/-1; text-align:center; color:#999;">You haven't posted any items yet.</p>`;
@@ -296,11 +338,29 @@
             }
         }
 
-        // 3. UPLOAD & SUBMIT LOGIC
+        // 3. CHECK LIMIT BEFORE OPENING UPLOAD MODAL
+        window.handleUploadClick = function() {
+            if (currentCount >= maxItems) {
+                // Show Limit Popup
+                document.getElementById('alert-limit').innerText = maxItems;
+                document.getElementById('limit-modal').style.display = 'flex';
+            } else {
+                // Open Upload Form
+                document.getElementById('upload-modal').style.display = 'flex';
+            }
+        };
+
+        // 4. SUBMIT LOGIC
         document.getElementById('btn-submit').addEventListener('click', async () => {
+            // Double Check Limit (Security)
+            if (currentCount >= maxItems) {
+                alert("Limit Reached! Cannot post.");
+                return;
+            }
+
             const btn = document.getElementById('btn-submit');
             const name = document.getElementById('p-name').value;
-            const rawPrice = document.getElementById('p-price').value; // Get raw number
+            const rawPrice = document.getElementById('p-price').value;
             const desc = document.getElementById('p-desc').value;
             const cat = document.getElementById('p-cat').value;
             const fileInput = document.getElementById('p-file');
@@ -310,16 +370,15 @@
                 return;
             }
 
-            // ✅ AUTO-FORMAT PRICE: 15000 -> ₦15,000
-            const cleanNumber = rawPrice.replace(/[^0-9]/g, ''); // Ensure only numbers
-            const formattedPrice = "₦" + Number(cleanNumber).toLocaleString(); // Add ₦ and commas
+            const cleanNumber = rawPrice.replace(/[^0-9]/g, ''); 
+            const formattedPrice = "₦" + Number(cleanNumber).toLocaleString(); 
 
             btn.innerText = "Uploading Image...";
             btn.disabled = true;
             btn.style.opacity = "0.7";
 
             try {
-                // A. Upload to ImgBB
+                // Upload Image
                 const file = fileInput.files[0];
                 const formData = new FormData();
                 formData.append("image", file);
@@ -331,15 +390,14 @@
                 const imgData = await imgReq.json();
 
                 if (!imgData.success) throw new Error("Image Upload Failed");
-
                 const imageUrl = imgData.data.url;
 
-                // B. Save to Firestore
+                // Save to Firestore
                 btn.innerText = "Saving Item...";
                 
                 await addDoc(collection(db, "products"), {
                     name: name,
-                    price: formattedPrice, // ✅ Saves as ₦15,000
+                    price: formattedPrice,
                     description: desc,
                     category: cat,
                     image: imageUrl,
@@ -362,7 +420,6 @@
             }
         });
 
-        // 4. DELETE FUNCTION
         window.deleteItem = async function(docID) {
             if(!confirm("Are you sure you want to delete this item?")) return;
             try {
@@ -374,8 +431,8 @@
             }
         };
 
-        window.openUploadModal = function() { document.getElementById('upload-modal').style.display = 'flex'; };
         window.closeUploadModal = function() { document.getElementById('upload-modal').style.display = 'none'; };
+        window.closeLimitModal = function() { document.getElementById('limit-modal').style.display = 'none'; };
 
     </script>
 </body>
