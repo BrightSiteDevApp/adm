@@ -1,6 +1,65 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+  <!-- ================= BASIC SETUP ================= -->
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+  <title>AFIT Digital Market (ADM) | Buy & Sell on Campus</title>
+
+  <meta name="description" content="AFIT Digital Market (ADM) is the official student digital marketplace for AFIT. Discover, connect, and trade with verified vendors on campus. Buy and sell phones, fashion, food, services, and more — fast, safe, and student-powered.">
+
+  <meta name="keywords" content="
+    AFIT Digital Market,
+    AFIT marketplace,
+    AFIT students buy and sell,
+    campus marketplace Nigeria,
+    student online market,
+    AFIT vendors,
+    buy and sell in AFIT,
+    student business platform
+  ">
+
+  <meta name="author" content="AFIT Digital Market (ADM)">
+  <meta name="robots" content="index, follow">
+  <meta name="googlebot" content="index, follow">
+
+  <!-- ================= CANONICAL ================= -->
+  <link rel="canonical" href="https://afitdgm.store/">
+
+  <!-- ================= BRANDING ================= -->
+  <meta name="theme-color" content="#2d8eff">
+  <link rel="icon" href="img/app-logo.png" type="image/png">
+  <link rel="icon" href="favicon.ico" type="image/x-icon">
+
+
+  <!-- ================= OPEN GRAPH (FACEBOOK / WHATSAPP) ================= -->
+  <meta property="og:title" content="AFIT Digital Market (ADM) | Discover. Connect. Trade.">
+  <meta property="og:description" content="The official AFIT student marketplace. Connect buyers and sellers on campus — no cart, just direct trade.">
+  <meta property="og:image" content="https://afitdgm.store/img/app-logo.png">
+  <meta property="og:url" content="https://afitdgm.store/">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="AFIT Digital Market">
+
+  <!-- ================= TWITTER CARD ================= -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="AFIT Digital Market (ADM)">
+  <meta name="twitter:description" content="Buy & sell directly on AFIT campus. A trusted digital marketplace for students and vendors.">
+  <meta name="twitter:image" content="https://afitdgm.store/img/app-logo.png">
+
+  <!-- ================= PWA ================= -->
+  <link rel="manifest" href="manifest.json">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="AFIT DGM">
+  <link rel="apple-touch-icon" href="img/app-logo.png">
+
+  <!-- ================= STYLES ================= -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="asset/style.css">
+
+  <!-- ================= GOOGLE ANALYTICS ================= -->
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-70VSGR5WBW"></script>
   <script>
     window.dataLayer = window.dataLayer || [];
@@ -9,51 +68,18 @@
     gtag('config', 'G-70VSGR5WBW');
   </script>
 
+  <!-- ================= ONESIGNAL PUSH ================= -->
   <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
   <script>
     window.OneSignalDeferred = window.OneSignalDeferred || [];
     OneSignalDeferred.push(async function(OneSignal) {
-      await OneSignal.init({ appId: "f62f27b5-a5a3-4018-aade-0a44f357c7e0" });
+      await OneSignal.init({
+        appId: "f62f27b5-a5a3-4018-aade-0a44f357c7e0"
+      });
     });
   </script>
 
-<link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#2d8eff">
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
-  <title>AFIT Digital Market (ADM) | Buy & Sell on Campus</title>
-  <meta name="description" content="AFIT Digital Market (AFIT DGM) is the official student marketplace for AFIT. Buy and sell phones, food, fashion, and services directly on campus. Safe, fast, and student-verified.">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <link rel="stylesheet" href="asset/style.css"> 
-  <link rel="icon" href="img/app-logo.png">
-
-  <style>
-      #global-announcement { background: #ff4757; color: white; padding: 8px; display: none; }
-      #announce-text { font-size: 13px; font-weight: bold; width: 100%; white-space: nowrap; overflow: hidden; }
-
-      .product-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 3000; justify-content: center; align-items: center; padding: 20px; }
-      .pm-content { background: white; width: 100%; max-width: 400px; border-radius: 15px; overflow: hidden; position: relative; max-height: 90vh; overflow-y: auto; animation: zoomIn 0.2s ease; }
-      .pm-img { width: 100%; height: 250px; object-fit: cover; background: #eee; }
-      .pm-body { padding: 20px; }
-      .pm-title { font-size: 20px; font-weight: bold; margin: 0; color: #333; }
-      .pm-price { font-size: 18px; color: #2d8eff; font-weight: bold; margin: 5px 0 10px; }
-      .pm-desc { font-size: 14px; color: #555; line-height: 1.5; margin-bottom: 20px; }
-      
-      .safety-box { background: #fff3cd; border: 1px solid #ffeeba; color: #856404; padding: 12px; border-radius: 8px; font-size: 12px; display: flex; gap: 10px; align-items: start; margin-bottom: 20px; }
-      
-      .similar-section { margin-top: 20px; border-top: 1px solid #eee; padding-top: 15px; }
-      .similar-header { font-size: 13px; font-weight: bold; color: #777; margin-bottom: 10px; }
-      .similar-grid { display: flex; gap: 10px; overflow-x: auto; padding-bottom: 5px; scrollbar-width: none; }
-      .similar-grid::-webkit-scrollbar { display: none; }
-      .sim-card { min-width: 110px; cursor: pointer; }
-      .sim-img { width: 110px; height: 110px; object-fit: cover; border-radius: 10px; background: #eee; }
-      .sim-price { font-size: 11px; font-weight: bold; margin-top: 5px; color: #333; }
-
-      .close-pm { position: absolute; top: 15px; right: 15px; background: rgba(0,0,0,0.5); color: white; width: 30px; height: 30px; border-radius: 50%; display: flex; justify-content: center; align-items: center; cursor: pointer; font-size: 16px; z-index: 10; }
-      
-      .ad-img { cursor: pointer; }
-      @keyframes zoomIn { from { transform: scale(0.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
-  </style>
+  <!-- ================= INLINE UI STYLES ================= -->
 </head>
 
 <body>
