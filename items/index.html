@@ -82,7 +82,7 @@
     import { getFirestore, doc, setDoc, deleteDoc, collection, getDocs, query } 
     from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-    // ✅ YOUR FIREBASE CONFIG
+    // CONFIG
     const firebaseConfig = {
         apiKey: "AIzaSyA1eQbrJpH9OtDNDN7z9oTFTRSAE7vCFbg",
         authDomain: "afit-market-auth.firebaseapp.com",
@@ -96,64 +96,36 @@
     const auth = getAuth(app);
     const db = getFirestore(app);
 
-    // Global Variables
     let savedItemIds = new Set();
     const sheetID = "1SvVUbEnDgqgw2Z_M1ShQkzyFTsnnS6n8mTs7UMXVvF4";
     const apiRoot = `https://opensheet.elk.sh/${sheetID}`;
     const ADMIN_PHONE = "2348144516127"; 
 
-    // -- AUTH CHECK --
     onAuthStateChanged(auth, async (user) => {
         if (user) {
             try {
                 const querySnapshot = await getDocs(collection(db, "users", user.uid, "saved_items"));
                 savedItemIds.clear();
-                querySnapshot.forEach((doc) => {
-                    savedItemIds.add(doc.id);
-                });
+                querySnapshot.forEach((doc) => { savedItemIds.add(doc.id); });
                 updateHeartIcons(); 
-            } catch (e) {
-                console.error("Error loading wishlist:", e);
-            }
-        } else {
-            savedItemIds.clear();
-            updateHeartIcons();
-        }
+            } catch (e) { console.error("Error loading wishlist:", e); }
+        } else { savedItemIds.clear(); updateHeartIcons(); }
     });
 
-    // -- SAVE ITEM FUNCTION --
     window.toggleSave = async function(id, name, price, image, vendor) {
         const user = auth.currentUser;
-        if (!user) {
-            if(confirm("You need to sign in to save items. Go to login page?")) {
-                window.location.href = "../login.html"; // Note: ../ because we are inside items folder
-            }
-            return;
-        }
-
+        if (!user) { if(confirm("You need to sign in to save items. Go to login page?")) { window.location.href = "../login.html"; } return; }
         const btn = document.getElementById(`save-${id}`);
         const icon = btn.querySelector('i');
         const userRef = doc(db, "users", user.uid, "saved_items", id);
 
         if (savedItemIds.has(id)) {
-            // REMOVE
-            icon.classList.replace('fas', 'far');
-            icon.style.color = '#777';
-            savedItemIds.delete(id);
-            await deleteDoc(userRef);
+            icon.classList.replace('fas', 'far'); icon.style.color = '#777';
+            savedItemIds.delete(id); await deleteDoc(userRef);
         } else {
-            // SAVE
-            icon.classList.replace('far', 'fas');
-            icon.style.color = '#ff4757';
+            icon.classList.replace('far', 'fas'); icon.style.color = '#ff4757';
             savedItemIds.add(id);
-            await setDoc(userRef, {
-                product_id: id,
-                name: name,
-                price: price,
-                image: image,
-                vendor: vendor,
-                saved_at: new Date()
-            });
+            await setDoc(userRef, { product_id: id, name: name, price: price, image: image, vendor: vendor, saved_at: new Date() });
         }
     };
 
@@ -162,21 +134,15 @@
             const id = btn.id.replace('save-', '');
             const icon = btn.querySelector('i');
             if (savedItemIds.has(id)) {
-                icon.classList.remove('far');
-                icon.classList.add('fas');
-                icon.style.color = '#ff4757';
+                icon.classList.remove('far'); icon.classList.add('fas'); icon.style.color = '#ff4757';
             } else {
-                icon.classList.remove('fas');
-                icon.classList.add('far');
-                icon.style.color = '#777';
+                icon.classList.remove('fas'); icon.classList.add('far'); icon.style.color = '#777';
             }
         });
     }
 
-    // -- LOAD ITEMS LOGIC --
     function shuffle(array) { return array.sort(() => 0.5 - Math.random()); }
 
-    // ✅ NEW: Helper to get Dashboard items from Firestore
     async function loadFirestoreProducts() {
         try {
             const q = query(collection(db, "products")); 
@@ -184,27 +150,22 @@
             let items = [];
             snapshot.forEach(doc => {
                 const d = doc.data();
-                items.push({
-                    name: d.name,
-                    price: d.price,
-                    image: d.image,
-                    vendor_id: d.vendor_id,
-                    description: d.description,
-                    status: d.status
-                });
+                items.push({ name: d.name, price: d.price, image: d.image, vendor_id: d.vendor_id, description: d.description, status: d.status });
             });
             return items;
-        } catch(e) {
-            console.error("Firestore Load Error:", e);
-            return [];
-        }
+        } catch(e) { return []; }
     }
 
-    document.addEventListener("DOMContentLoaded", () => {
-        // Fetch Vendors first
-        fetch(`${apiRoot}/Vendors`)
-        .then(res => res.json())
-        .then(vendors => {
+    document.addEventListener("DOMContentLoaded", async () => {
+        try {
+            // 1. Get Blocklist
+            const suspendedSnap = await getDocs(collection(db, "vendor_status"));
+            const suspendedVendors = new Set();
+            suspendedSnap.forEach(doc => { if(doc.data().status === "suspended") suspendedVendors.add(doc.id); });
+
+            // 2. Fetch Vendors
+            const vendorRes = await fetch(`${apiRoot}/Vendors`);
+            const vendors = await vendorRes.json();
             const phoneBook = {};
             vendors.forEach(v => {
                 const vID = v.vendor_id || v.Vendor_ID;
@@ -212,20 +173,22 @@
                 if(vID) phoneBook[vID] = String(vPhone).replace(/[^0-9]/g, '');
             });
 
-            // Fetch Products (Sheets + Firestore)
-            return fetch(`${apiRoot}/Products`)
-                .then(res => res.json())
-                .then(async (sheetProducts) => {
-                    const firestoreProducts = await loadFirestoreProducts();
-                    const allProducts = [...sheetProducts, ...firestoreProducts];
-                    return { products: allProducts, phoneBook };
-                });
-        })
-        .then(({ products, phoneBook }) => {
+            // 3. Fetch Products (Sheets)
+            const productRes = await fetch(`${apiRoot}/Products`);
+            const sheetProducts = await productRes.json();
+
+            // 4. Fetch Products (Firestore)
+            const firestoreProducts = await loadFirestoreProducts();
+
+            // 5. Combine and Filter
+            let combined = [...sheetProducts, ...firestoreProducts];
+            const available = combined.filter(p => 
+                (p.status || p.Status) !== "Sold" && 
+                !suspendedVendors.has(p.vendor_id || p.Vendor_ID)
+            );
+
             const container = document.getElementById('all-items-container');
             container.innerHTML = ""; 
-
-            const available = products.filter(p => (p.status || p.Status) !== "Sold");
             const shuffled = shuffle(available);
 
             if(shuffled.length === 0) {
@@ -239,12 +202,9 @@
                 const pDesc = p.description || p.Description || ""; 
                 const pVendor = p.vendor_id || p.Vendor_ID;
                 const pImage = p.image || p.Image;
-
                 const img = pImage.startsWith('http') ? pImage : `../img/${pImage}`;
                 const vendorPhone = phoneBook[pVendor] || ADMIN_PHONE;
                 const waLink = `https://wa.me/${vendorPhone}?text=${encodeURIComponent(`Hi, I saw "${pName}" on AFIT Market. Is it available?`)}`;
-
-                // Create ID
                 const pID = (pVendor + "-" + pName).replace(/\s+/g, '-').toLowerCase();
                 const isSaved = savedItemIds.has(pID);
                 const heartClass = isSaved ? 'fas' : 'far';
@@ -252,14 +212,11 @@
 
                 container.innerHTML += `
                 <div class="ad-card" style="position:relative;">
-                    
                     <button onclick="toggleSave('${pID}', '${pName}', '${pPrice}', '${pImage}', '${pVendor}')" 
-                            class="save-btn" 
-                            id="save-${pID}"
+                            class="save-btn" id="save-${pID}"
                             style="position:absolute; top:10px; right:10px; background:white; border:none; border-radius:50%; width:30px; height:30px; display:flex; align-items:center; justify-content:center; cursor:pointer; box-shadow:0 2px 5px rgba(0,0,0,0.2); z-index:10;">
                         <i class="${heartClass} fa-heart" style="color:${heartColor}; font-size:16px;"></i>
                     </button>
-
                     <img class="ad-img" src="${img}" alt="${pName}" onerror="this.src='../img/logo-blue.png'">
                     <div class="ad-info">
                         <div class="ad-price">${pPrice}</div>
@@ -271,7 +228,6 @@
                 </div>`;
             });
 
-            // Search Logic
             const searchInput = document.getElementById('item-search');
             if (searchInput) {
                 searchInput.addEventListener('input', (e) => {
@@ -282,8 +238,8 @@
                     });
                 });
             }
-        })
-        .catch(err => console.error(err));
+
+        } catch (err) { console.error(err); }
     });
 </script>
 </body>

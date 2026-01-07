@@ -67,7 +67,7 @@
     import { getFirestore, doc, setDoc, deleteDoc, collection, getDocs, query, where } 
     from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-    // ✅ YOUR FIREBASE CONFIG
+    // CONFIG
     const firebaseConfig = {
         apiKey: "AIzaSyA1eQbrJpH9OtDNDN7z9oTFTRSAE7vCFbg",
         authDomain: "afit-market-auth.firebaseapp.com",
@@ -80,66 +80,37 @@
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
     const db = getFirestore(app);
-    const provider = new GoogleAuthProvider();
 
-    // Global Variables
     let savedItemIds = new Set();
     const sheetID = "1SvVUbEnDgqgw2Z_M1ShQkzyFTsnnS6n8mTs7UMXVvF4";
     const apiRoot = `https://opensheet.elk.sh/${sheetID}`;
     const ADMIN_PHONE = "2348144516127"; 
 
-    // -- AUTH CHECK --
     onAuthStateChanged(auth, async (user) => {
         if (user) {
             try {
                 const querySnapshot = await getDocs(collection(db, "users", user.uid, "saved_items"));
                 savedItemIds.clear();
-                querySnapshot.forEach((doc) => {
-                    savedItemIds.add(doc.id);
-                });
+                querySnapshot.forEach((doc) => { savedItemIds.add(doc.id); });
                 updateHeartIcons(); 
-            } catch (e) {
-                console.error("Error loading wishlist:", e);
-            }
-        } else {
-            savedItemIds.clear();
-            updateHeartIcons();
-        }
+            } catch (e) { console.error("Error loading wishlist:", e); }
+        } else { savedItemIds.clear(); updateHeartIcons(); }
     });
 
-    // -- SAVE ITEM FUNCTION --
     window.toggleSave = async function(id, name, price, image, vendor) {
         const user = auth.currentUser;
-        if (!user) {
-            if(confirm("You need to sign in to save items. Go to login page?")) {
-                window.location.href = "login.html";
-            }
-            return;
-        }
-
+        if (!user) { if(confirm("You need to sign in to save items. Go to login page?")) { window.location.href = "login.html"; } return; }
         const btn = document.getElementById(`save-${id}`);
         const icon = btn.querySelector('i');
         const userRef = doc(db, "users", user.uid, "saved_items", id);
 
         if (savedItemIds.has(id)) {
-            // REMOVE
-            icon.classList.replace('fas', 'far');
-            icon.style.color = '#777';
-            savedItemIds.delete(id);
-            await deleteDoc(userRef);
+            icon.classList.replace('fas', 'far'); icon.style.color = '#777';
+            savedItemIds.delete(id); await deleteDoc(userRef);
         } else {
-            // SAVE
-            icon.classList.replace('far', 'fas');
-            icon.style.color = '#ff4757';
+            icon.classList.replace('far', 'fas'); icon.style.color = '#ff4757';
             savedItemIds.add(id);
-            await setDoc(userRef, {
-                product_id: id,
-                name: name,
-                price: price,
-                image: image,
-                vendor: vendor,
-                saved_at: new Date()
-            });
+            await setDoc(userRef, { product_id: id, name: name, price: price, image: image, vendor: vendor, saved_at: new Date() });
         }
     };
 
@@ -148,33 +119,13 @@
             const id = btn.id.replace('save-', '');
             const icon = btn.querySelector('i');
             if (savedItemIds.has(id)) {
-                icon.classList.remove('far');
-                icon.classList.add('fas');
-                icon.style.color = '#ff4757';
+                icon.classList.remove('far'); icon.classList.add('fas'); icon.style.color = '#ff4757';
             } else {
-                icon.classList.remove('fas');
-                icon.classList.add('far');
-                icon.style.color = '#777';
+                icon.classList.remove('fas'); icon.classList.add('far'); icon.style.color = '#777';
             }
         });
     }
 
-    // -- DATA LOADING SCRIPT --
-    document.addEventListener("DOMContentLoaded", () => {
-        const params = new URLSearchParams(window.location.search);
-        let category = params.get('cat');
-
-        if(category) {
-            const displayTitle = category.charAt(0).toUpperCase() + category.slice(1);
-            document.title = `${displayTitle} | AFIT Market`;
-            document.getElementById('page-title').innerText = displayTitle;
-            loadCategoryItems(category);
-        } else {
-            window.location.href = "index.html";
-        }
-    });
-
-    // ✅ NEW: Helper to get Dashboard items
     async function loadFirestoreProducts() {
         try {
             const q = query(collection(db, "products")); 
@@ -182,128 +133,113 @@
             let items = [];
             snapshot.forEach(doc => {
                 const d = doc.data();
-                items.push({
-                    name: d.name,
-                    price: d.price,
-                    image: d.image,
-                    vendor_id: d.vendor_id,
-                    description: d.description,
-                    category: d.category,
-                    status: d.status
-                });
+                items.push({ name: d.name, price: d.price, image: d.image, vendor_id: d.vendor_id, description: d.description, category: d.category, status: d.status });
             });
             return items;
-        } catch(e) {
-            console.error("Firestore Load Error:", e);
-            return [];
-        }
+        } catch(e) { return []; }
     }
 
-    function loadCategoryItems(category) {
-        // 1. Fetch Vendors
-        fetch(`${apiRoot}/Vendors`)
-        .then(res => res.json())
-        .then(vendors => {
-            const phoneBook = {};
-            vendors.forEach(v => {
-                const vID = v.vendor_id || v.Vendor_ID;
-                const vPhone = v.whatsapp || v.Whatsapp;
-                if(vID) phoneBook[vID] = String(vPhone).replace(/[^0-9]/g, '');
-            });
+    document.addEventListener("DOMContentLoaded", async () => {
+        const params = new URLSearchParams(window.location.search);
+        let category = params.get('cat');
 
-            // 2. Fetch Products (Sheets)
-            return fetch(`${apiRoot}/Products`)
-                .then(res => res.json())
-                .then(async (sheetProducts) => {
-                    // 3. Fetch Products (Firestore/Dashboard)
-                    const firestoreProducts = await loadFirestoreProducts();
-                    
-                    // 4. Combine Both
-                    const allProducts = [...sheetProducts, ...firestoreProducts];
-                    return { products: allProducts, phoneBook };
+        if(category) {
+            const displayTitle = category.charAt(0).toUpperCase() + category.slice(1);
+            document.title = `${displayTitle} | AFIT Market`;
+            document.getElementById('page-title').innerText = displayTitle;
+            
+            try {
+                // 1. Get Blocklist
+                const suspendedSnap = await getDocs(collection(db, "vendor_status"));
+                const suspendedVendors = new Set();
+                suspendedSnap.forEach(doc => { if(doc.data().status === "suspended") suspendedVendors.add(doc.id); });
+
+                // 2. Fetch Vendors
+                const vendorRes = await fetch(`${apiRoot}/Vendors`);
+                const vendors = await vendorRes.json();
+                const phoneBook = {};
+                vendors.forEach(v => {
+                    const vID = v.vendor_id || v.Vendor_ID;
+                    const vPhone = v.whatsapp || v.Whatsapp;
+                    if(vID) phoneBook[vID] = String(vPhone).replace(/[^0-9]/g, '');
                 });
-        })
-        .then(({ products, phoneBook }) => {
-            const grid = document.getElementById('category-grid');
-            grid.innerHTML = ""; 
 
-            // Filter by Category
-            const filteredItems = products.filter(p => 
-                (p.status || p.Status) !== "Sold" && 
-                String(p.category || p.Category).toLowerCase().trim() === category.toLowerCase().trim()
-            );
+                // 3. Fetch Products (Sheets)
+                const productRes = await fetch(`${apiRoot}/Products`);
+                const sheetProducts = await productRes.json();
 
-            document.getElementById('result-count').innerText = `${filteredItems.length} items found`;
+                // 4. Fetch Products (Firestore)
+                const firestoreProducts = await loadFirestoreProducts();
 
-            if(filteredItems.length === 0) {
-                grid.innerHTML = `
-                <div style="grid-column: 1/-1; text-align:center; padding:40px; color:#888;">
-                    <i class="fas fa-box-open" style="font-size:40px; margin-bottom:10px; opacity:0.5;"></i>
-                    <p>No ${category} available right now.</p>
-                    <a href="index.html" class="chat-btn" style="display:inline-block; width:auto; padding:8px 20px; margin-top:10px; background:#2d8eff;">Browse All</a>
-                </div>`;
+                // 5. Combine & Filter
+                let combined = [...sheetProducts, ...firestoreProducts];
+                const filteredItems = combined.filter(p => 
+                    (p.status || p.Status) !== "Sold" && 
+                    !suspendedVendors.has(p.vendor_id || p.Vendor_ID) &&
+                    String(p.category || p.Category).toLowerCase().trim() === category.toLowerCase().trim()
+                );
+
+                const grid = document.getElementById('category-grid');
+                grid.innerHTML = ""; 
+                document.getElementById('result-count').innerText = `${filteredItems.length} items found`;
+
+                if(filteredItems.length === 0) {
+                    grid.innerHTML = `
+                    <div style="grid-column: 1/-1; text-align:center; padding:40px; color:#888;">
+                        <i class="fas fa-box-open" style="font-size:40px; margin-bottom:10px; opacity:0.5;"></i>
+                        <p>No ${category} available right now.</p>
+                        <a href="index.html" class="chat-btn" style="display:inline-block; width:auto; padding:8px 20px; margin-top:10px; background:#2d8eff;">Browse All</a>
+                    </div>`;
+                    document.getElementById('preloader').style.display = 'none';
+                    return;
+                }
+
+                filteredItems.forEach(p => {
+                    const pName = p.name || p.Name;
+                    const pPrice = p.price || p.Price;
+                    const pDesc = p.description || p.Description || ""; 
+                    const pVendor = p.vendor_id || p.Vendor_ID;
+                    const pImage = p.image || p.Image;
+                    const img = pImage.startsWith('http') ? pImage : `img/${pImage}`;
+                    const vendorPhone = phoneBook[pVendor] || ADMIN_PHONE;
+                    const waLink = `https://wa.me/${vendorPhone}?text=${encodeURIComponent(`Hi, I saw "${pName}" on AFIT Market (ID: ${pVendor}). Is it available?`)}`;
+                    const pID = (pVendor + "-" + pName).replace(/\s+/g, '-').toLowerCase();
+                    const isSaved = savedItemIds.has(pID);
+                    const heartClass = isSaved ? 'fas' : 'far';
+                    const heartColor = isSaved ? '#ff4757' : '#777';
+
+                    grid.innerHTML += `
+                    <div class="ad-card" style="position:relative;">
+                        <button onclick="toggleSave('${pID}', '${pName}', '${pPrice}', '${pImage}', '${pVendor}')" 
+                                class="save-btn" id="save-${pID}"
+                                style="position:absolute; top:10px; right:10px; background:white; border:none; border-radius:50%; width:30px; height:30px; display:flex; align-items:center; justify-content:center; cursor:pointer; box-shadow:0 2px 5px rgba(0,0,0,0.2); z-index:10;">
+                            <i class="${heartClass} fa-heart" style="color:${heartColor}; font-size:16px;"></i>
+                        </button>
+                        <img class="ad-img" src="${img}" alt="${pName}" onerror="this.src='img/logo-blue.png'">
+                        <div class="ad-info">
+                            <div class="ad-price">${pPrice}</div>
+                            <div class="ad-title">${pName}</div>
+                            <div class="ad-desc">${pDesc}</div> <div class="ad-location">Vendor: ${pVendor}</div>
+                            <a href="${waLink}" class="chat-btn" target="_blank">Get Item</a>
+                        </div>
+                    </div>`;
+                });
+
+                const searchInput = document.getElementById('cat-search');
+                searchInput.addEventListener('input', (e) => {
+                    const query = e.target.value.toLowerCase().trim();
+                    document.querySelectorAll('.ad-card').forEach(card => {
+                        const title = card.querySelector('.ad-title').innerText.toLowerCase();
+                        card.style.display = title.includes(query) ? "" : "none";
+                    });
+                });
                 document.getElementById('preloader').style.display = 'none';
-                return;
-            }
 
-            filteredItems.forEach(p => {
-                const pName = p.name || p.Name;
-                const pPrice = p.price || p.Price;
-                const pDesc = p.description || p.Description || ""; 
-                const pVendor = p.vendor_id || p.Vendor_ID;
-                const pImage = p.image || p.Image;
-
-                const pImg = pImage.startsWith('http') ? pImage : `img/${pImage}`;
-                const vendorPhone = phoneBook[pVendor] || ADMIN_PHONE;
-                const waLink = `https://wa.me/${vendorPhone}?text=${encodeURIComponent(`Hi, I saw "${pName}" on AFIT Market (ID: ${pVendor}). Is it available?`)}`;
-
-                // Create ID for saving
-                const pID = (pVendor + "-" + pName).replace(/\s+/g, '-').toLowerCase();
-                const isSaved = savedItemIds.has(pID);
-                const heartClass = isSaved ? 'fas' : 'far';
-                const heartColor = isSaved ? '#ff4757' : '#777';
-
-                grid.innerHTML += `
-                <div class="ad-card" style="position:relative;">
-                    
-                    <button onclick="toggleSave('${pID}', '${pName}', '${pPrice}', '${pImage}', '${pVendor}')" 
-                            class="save-btn" 
-                            id="save-${pID}"
-                            style="position:absolute; top:10px; right:10px; background:white; border:none; border-radius:50%; width:30px; height:30px; display:flex; align-items:center; justify-content:center; cursor:pointer; box-shadow:0 2px 5px rgba(0,0,0,0.2); z-index:10;">
-                        <i class="${heartClass} fa-heart" style="color:${heartColor}; font-size:16px;"></i>
-                    </button>
-
-                    <img class="ad-img" src="${pImg}" alt="${pName}" onerror="this.src='img/logo-blue.png'">
-                    <div class="ad-info">
-                        <div class="ad-price">${pPrice}</div>
-                        <div class="ad-title">${pName}</div>
-                        <div class="ad-desc">${pDesc}</div> <div class="ad-location">Vendor: ${pVendor}</div>
-                        <a href="${waLink}" class="chat-btn" target="_blank">Get Item</a>
-                    </div>
-                </div>`;
-            });
-
-            setupSearch();
-            document.getElementById('preloader').style.display = 'none';
-        })
-        .catch(err => {
-            console.error(err);
-            document.getElementById('category-grid').innerHTML = "<p style='text-align:center;'>Error loading items.</p>";
-            document.getElementById('preloader').style.display = 'none';
-        });
-    }
-
-    function setupSearch() {
-        const searchInput = document.getElementById('cat-search');
-        searchInput.addEventListener('input', (e) => {
-            const query = e.target.value.toLowerCase().trim();
-            document.querySelectorAll('.ad-card').forEach(card => {
-                const title = card.querySelector('.ad-title').innerText.toLowerCase();
-                if(title.includes(query)) card.style.display = "";
-                else card.style.display = "none";
-            });
-        });
-    }
+            } catch (err) { console.error(err); }
+        } else {
+            window.location.href = "index.html";
+        }
+    });
 </script>
 </body>
 </html>

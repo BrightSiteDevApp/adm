@@ -247,10 +247,10 @@
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
     import { getAuth, onAuthStateChanged, signInWithPopup, GoogleAuthProvider } 
     from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-    import { getFirestore, doc, setDoc, deleteDoc, collection, getDocs, query, where } 
+    import { getFirestore, doc, setDoc, deleteDoc, collection, getDocs, query } 
     from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-    // ✅ FIREBASE CONFIG
+    // FIREBASE CONFIG
     const firebaseConfig = {
         apiKey: "AIzaSyA1eQbrJpH9OtDNDN7z9oTFTRSAE7vCFbg",
         authDomain: "afit-market-auth.firebaseapp.com",
@@ -265,7 +265,6 @@
     const db = getFirestore(app);
     const provider = new GoogleAuthProvider();
 
-    // Global Variables
     let savedItemIds = new Set();
     const sheetID = "1SvVUbEnDgqgw2Z_M1ShQkzyFTsnnS6n8mTs7UMXVvF4";
     const apiRoot = `https://opensheet.elk.sh/${sheetID}`;
@@ -273,12 +272,12 @@
     let allProducts = [];
     let allVendors = [];
     let globalPhoneBook = {}; 
+    let suspendedVendors = new Set(); // ⛔ BLOCKLIST
 
     // -- INIT --
     setupMainSearch();
     loadAds(); 
 
-    // -- AUTH CHECK --
     onAuthStateChanged(auth, async (user) => {
         const headerBtn = document.getElementById('header-profile-btn');
         if (user) {
@@ -301,7 +300,6 @@
         }
     });
 
-    // -- POPUP SIGN IN --
     document.getElementById('popup-google-btn').addEventListener('click', () => {
         signInWithPopup(auth, provider)
             .then((result) => {
@@ -310,31 +308,21 @@
             }).catch((error) => { alert("Login failed: " + error.message); });
     });
 
-    // -- SAVE ITEM (HEART) --
     window.toggleSave = async function(id, name, price, image, vendor) {
         const user = auth.currentUser;
-        if (!user) {
-            document.getElementById('login-modal').style.display = 'flex';
-            return;
-        }
+        if (!user) { document.getElementById('login-modal').style.display = 'flex'; return; }
         const btn = document.getElementById(`save-${id}`);
         const icon = btn.querySelector('i');
         const userRef = doc(db, "users", user.uid, "saved_items", id);
 
         if (savedItemIds.has(id)) {
-            icon.classList.replace('fas', 'far');
-            icon.style.color = '#777';
-            savedItemIds.delete(id);
-            await deleteDoc(userRef);
+            icon.classList.replace('fas', 'far'); icon.style.color = '#777';
+            savedItemIds.delete(id); await deleteDoc(userRef);
         } else {
-            icon.classList.replace('far', 'fas');
-            icon.style.color = '#ff4757';
+            icon.classList.replace('far', 'fas'); icon.style.color = '#ff4757';
             savedItemIds.add(id);
-            btn.style.transform = "scale(1.2)";
-            setTimeout(() => btn.style.transform = "scale(1)", 200);
-            await setDoc(userRef, {
-                product_id: id, name: name, price: price, image: image, vendor: vendor, saved_at: new Date()
-            });
+            btn.style.transform = "scale(1.2)"; setTimeout(() => btn.style.transform = "scale(1)", 200);
+            await setDoc(userRef, { product_id: id, name: name, price: price, image: image, vendor: vendor, saved_at: new Date() });
         }
     };
 
@@ -350,7 +338,6 @@
         });
     }
 
-    // -- HISTORY LOGIC --
     window.addToHistory = function(id, name, price, image, vendor) {
         let history = JSON.parse(localStorage.getItem('adm_history')) || [];
         history = history.filter(item => item.id !== id);
@@ -365,25 +352,31 @@
         const section = document.getElementById('recent-section');
 
         if(history.length > 0 && container) {
-            section.style.display = 'block';
-            container.innerHTML = "";
-            history.forEach(p => {
-                const vendorPhone = globalPhoneBook[p.vendor] || ADMIN_PHONE;
-                const waLink = `https://wa.me/${vendorPhone}?text=${encodeURIComponent(`Hi, I saw "${p.name}" in my recently viewed items. Is it available?`)}`;
-                const img = p.image.startsWith('http') ? p.image : `img/${p.image}`;
-                container.innerHTML += `
-                <div class="ad-card" style="min-width: 140px;"> <img class="ad-img" src="${img}" alt="${p.name}" onerror="this.src='img/logo-blue.png'">
-                    <div class="ad-info">
-                        <div class="ad-price" style="font-size:12px;">${p.price}</div>
-                        <div class="ad-title" style="font-size:11px;">${p.name}</div>
-                        <a href="${waLink}" class="chat-btn" style="padding:4px 10px; font-size:10px;">Get</a>
-                    </div>
-                </div>`;
-            });
+            
+            // ⛔ FILTER HISTORY FOR SUSPENDED VENDORS
+            const cleanHistory = history.filter(p => !suspendedVendors.has(p.vendor));
+
+            if (cleanHistory.length > 0) {
+                section.style.display = 'block';
+                container.innerHTML = "";
+                
+                cleanHistory.forEach(p => {
+                    const vendorPhone = globalPhoneBook[p.vendor] || ADMIN_PHONE;
+                    const waLink = `https://wa.me/${vendorPhone}?text=${encodeURIComponent(`Hi, I saw "${p.name}" in my recently viewed items. Is it available?`)}`;
+                    const img = p.image.startsWith('http') ? p.image : `img/${p.image}`;
+                    container.innerHTML += `
+                    <div class="ad-card" style="min-width: 140px;"> <img class="ad-img" src="${img}" alt="${p.name}" onerror="this.src='img/logo-blue.png'">
+                        <div class="ad-info">
+                            <div class="ad-price" style="font-size:12px;">${p.price}</div>
+                            <div class="ad-title" style="font-size:11px;">${p.name}</div>
+                            <a href="${waLink}" class="chat-btn" style="padding:4px 10px; font-size:10px;">Get</a>
+                        </div>
+                    </div>`;
+                });
+            }
         }
     }
 
-    // -- STORIES, ADS --
     function loadAds() {
         fetch(`${apiRoot}/Ads`)
         .then(res => res.json())
@@ -411,9 +404,7 @@
                         notifBtn.style.position = 'relative';
                         notifBtn.innerHTML += `<span class="badge-dot" style="position:absolute; top:5px; right:5px; width:10px; height:10px; background:#ff4757; border-radius:50%; border:2px solid white;"></span>`;
                     }
-                    notifBtn.addEventListener('click', () => {
-                        document.getElementById('promo-modal').style.display = 'flex';
-                    });
+                    notifBtn.addEventListener('click', () => { document.getElementById('promo-modal').style.display = 'flex'; });
                 }
                 setTimeout(() => {
                     const modal = document.getElementById('promo-modal'); 
@@ -458,7 +449,7 @@
 
     function shuffle(array) { return array.sort(() => 0.5 - Math.random()); }
     
-    // 1. REVIEWS
+    // REVIEWS (Unchanged)
     fetch(`${apiRoot}/Reviews`)
     .then(res => res.json())
     .then(data => {
@@ -473,65 +464,71 @@
                 container.innerHTML += `<div class="review-card"><div class="review-header"><img src="${img}" class="review-img" onerror="this.src='img/person.png'"><div><div class="review-name">${r.name || "Student"}</div><div class="stars">${starString}</div></div></div><div class="review-text">"${r.review || "Great!"}"</div></div>`;
             });
         }
-    }).catch(err => console.error("Reviews Error:", err));
+    });
 
-    // 2. VENDORS (LOADS PHONEBOOK + SHEET PRODUCTS + FIRESTORE PRODUCTS)
-    fetch(`${apiRoot}/Vendors`)
-    .then(res => res.json())
-    .then(vendors => {
-        allVendors = vendors;
-        vendors.forEach(v => {
-            const vID = v.vendor_id || v.Vendor_ID;
-            const vPhone = v.whatsapp || v.Whatsapp;
-            if(vID) globalPhoneBook[vID] = String(vPhone).replace(/[^0-9]/g, '');
-        });
-        
-        renderVendors(allVendors);
-        loadRecentItems();
+    // ⛔ GET SUSPENDED LIST -> VENDORS -> PRODUCTS
+    async function initData() {
+        try {
+            // 1. Get Blocklist from Firestore
+            const suspendedSnap = await getDocs(collection(db, "vendor_status"));
+            suspendedSnap.forEach(doc => {
+                if (doc.data().status === "suspended") suspendedVendors.add(doc.id);
+            });
 
-        // FETCH 1: Google Sheet Products
-        return fetch(`${apiRoot}/Products`);
-    })
-    .then(res => res.json())
-    .then(async (sheetProducts) => {
-        // FETCH 2: Firestore Products (Dashboard Items)
-        const firestoreProducts = await loadFirestoreProducts();
-        
-        // COMBINE THEM
-        const validSheetProducts = sheetProducts.filter(p => (p.status || p.Status) !== "Sold");
-        allProducts = [...validSheetProducts, ...firestoreProducts];
-        
-        // RENDER MIX
-        renderStories(allProducts, globalPhoneBook);
-        const randomMix = shuffle([...allProducts]).slice(0, 15);
-        renderItems(randomMix); 
-    })
-    .catch(err => console.error("Data Error:", err));
+            // 2. Fetch Vendors from Sheet
+            const vendorRes = await fetch(`${apiRoot}/Vendors`);
+            const vendors = await vendorRes.json();
 
-    // ✅ NEW: Helper to get Dashboard items
+            // Filter out suspended vendors from list
+            allVendors = vendors.filter(v => !suspendedVendors.has(v.vendor_id || v.Vendor_ID));
+
+            allVendors.forEach(v => {
+                const vID = v.vendor_id || v.Vendor_ID;
+                const vPhone = v.whatsapp || v.Whatsapp;
+                if(vID) globalPhoneBook[vID] = String(vPhone).replace(/[^0-9]/g, '');
+            });
+            
+            renderVendors(allVendors);
+            loadRecentItems();
+
+            // 3. Fetch Products (Sheet)
+            const productsRes = await fetch(`${apiRoot}/Products`);
+            const sheetProducts = await productsRes.json();
+
+            // 4. Fetch Products (Firestore)
+            const firestoreProducts = await loadFirestoreProducts();
+            
+            // 5. Combine and Filter Products against Blocklist
+            let combined = [...sheetProducts, ...firestoreProducts];
+            allProducts = combined.filter(p => 
+                (p.status || p.Status) !== "Sold" && 
+                !suspendedVendors.has(p.vendor_id || p.Vendor_ID)
+            );
+            
+            renderStories(allProducts, globalPhoneBook);
+            const randomMix = shuffle([...allProducts]).slice(0, 15);
+            renderItems(randomMix); 
+
+        } catch (err) { console.error("Init Error:", err); }
+    }
+
+    // Start
+    initData();
+
     async function loadFirestoreProducts() {
         try {
-            const q = query(collection(db, "products")); // Get all dashboard products
+            const q = query(collection(db, "products")); 
             const snapshot = await getDocs(q);
             let items = [];
             snapshot.forEach(doc => {
                 const d = doc.data();
-                // Normalize data to match Sheet format
                 items.push({
-                    name: d.name,
-                    price: d.price,
-                    image: d.image,
-                    vendor_id: d.vendor_id,
-                    description: d.description,
-                    status: d.status,
-                    is_story: "false" // Default to normal item
+                    name: d.name, price: d.price, image: d.image, vendor_id: d.vendor_id,
+                    description: d.description, status: d.status, is_story: d.is_story || "false"
                 });
             });
             return items;
-        } catch(e) {
-            console.error("Firestore Load Error:", e);
-            return [];
-        }
+        } catch(e) { return []; }
     }
 
     function setupMainSearch() {
@@ -589,7 +586,6 @@
                     <div class="ad-price">${pPrice}</div>
                     <div class="ad-title">${pName}</div>
                     <div class="ad-location">Vendor: ${pVendor}</div>
-                    
                     <a href="${waLink}" class="chat-btn" target="_blank" 
                        onclick="addToHistory('${pID}', '${pName}', '${pPrice}', '${pImage}', '${pVendor}')">
                        Get
