@@ -155,7 +155,7 @@
     let pageVendorEmail = null; 
     const sheetID = "1SvVUbEnDgqgw2Z_M1ShQkzyFTsnnS6n8mTs7UMXVvF4";
     const apiRoot = `https://opensheet.elk.sh/${sheetID}`;
-    const ADMIN_PHONE = "2348144516127"; // Admin fallback
+    const ADMIN_PHONE = "2348144516127"; 
 
     onAuthStateChanged(auth, async (user) => {
         if (user) {
@@ -180,18 +180,15 @@
     window.toggleSave = async function(id, name, price, image, vendor) {
         const user = auth.currentUser;
         if (!user) { if(confirm("You need to sign in to save items. Go to login page?")) { window.location.href = "login.html"; } return; }
-        const btn = document.getElementById(`save-${id}`);
-        const icon = btn.querySelector('i');
         const userRef = doc(db, "users", user.uid, "saved_items", id);
 
         if (savedItemIds.has(id)) {
-            icon.classList.replace('fas', 'far'); icon.style.color = '#777';
             savedItemIds.delete(id); await deleteDoc(userRef);
         } else {
-            icon.classList.replace('far', 'fas'); icon.style.color = '#ff4757';
             savedItemIds.add(id);
             await setDoc(userRef, { product_id: id, name: name, price: price, image: image, vendor: vendor, saved_at: new Date() });
         }
+        updateHeartIcons(); 
     };
 
     function updateHeartIcons() {
@@ -199,9 +196,9 @@
             const id = btn.id.replace('save-', '');
             const icon = btn.querySelector('i');
             if (savedItemIds.has(id)) {
-                icon.classList.remove('far'); icon.classList.add('fas'); icon.style.color = '#ff4757';
+                icon.classList.replace('far', 'fas'); icon.style.color = '#ff4757';
             } else {
-                icon.classList.remove('fas'); icon.classList.add('far'); icon.style.color = '#777';
+                icon.classList.replace('fas', 'far'); icon.style.color = '#777';
             }
         });
     }
@@ -209,7 +206,6 @@
     document.addEventListener("DOMContentLoaded", () => {
         const params = new URLSearchParams(window.location.search);
         let vendorID = params.get('vendor');
-
         if(vendorID) {
             vendorID = vendorID.trim();
             loadProfile(vendorID);
@@ -296,7 +292,6 @@
             grid.innerHTML = ""; 
             const firestoreProducts = await loadVendorFirestoreItems(id);
             const allProducts = [...sheetData, ...firestoreProducts];
-            // ⚠️ UPDATED: Removed "Sold" check to allow sold items to display
             const myProducts = allProducts.filter(p => (p.vendor_id || p.Vendor_ID) === id);
             
             if(myProducts.length === 0) { grid.innerHTML = "<p style='width:100%; text-align:center; padding:20px; color:#777;'>No items listed yet.</p>"; return; }
@@ -305,26 +300,35 @@
                 const pName = p.name || p.Name; const pPrice = p.price || p.Price; const pCategory = p.category || p.Category; const pImage = p.image || p.Image;
                 const pDesc = p.description || p.Description || "No description.";
                 const pStatus = p.status || p.Status || "Active"; 
+                const isFeatured = p.is_featured === "true"; 
                 
+                // ✅ Use Firestore doc ID for uniqueness
+                const pID = p.id || (id + "-" + pName).replace(/\s+/g, '-').toLowerCase();
+
                 let pImg = pImage || "logo-blue.png"; if (!pImg.startsWith('http')) pImg = `img/${pImg}`;
-                const pID = (id + "-" + pName).replace(/\s+/g, '-').toLowerCase();
                 const isSaved = savedItemIds.has(pID); const heartClass = isSaved ? 'fas' : 'far'; const heartColor = isSaved ? '#ff4757' : '#777';
 
                 const safeName = pName.replace(/'/g, "\\'");
                 const safeDesc = pDesc.replace(/'/g, "\\'").replace(/\n/g, " ");
 
-                // 🔴 SOLD LOGIC
                 const isSold = pStatus === "Sold";
                 const opacity = isSold ? 'opacity:0.6;' : '';
-                const soldBadge = isSold ? '<span style="background:red; color:white; font-size:9px; padding:2px 5px; position:absolute; top:10px; left:10px; border-radius:4px; z-index:10;">SOLD</span>' : '';
+                
+                let badge = '';
+                if (isSold) {
+                    badge = '<span style="background:red; color:white; font-size:9px; padding:2px 5px; position:absolute; top:10px; left:10px; border-radius:4px; z-index:10;">SOLD</span>';
+                } else if (isFeatured) {
+                    badge = '<span style="background:#f1c40f; color:white; font-size:9px; padding:2px 5px; position:absolute; top:10px; left:10px; border-radius:4px; z-index:10; font-weight:bold;">⭐ Sponsored</span>';
+                }
+
                 const clickAction = isSold ? "" : `onclick="viewProduct('${safeName}', '${pPrice}', '${safeDesc}', '${pImg}', '${vendorPhone}', '${pID}', '${pCategory}')"`;
                 const btnText = isSold ? "Sold" : "Get Item";
                 const btnStyle = isSold ? "background:#777; pointer-events:none;" : "";
 
                 grid.innerHTML += `
                 <div class="ad-card" style="position:relative; ${opacity}">
-                    ${soldBadge}
-                    <button onclick="toggleSave('${pID}', '${safeName}', '${pPrice}', '${pImage}', '${id}')" class="save-btn" id="save-${pID}" style="position:absolute; top:10px; right:10px; background:white; border:none; border-radius:50%; width:30px; height:30px; display:flex; align-items:center; justify-content:center; cursor:pointer; box-shadow:0 2px 5px rgba(0,0,0,0.2); z-index:10;"><i class="${heartClass} fa-heart" style="color:${heartColor}; font-size:16px;"></i></button>
+                    ${badge}
+                    <button onclick="toggleSave('${pID}', '${safeName}', '${pPrice}', '${pImage}', '${id}')" class="save-btn" id="save-${pID}" style="position:absolute; top:10px; right:10px; background:white; border:none; border-radius:50%; width:30px; height:30px; display:flex; align-items:center; justify-content:center; cursor:pointer; box-shadow:0 2px 5px rgba(0,0,0,0.2); z-index:10;"><i class="${heartClass} fa-heart" style="color:${heartColor};"></i></button>
                     
                     <img class="ad-img" src="${pImg}" alt="${pName}" onerror="this.src='img/logo-blue.png'" ${clickAction}>
                     
@@ -341,9 +345,10 @@
         try {
             const q = query(collection(db, "products"), where("vendor_id", "==", vid));
             const snapshot = await getDocs(q);
-            let items = [];
-            snapshot.forEach(doc => { const d = doc.data(); items.push({ name: d.name, price: d.price, image: d.image, vendor_id: d.vendor_id, description: d.description, category: d.category, status: d.status }); });
-            return items;
+            return snapshot.docs.map(doc => ({
+                id: doc.id,
+                ...doc.data()
+            }));
         } catch(e) { console.error("Firestore Error:", e); return []; }
     }
 
@@ -359,7 +364,6 @@
         if (navigator.share) { navigator.share({ title: document.title, url: window.location.href }); } else { alert("Link copied!"); }
     }
 
-    // ✅ VIEW PRODUCT LOGIC
     window.viewProduct = function(name, price, desc, img, phone, id, category) {
         document.getElementById('pm-title').innerText = name;
         document.getElementById('pm-price').innerText = price;
@@ -367,8 +371,7 @@
         document.getElementById('pm-img').src = img;
         document.getElementById('pm-btn').href = `https://wa.me/${phone}?text=${encodeURIComponent(`Hi, I saw "${name}" on AFIT Market. Is it available?`)}`;
         
-        // Add to history when viewed
-        addToHistory(id, name, price, img, phone); // Using phone/vendorID loosely here for history key
+        addToHistory(id, name, price, img, id); 
 
         document.getElementById('product-modal').style.display = 'flex';
     };
@@ -377,7 +380,6 @@
         document.getElementById('product-modal').style.display = 'none';
     };
 
-    // ✅ SMART HISTORY ADD
     window.addToHistory = function(id, name, price, image, vendor) {
         let history = JSON.parse(localStorage.getItem('adm_history')) || [];
         history = history.filter(item => item.id !== id);

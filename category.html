@@ -101,16 +101,11 @@
         try {
             const q = query(collection(db, "products")); 
             const snapshot = await getDocs(q);
-            let items = [];
-            snapshot.forEach(doc => {
-                const d = doc.data();
-                items.push({
-                    name: d.name, price: d.price, image: d.image, vendor_id: d.vendor_id,
-                    description: d.description, category: d.category, status: d.status,
-                    condition: d.condition 
-                });
-            });
-            return items;
+            // ✅ FIX: Capture the actual Firestore document ID for uniqueness
+            return snapshot.docs.map(doc => ({
+                id: doc.id,
+                ...doc.data()
+            }));
         } catch(e) { return []; }
     }
 
@@ -124,12 +119,10 @@
             document.getElementById('page-title').innerText = displayTitle;
             
             try {
-                // 1. Get Blocklist
                 const suspendedSnap = await getDocs(collection(db, "vendor_status"));
                 const suspendedVendors = new Set();
                 suspendedSnap.forEach(doc => { if(doc.data().status === "suspended") suspendedVendors.add(doc.id); });
 
-                // 2. Fetch Vendors
                 const vendorRes = await fetch(`${apiRoot}/Vendors`);
                 const vendors = await vendorRes.json();
                 const phoneBook = {};
@@ -139,14 +132,10 @@
                     if(vID) phoneBook[vID] = String(vPhone).replace(/[^0-9]/g, '');
                 });
 
-                // 3. Fetch Products (Sheets)
-                const productRes = await fetch(`${apiRoot}/Products`);
-                const sheetProducts = await productRes.json();
-
-                // 4. Fetch Products (Firestore)
+                const sheetProductsRes = await fetch(`${apiRoot}/Products`);
+                const sheetProducts = await sheetProductsRes.json();
                 const firestoreProducts = await loadFirestoreProducts();
 
-                // 5. Combine & Filter
                 let combined = [...sheetProducts, ...firestoreProducts];
                 const filteredItems = combined.filter(p => 
                     !suspendedVendors.has(p.vendor_id || p.Vendor_ID) &&
@@ -158,12 +147,7 @@
                 document.getElementById('result-count').innerText = `${filteredItems.length} items found`;
 
                 if(filteredItems.length === 0) {
-                    grid.innerHTML = `
-                    <div style="grid-column: 1/-1; text-align:center; padding:40px; color:#888;">
-                        <i class="fas fa-box-open" style="font-size:40px; margin-bottom:10px; opacity:0.5;"></i>
-                        <p>No ${category} available right now.</p>
-                        <a href="index.html" class="chat-btn" style="display:inline-block; width:auto; padding:8px 20px; margin-top:10px; background:#2d8eff;">Browse All</a>
-                    </div>`;
+                    grid.innerHTML = `<div style="grid-column: 1/-1; text-align:center; padding:40px; color:#888;"><p>No ${category} available.</p></div>`;
                     document.getElementById('preloader').style.display = 'none';
                     return;
                 }
@@ -177,10 +161,11 @@
                     const pStatus = p.status || p.Status || "Active";
                     const pCond = p.condition || "Used";
                     
+                    // ✅ UNIQUE ID FIX: Use Firestore ID or generated fallback for Google Sheets items
+                    const pID = p.id || (pVendor + "-" + pName).replace(/\s+/g, '-').toLowerCase();
+
                     const img = pImage.startsWith('http') ? pImage : `img/${pImage}`;
                     const vendorPhone = phoneBook[pVendor] || ADMIN_PHONE;
-                    
-                    const pID = (pVendor + "-" + pName).replace(/\s+/g, '-').toLowerCase();
                     const isSaved = savedItemIds.has(pID);
                     const heartClass = isSaved ? 'fas' : 'far';
                     const heartColor = isSaved ? '#ff4757' : '#777';
@@ -188,17 +173,13 @@
                     const safeName = pName.replace(/'/g, "\\'");
                     const safeDesc = pDesc.replace(/'/g, "\\'").replace(/\n/g, " ");
 
-                    // 🔴 SOLD LOGIC
                     const isSold = pStatus === "Sold";
                     const opacity = isSold ? 'opacity:0.6;' : '';
                     const badge = isSold ? '<span style="background:red; color:white; font-size:9px; padding:2px 5px; position:absolute; top:10px; left:10px; border-radius:4px; z-index:10;">SOLD</span>' : '';
                     const clickAction = isSold ? "" : `onclick="viewProduct('${safeName}', '${pPrice}', '${safeDesc}', '${img}', '${vendorPhone}')"`;
                     const btnText = isSold ? "Sold" : "Get Item";
                     const btnStyle = isSold ? "background:#777; pointer-events:none;" : "";
-
-                    // Condition Badge (Only if not Sold)
-                    const condBadge = (!isSold && pCond === "New") ? 
-                        `<span style="background:#00b894; color:white; font-size:9px; padding:2px 5px; border-radius:4px; position:absolute; top:10px; left:10px; z-index:10;">NEW</span>` : '';
+                    const condBadge = (!isSold && pCond === "New") ? `<span style="background:#00b894; color:white; font-size:9px; padding:2px 5px; border-radius:4px; position:absolute; top:10px; left:10px; z-index:10;">NEW</span>` : '';
 
                     grid.innerHTML += `
                     <div class="ad-card" style="position:relative; ${opacity}">
@@ -209,9 +190,7 @@
                                 style="position:absolute; top:10px; right:10px; background:white; border:none; border-radius:50%; width:30px; height:30px; display:flex; align-items:center; justify-content:center; cursor:pointer; box-shadow:0 2px 5px rgba(0,0,0,0.2); z-index:10;">
                             <i class="${heartClass} fa-heart" style="color:${heartColor}; font-size:16px;"></i>
                         </button>
-                        
                         <img class="ad-img" src="${img}" alt="${pName}" onerror="this.src='img/logo-blue.png'" ${clickAction}>
-                        
                         <div class="ad-info">
                             <div class="ad-price">${pPrice}</div>
                             <div class="ad-title">${pName}</div>
@@ -221,52 +200,22 @@
                     </div>`;
                 });
 
-                const searchInput = document.getElementById('cat-search');
-                searchInput.addEventListener('input', (e) => {
-                    const query = e.target.value.toLowerCase().trim();
-                    document.querySelectorAll('.ad-card').forEach(card => {
-                        const title = card.querySelector('.ad-title').innerText.toLowerCase();
-                        card.style.display = title.includes(query) ? "" : "none";
-                    });
-                });
                 document.getElementById('preloader').style.display = 'none';
-
             } catch (err) { console.error(err); }
-        } else {
-            window.location.href = "index.html";
         }
     });
-
-    // ✅ MODAL LOGIC
-    window.viewProduct = function(name, price, desc, img, phone) {
-        document.getElementById('pm-title').innerText = name;
-        document.getElementById('pm-price').innerText = price;
-        document.getElementById('pm-desc').innerText = desc;
-        document.getElementById('pm-img').src = img;
-        document.getElementById('pm-btn').href = `https://wa.me/${phone}?text=${encodeURIComponent(`Hi, I saw "${name}" on AFIT Market. Is it available?`)}`;
-        
-        document.getElementById('product-modal').style.display = 'flex';
-    };
-
-    window.closeProductModal = function() {
-        document.getElementById('product-modal').style.display = 'none';
-    };
 
     window.toggleSave = async function(id, name, price, image, vendor) {
         const user = auth.currentUser;
         if (!user) { if(confirm("Sign in to save items?")) window.location.href = "login.html"; return; }
-        const btn = document.getElementById(`save-${id}`);
-        const icon = btn.querySelector('i');
         const userRef = doc(db, "users", user.uid, "saved_items", id);
-
         if (savedItemIds.has(id)) {
-            icon.classList.replace('fas', 'far'); icon.style.color = '#777';
             savedItemIds.delete(id); await deleteDoc(userRef);
         } else {
-            icon.classList.replace('far', 'fas'); icon.style.color = '#ff4757';
             savedItemIds.add(id);
-            await setDoc(userRef, { product_id: id, name: name, price: price, image: image, vendor: vendor, saved_at: new Date() });
+            await setDoc(userRef, { product_id: id, name, price, image, vendor, saved_at: new Date() });
         }
+        updateHeartIcons(); // ✅ Update visuals immediately
     };
 
     function updateHeartIcons() {
@@ -274,12 +223,23 @@
             const id = btn.id.replace('save-', '');
             const icon = btn.querySelector('i');
             if (savedItemIds.has(id)) {
-                icon.classList.remove('far'); icon.classList.add('fas'); icon.style.color = '#ff4757';
+                icon.classList.replace('far', 'fas'); icon.style.color = '#ff4757';
             } else {
-                icon.classList.remove('fas'); icon.classList.add('far'); icon.style.color = '#777';
+                icon.classList.replace('fas', 'far'); icon.style.color = '#777';
             }
         });
     }
+
+    window.viewProduct = function(name, price, desc, img, phone) {
+        document.getElementById('pm-title').innerText = name;
+        document.getElementById('pm-price').innerText = price;
+        document.getElementById('pm-desc').innerText = desc;
+        document.getElementById('pm-img').src = img;
+        document.getElementById('pm-btn').href = `https://wa.me/${phone}?text=${encodeURIComponent(`Hi, I saw "${name}" on AFIT Market. Is it available?`)}`;
+        document.getElementById('product-modal').style.display = 'flex';
+    };
+
+    window.closeProductModal = () => document.getElementById('product-modal').style.display = 'none';
 </script>
 </body>
 </html>

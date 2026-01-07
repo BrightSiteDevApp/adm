@@ -127,12 +127,10 @@
     // -- DATA LOADING --
     document.addEventListener("DOMContentLoaded", async () => {
         try {
-            // 1. Get Blocklist
             const suspendedSnap = await getDocs(collection(db, "vendor_status"));
             const suspendedVendors = new Set();
             suspendedSnap.forEach(doc => { if(doc.data().status === "suspended") suspendedVendors.add(doc.id); });
 
-            // 2. Fetch Vendors
             const vendorRes = await fetch(`${apiRoot}/Vendors`);
             const vendors = await vendorRes.json();
             const phoneBook = {};
@@ -142,18 +140,14 @@
                 if(vID) phoneBook[vID] = String(vPhone).replace(/[^0-9]/g, '');
             });
 
-            // 3. Fetch Products (Sheets + Firestore)
             const [sheetRes, firestoreItems] = await Promise.all([
                 fetch(`${apiRoot}/Products`).then(res => res.json()),
                 loadFirestoreProducts()
             ]);
 
-            // 4. Combine & Normalize
             const combined = [...sheetRes, ...firestoreItems];
             
-            // 5. Create Master List
             masterList = combined
-                // Note: We removed the check for "Sold" here so we can show them with badges
                 .filter(p => !suspendedVendors.has(p.vendor_id || p.Vendor_ID))
                 .map(p => {
                     const rawPrice = String(p.price || p.Price);
@@ -161,10 +155,8 @@
                     return { ...p, numericPrice: numPrice, phone: phoneBook[p.vendor_id || p.Vendor_ID] || ADMIN_PHONE };
                 });
 
-            // Initial Render
             applyFilters();
 
-            // Setup Event Listeners
             document.getElementById('item-search').addEventListener('input', applyFilters);
             document.getElementById('filter-price').addEventListener('change', applyFilters);
             document.getElementById('filter-condition').addEventListener('change', applyFilters);
@@ -173,7 +165,6 @@
         } catch (err) { console.error(err); }
     });
 
-    // -- FILTERING LOGIC --
     function applyFilters() {
         const searchTerm = document.getElementById('item-search').value.toLowerCase();
         const priceFilter = document.getElementById('filter-price').value;
@@ -183,24 +174,16 @@
         let filtered = masterList.filter(item => {
             const name = (item.name || item.Name).toLowerCase();
             const condition = String(item.condition || "Used");
-
-            // 1. Search Text
             if (searchTerm && !name.includes(searchTerm)) return false;
-
-            // 2. Condition
             if (condFilter !== 'all' && condition !== condFilter) return false;
-
-            // 3. Price
             const p = item.numericPrice;
             if (priceFilter === 'under-5k' && p > 5000) return false;
             if (priceFilter === '5k-20k' && (p < 5000 || p > 20000)) return false;
             if (priceFilter === '20k-50k' && (p < 20000 || p > 50000)) return false;
             if (priceFilter === 'above-50k' && p < 50000) return false;
-
             return true;
         });
 
-        // 4. Sort
         if (sortFilter === 'low-high') filtered.sort((a, b) => a.numericPrice - b.numericPrice);
         if (sortFilter === 'high-low') filtered.sort((a, b) => b.numericPrice - a.numericPrice);
         if (sortFilter === 'newest') filtered.reverse();
@@ -211,7 +194,6 @@
     function renderGrid(items) {
         const container = document.getElementById('all-items-container');
         const countLabel = document.getElementById('result-count');
-        
         container.innerHTML = "";
         countLabel.innerText = `${items.length} items found`;
 
@@ -229,9 +211,10 @@
             const pCond = p.condition || "Used";
             const pStatus = p.status || p.Status || "Active";
             
+            // ✅ CRITICAL FIX: Use the unique ID from Firestore (or generated for sheet items)
+            const pID = p.id || (pVendor + "-" + pName).replace(/\s+/g, '-').toLowerCase();
+
             const img = pImage.startsWith('http') ? pImage : `../img/${pImage}`;
-            
-            const pID = (pVendor + "-" + pName).replace(/\s+/g, '-').toLowerCase();
             const isSaved = savedItemIds.has(pID);
             const heartClass = isSaved ? 'fas' : 'far';
             const heartColor = isSaved ? '#ff4757' : '#777';
@@ -239,17 +222,13 @@
             const safeName = pName.replace(/'/g, "\\'");
             const safeDesc = pDesc.replace(/'/g, "\\'").replace(/\n/g, " ");
 
-            // 🔴 SOLD LOGIC
             const isSold = pStatus === "Sold";
             const opacity = isSold ? 'opacity:0.6;' : '';
             const soldBadge = isSold ? '<span style="background:red; color:white; font-size:9px; padding:2px 5px; position:absolute; top:10px; left:10px; border-radius:4px; z-index:10;">SOLD</span>' : '';
             const clickAction = isSold ? "" : `onclick="viewProduct('${safeName}', '${pPrice}', '${safeDesc}', '${img}', '${p.phone}')"`;
             const btnText = isSold ? "Sold" : "Get Item";
             const btnStyle = isSold ? "background:#777; pointer-events:none;" : "";
-
-            // Condition Badge (Only if NOT Sold)
-            const condBadge = (!isSold && pCond === "New") ? 
-                `<span style="background:#00b894; color:white; font-size:9px; padding:2px 5px; border-radius:4px; position:absolute; top:10px; left:10px; z-index:10;">NEW</span>` : '';
+            const condBadge = (!isSold && pCond === "New") ? `<span style="background:#00b894; color:white; font-size:9px; padding:2px 5px; border-radius:4px; position:absolute; top:10px; left:10px; z-index:10;">NEW</span>` : '';
 
             container.innerHTML += `
             <div class="ad-card" style="position:relative; ${opacity}">
@@ -275,33 +254,26 @@
         try {
             const q = query(collection(db, "products")); 
             const snapshot = await getDocs(q);
-            let items = [];
-            snapshot.forEach(doc => {
-                const d = doc.data();
-                items.push({
-                    name: d.name, price: d.price, image: d.image, vendor_id: d.vendor_id,
-                    description: d.description, status: d.status, condition: d.condition 
-                });
-            });
-            return items;
+            // ✅ FIX: Capture the actual Firestore document ID
+            return snapshot.docs.map(doc => ({
+                id: doc.id,
+                ...doc.data()
+            }));
         } catch(e) { return []; }
     }
 
     window.toggleSave = async function(id, name, price, image, vendor) {
         const user = auth.currentUser;
         if (!user) { document.getElementById('login-modal').style.display = 'flex'; return; }
-        const btn = document.getElementById(`save-${id}`);
-        const icon = btn.querySelector('i');
         const userRef = doc(db, "users", user.uid, "saved_items", id);
 
         if (savedItemIds.has(id)) {
-            icon.classList.replace('fas', 'far'); icon.style.color = '#777';
             savedItemIds.delete(id); await deleteDoc(userRef);
         } else {
-            icon.classList.replace('far', 'fas'); icon.style.color = '#ff4757';
             savedItemIds.add(id);
             await setDoc(userRef, { product_id: id, name: name, price: price, image: image, vendor: vendor, saved_at: new Date() });
         }
+        updateHeartIcons(); // ✅ Update visuals immediately
     };
 
     function updateHeartIcons() {
@@ -309,27 +281,23 @@
             const id = btn.id.replace('save-', '');
             const icon = btn.querySelector('i');
             if (savedItemIds.has(id)) {
-                icon.classList.remove('far'); icon.classList.add('fas'); icon.style.color = '#ff4757';
+                icon.classList.replace('far', 'fas'); icon.style.color = '#ff4757';
             } else {
-                icon.classList.remove('fas'); icon.classList.add('far'); icon.style.color = '#777';
+                icon.classList.replace('fas', 'far'); icon.style.color = '#777';
             }
         });
     }
 
-    // ✅ VIEW PRODUCT LOGIC
     window.viewProduct = function(name, price, desc, img, phone) {
         document.getElementById('pm-title').innerText = name;
         document.getElementById('pm-price').innerText = price;
         document.getElementById('pm-desc').innerText = desc || "No description provided.";
         document.getElementById('pm-img').src = img;
         document.getElementById('pm-btn').href = `https://wa.me/${phone}?text=${encodeURIComponent(`Hi, I saw "${name}" on AFIT Market. Is it available?`)}`;
-        
         document.getElementById('product-modal').style.display = 'flex';
     };
 
-    window.closeProductModal = function() {
-        document.getElementById('product-modal').style.display = 'none';
-    };
+    window.closeProductModal = () => document.getElementById('product-modal').style.display = 'none';
 </script>
 </body>
 </html>

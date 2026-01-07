@@ -252,7 +252,6 @@
     import { getFirestore, doc, setDoc, deleteDoc, collection, getDocs, query, getDoc } 
     from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-    // CONFIG
     const firebaseConfig = {
         apiKey: "AIzaSyA1eQbrJpH9OtDNDN7z9oTFTRSAE7vCFbg",
         authDomain: "afit-market-auth.firebaseapp.com",
@@ -281,16 +280,13 @@
     initData();
     loadAnnouncement(); 
 
-    // 1. GLOBAL ANNOUNCEMENT
     async function loadAnnouncement() {
         try {
             const docSnap = await getDoc(doc(db, "settings", "global_alert"));
             if(docSnap.exists() && docSnap.data().active) {
                 const banner = document.getElementById('global-announcement');
-                if(banner) {
-                    document.getElementById('announce-text').innerText = docSnap.data().message;
-                    banner.style.display = 'block';
-                }
+                document.getElementById('announce-text').innerText = docSnap.data().message;
+                banner.style.display = 'block';
             }
         } catch(e) { console.error("Banner error:", e); }
     }
@@ -341,8 +337,7 @@
             });
             
             renderVendors(allVendors);
-            loadRecentItems();
-
+            
             const productsRes = await fetch(`${apiRoot}/Products`);
             const sheetProducts = await productsRes.json();
             const firestoreProducts = await loadFirestoreProducts();
@@ -352,13 +347,11 @@
             
             renderStories(allProducts, globalPhoneBook);
             
-            // ✅ FEATURED & SOLD SORTING
             const featured = [];
             const normal = [];
             
             allProducts.forEach(p => {
-                if ((p.status || p.Status) !== "Sold") { // Only show unsold in main list?
-                    // Actually, let's keep sold items but put them at bottom or just normal list
+                if (p.status !== "Sold") { 
                     if (p.is_featured === "true") featured.push(p);
                     else normal.push(p);
                 }
@@ -368,6 +361,7 @@
             const displayList = [...featured, ...shuffledNormal].slice(0, 15);
 
             renderItems(displayList); 
+            loadRecentItems();
 
         } catch (err) { console.error("Init Error:", err); }
     }
@@ -376,51 +370,45 @@
         try {
             const q = query(collection(db, "products")); 
             const snapshot = await getDocs(q);
-            let items = [];
-            snapshot.forEach(doc => {
-                const d = doc.data();
-                items.push({
-                    name: d.name, price: d.price, image: d.image, vendor_id: d.vendor_id,
-                    description: d.description, status: d.status, is_story: d.is_story || "false",
-                    is_featured: d.is_featured || "false",
-                    category: d.category 
-                });
-            });
-            return items;
+            return snapshot.docs.map(doc => ({
+                id: doc.id, // ✅ Capture the Firestore ID
+                ...doc.data()
+            }));
         } catch(e) { return []; }
     }
 
     window.toggleSave = async function(id, name, price, image, vendor) {
         const user = auth.currentUser;
         if (!user) { document.getElementById('login-modal').style.display = 'flex'; return; }
-        const btn = document.getElementById(`save-${id}`);
-        const icon = btn.querySelector('i');
         const userRef = doc(db, "users", user.uid, "saved_items", id);
 
         if (savedItemIds.has(id)) {
-            icon.classList.replace('fas', 'far'); icon.style.color = '#777';
-            savedItemIds.delete(id); await deleteDoc(userRef);
+            savedItemIds.delete(id);
+            await deleteDoc(userRef);
         } else {
-            icon.classList.replace('far', 'fas'); icon.style.color = '#ff4757';
             savedItemIds.add(id);
-            btn.style.transform = "scale(1.2)"; setTimeout(() => btn.style.transform = "scale(1)", 200);
-            await setDoc(userRef, { product_id: id, name: name, price: price, image: image, vendor: vendor, saved_at: new Date() });
+            await setDoc(userRef, { product_id: id, name, price, image, vendor, saved_at: new Date() });
         }
+        updateHeartIcons(); // Update the visuals immediately after click
     };
 
     function updateHeartIcons() {
+        // This targets only the icon belonging to the specific item ID
         document.querySelectorAll('.save-btn').forEach(btn => {
             const id = btn.id.replace('save-', '');
             const icon = btn.querySelector('i');
             if (savedItemIds.has(id)) {
-                icon.classList.remove('far'); icon.classList.add('fas'); icon.style.color = '#ff4757';
+                icon.classList.remove('far');
+                icon.classList.add('fas');
+                icon.style.color = '#ff4757';
             } else {
-                icon.classList.remove('fas'); icon.classList.add('far'); icon.style.color = '#777';
+                icon.classList.remove('fas');
+                icon.classList.add('far');
+                icon.style.color = '#777';
             }
         });
     }
 
-    // ✅ VIEW PRODUCT LOGIC
     window.viewProduct = function(name, price, desc, img, phone, category) {
         document.getElementById('pm-title').innerText = name;
         document.getElementById('pm-price').innerText = price;
@@ -428,36 +416,34 @@
         document.getElementById('pm-img').src = img;
         document.getElementById('pm-btn').href = `https://wa.me/${phone}?text=${encodeURIComponent(`Hi, I saw "${name}" on AFIT Market. Is it available?`)}`;
         
-        // Similar Items Logic
         const similarWrapper = document.getElementById('similar-wrapper');
         const similarGrid = document.getElementById('pm-similar-grid');
-        
-        if(similarWrapper && similarGrid) {
-            similarGrid.innerHTML = "";
-            if (category && allProducts.length > 0) {
-                const similarItems = allProducts.filter(p => (p.category || p.Category) === category && (p.name || p.Name) !== name);
-                const picked = similarItems.sort(() => 0.5 - Math.random()).slice(0, 3);
+        similarGrid.innerHTML = "";
 
-                if (picked.length > 0) {
-                    similarWrapper.style.display = 'block';
-                    picked.forEach(p => {
-                        const sName = p.name || p.Name;
-                        const sPrice = p.price || p.Price;
-                        const sImg = (p.image || p.Image).startsWith('http') ? (p.image || p.Image) : `img/${p.image || p.Image}`;
-                        const sVendor = p.vendor_id || p.Vendor_ID;
-                        const sPhone = globalPhoneBook[sVendor] || ADMIN_PHONE;
-                        const safeName = sName.replace(/'/g, "\\'");
-                        const safeDesc = (p.description || "No description").replace(/'/g, "\\'").replace(/\n/g, " ");
+        if (category && allProducts.length > 0) {
+            const similarItems = allProducts.filter(p => (p.category || p.Category) === category && (p.name || p.Name) !== name);
+            const picked = similarItems.sort(() => 0.5 - Math.random()).slice(0, 3);
 
-                        similarGrid.innerHTML += `
-                        <div class="sim-card" onclick="viewProduct('${safeName}', '${sPrice}', '${safeDesc}', '${sImg}', '${sPhone}', '${category}')">
-                            <img src="${sImg}" class="sim-img" onerror="this.src='img/logo-blue.png'">
-                            <div class="sim-price">${sPrice}</div>
-                        </div>`;
-                    });
-                } else { similarWrapper.style.display = 'none'; }
+            if (picked.length > 0) {
+                similarWrapper.style.display = 'block';
+                picked.forEach(p => {
+                    const sName = p.name || p.Name;
+                    const sPrice = p.price || p.Price;
+                    const sImg = (p.image || p.Image).startsWith('http') ? (p.image || p.Image) : `img/${p.image || p.Image}`;
+                    const sVendor = p.vendor_id || p.Vendor_ID;
+                    const sPhone = globalPhoneBook[sVendor] || ADMIN_PHONE;
+                    const sID = p.id || (sVendor + "-" + sName).replace(/\s+/g, '-').toLowerCase(); // Fallback for old data
+                    const safeName = sName.replace(/'/g, "\\'");
+                    const safeDesc = (p.description || "No description").replace(/'/g, "\\'").replace(/\n/g, " ");
+
+                    similarGrid.innerHTML += `
+                    <div class="sim-card" onclick="viewProduct('${safeName}', '${sPrice}', '${safeDesc}', '${sImg}', '${sPhone}', '${category}')">
+                        <img src="${sImg}" class="sim-img" onerror="this.src='img/logo-blue.png'">
+                        <div class="sim-price">${sPrice}</div>
+                    </div>`;
+                });
             } else { similarWrapper.style.display = 'none'; }
-        }
+        } else { similarWrapper.style.display = 'none'; }
 
         document.getElementById('product-modal').style.display = 'flex';
     };
@@ -466,19 +452,14 @@
         document.getElementById('product-modal').style.display = 'none';
     };
 
-    // ✅ SMART HISTORY ADD
     window.addToHistory = function(id, name, price, image, vendor) {
         let history = JSON.parse(localStorage.getItem('adm_history')) || [];
         history = history.filter(item => item.id !== id);
-        history.unshift({ 
-            id, name, price, image, vendor,
-            seenAt: Date.now() 
-        });
+        history.unshift({ id, name, price, image, vendor, seenAt: Date.now() });
         if(history.length > 6) history.pop();
         localStorage.setItem('adm_history', JSON.stringify(history));
     };
 
-    // ✅ SMART HISTORY LOAD
     function loadRecentItems() {
         let history = JSON.parse(localStorage.getItem('adm_history')) || [];
         const container = document.getElementById('recent-grid');
@@ -487,7 +468,7 @@
 
         history = history.filter(item => {
             const isFresh = (Date.now() - (item.seenAt || 0)) < TEN_MINUTES;
-            const isVendorValid = globalPhoneBook[item.vendor]; // Check if vendor exists
+            const isVendorValid = globalPhoneBook[item.vendor]; 
             return isFresh && isVendorValid;
         });
         localStorage.setItem('adm_history', JSON.stringify(history));
@@ -500,6 +481,7 @@
                 const img = p.image.startsWith('http') ? p.image : `img/${p.image}`;
                 const category = "General"; 
                 const safeName = p.name.replace(/'/g, "\\'");
+                const pID = p.id;
 
                 container.innerHTML += `
                 <div class="ad-card" style="min-width: 140px;"> 
@@ -525,8 +507,8 @@
             if(activeAds.length > 0) {
                 const ad = activeAds[Math.floor(Math.random() * activeAds.length)];
                 const img = ad.image || ad.Image;
-                const title = ad.title || ad.Title || "Special Offer";
-                const text = ad.text || ad.Text || "Check out this deal!";
+                const title = ad.title || ad.Title;
+                const text = ad.text || ad.Text;
                 const waPhone = ad.whatsapp || ad.Whatsapp;
                 const cleanPhone = waPhone ? String(waPhone).replace(/[^0-9]/g, '') : ADMIN_PHONE;
                 const link = `https://wa.me/${cleanPhone}?text=Hi,%20I%20saw%20your%20ad%20"${title}"`;
@@ -537,11 +519,9 @@
                 const modalLink = document.getElementById('modal-link'); if(modalLink) { modalLink.href = link; modalLink.innerText = "Chat on WhatsApp"; }
                 
                 const notifBtn = document.getElementById('notif-btn');
-                if(notifBtn) {
-                    if(!notifBtn.querySelector('.badge-dot')) {
-                        notifBtn.style.position = 'relative';
-                        notifBtn.innerHTML += `<span class="badge-dot" style="position:absolute; top:5px; right:5px; width:10px; height:10px; background:#ff4757; border-radius:50%; border:2px solid white;"></span>`;
-                    }
+                if(notifBtn && !notifBtn.querySelector('.badge-dot')) {
+                    notifBtn.style.position = 'relative';
+                    notifBtn.innerHTML += `<span class="badge-dot" style="position:absolute; top:5px; right:5px; width:10px; height:10px; background:#ff4757; border-radius:50%; border:2px solid white;"></span>`;
                     notifBtn.addEventListener('click', () => { document.getElementById('promo-modal').style.display = 'flex'; });
                 }
                 setTimeout(() => { const modal = document.getElementById('promo-modal'); if(modal) { modal.style.display = 'flex'; } }, 2500);
@@ -566,6 +546,7 @@
                 const pCat = p.category || p.Category || "General";
                 const img = pImage.startsWith('http') ? pImage : `img/${pImage}`;
                 const vendorPhone = phoneBook[pVendor] || ADMIN_PHONE;
+                const pID = p.id;
                 
                 const storyDiv = document.createElement('div');
                 storyDiv.className = 'story-item';
@@ -573,7 +554,7 @@
                 
                 storyDiv.addEventListener('click', () => {
                    viewProduct(pName, pPrice, pDesc, img, vendorPhone, pCat);
-                   addToHistory(pVendor + "-" + pName, pName, pPrice, pImage, pVendor);
+                   addToHistory(pID, pName, pPrice, pImage, pVendor);
                 });
                 container.appendChild(storyDiv);
             });
@@ -602,13 +583,11 @@
         const searchInput = document.getElementById('main-search');
         const searchType = document.getElementById('search-type');
         if(searchInput) {
-            searchInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') searchInput.blur(); });
             searchInput.addEventListener('input', (e) => {
                 const query = e.target.value.toLowerCase().trim();
                 const type = searchType.value; 
                 if(query === "") {
-                    renderItems(shuffle([...allProducts]).slice(0, 15));
-                    renderVendors(shuffle([...allVendors]).slice(0, 15));
+                    initData();
                     return;
                 }
                 if (type === 'product') {
@@ -624,10 +603,6 @@
         const itemGrid = document.getElementById("home-items-grid");
         if(!itemGrid) return;
         itemGrid.innerHTML = ""; 
-        if(data.length === 0) {
-            itemGrid.innerHTML = `<p style="padding:20px; color:#777; grid-column:1/-1; text-align:center;">No items found.</p>`;
-            return;
-        }
         data.forEach(p => {
             const pName = p.name || p.Name;
             const pPrice = p.price || p.Price;
@@ -638,7 +613,9 @@
             const pStatus = p.status || p.Status || "Active"; 
             const isFeatured = p.is_featured === "true"; 
             
-            const pID = (pVendor + "-" + pName).replace(/\s+/g, '-').toLowerCase();
+            // ✅ CRITICAL FIX: Use the unique document ID
+            const pID = p.id; 
+
             const img = pImage.startsWith('http') ? pImage : `img/${pImage}`;
             const vendorPhone = globalPhoneBook[pVendor] || ADMIN_PHONE;
             const isSaved = savedItemIds.has(pID);
@@ -648,9 +625,9 @@
             const safeName = pName.replace(/'/g, "\\'");
             const safeDesc = pDesc.replace(/'/g, "\\'").replace(/\n/g, " ");
 
-            // SOLD & SPONSORED LOGIC
             const isSold = pStatus === "Sold";
             const opacity = isSold ? 'opacity:0.6;' : '';
+            
             let badge = '';
             if (isSold) {
                 badge = '<span style="background:red; color:white; font-size:9px; padding:2px 5px; position:absolute; top:10px; left:10px; border-radius:4px; z-index:10;">SOLD</span>';
@@ -662,6 +639,7 @@
             const btnText = isSold ? "Sold" : "Get";
             const btnStyle = isSold ? "background:#777; pointer-events:none;" : "";
 
+            // ✅ ID in the button is now unique (save-${pID})
             itemGrid.innerHTML += `
             <div class="ad-card" style="position:relative; ${opacity}">
                 ${badge}
@@ -687,10 +665,7 @@
         const vendorGrid = document.getElementById("vendor-grid");
         if(!vendorGrid) return;
         vendorGrid.innerHTML = "";
-        if(data.length === 0) return;
-        
-        const displayData = data.length > 15 ? data.slice(0, 15) : data;
-        displayData.forEach(v => {
+        data.forEach(v => {
             const vName = v.business_name || v.Business_Name;
             const vDesc = v.description || v.Description;
             const vImage = v.image || v.Image;
@@ -711,6 +686,6 @@
             </div>`;
         });
     }
-  </script>
+</script>
 </body>
 </html>
