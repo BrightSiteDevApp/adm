@@ -24,31 +24,9 @@
   
   <title>AFIT Digital Market (ADM) | Buy & Sell on Campus</title>
   <meta name="description" content="AFIT Digital Market (AFIT DGM) is the official student marketplace for AFIT. Buy and sell phones, food, fashion, and services directly on campus. Safe, fast, and student-verified.">
-  <meta name="keywords" content="Afit digital market, afit dgm, ADM, AFIT market, buy and sell in AFIT, AFIT vendors, student marketplace, AFIT Kaduna">
-  <meta name="author" content="Brightsitedev">
-  <meta name="robots" content="index, follow">
-
-  <meta property="og:type" content="website">
-  <meta property="og:url" content="https://afitdgm.store/">
-  <meta property="og:title" content="AFIT Digital Market - The Campus Marketplace">
-  <meta property="og:description" content="Join the largest student market in AFIT. Find verified vendors for food, gadgets, and fashion.">
-  <meta property="og:image" content="https://afitdgm.store/img/app-logo.png">
-
-  <meta property="twitter:card" content="summary_large_image">
-  <meta property="twitter:url" content="https://afitdgm.store/">
-  <meta property="twitter:title" content="AFIT Digital Market (AFIT DGM)">
-  <meta property="twitter:description" content="The easiest way to buy and sell on AFIT campus. Check out today's deals!">
-  <meta property="twitter:image" content="https://afitdgm.store/img/app-logo.png">
-
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link rel="stylesheet" href="asset/style.css">
-  <link rel="icon" href="img/app-logo.png" type="image/png" sizes="32x32">
-  <link rel="icon" href="img/app-logo.png" type="image/png" sizes="192x192">
-  <link rel="apple-touch-icon" href="img/app-logo.png">
-  <link rel="shortcut icon" href="favicon.ico">
-  <link rel="shortcut icon" href="https://afitdgm.store/favicon.ico">
-  <link rel="manifest" href="manifest.json">
-  <link rel="canonical" href="https://afitdgm.store/">
+  <link rel="icon" href="img/app-logo.png">
 </head>
 <body data-page="home">
   <div id="preloader">
@@ -273,15 +251,20 @@
   </a>
 
 <script>
-    // ✅ UNLIMITED OPENSHEET API
     const sheetID = "1SvVUbEnDgqgw2Z_M1ShQkzyFTsnnS6n8mTs7UMXVvF4";
     const apiRoot = `https://opensheet.elk.sh/${sheetID}`;
     const ADMIN_PHONE = "2348144516127"; 
 
+    // GLOBAL VARIABLES (Needed for Search)
+    let allProducts = [];
+    let allVendors = [];
+    let globalPhoneBook = {}; 
+
     function shuffle(array) { return array.sort(() => 0.5 - Math.random()); }
 
     document.addEventListener("DOMContentLoaded", () => {
-        
+        setupMainSearch(); // Init Search Logic
+
         // 1. REVIEWS
         fetch(`${apiRoot}/Reviews`)
         .then(res => res.json())
@@ -315,88 +298,163 @@
             }
         }).catch(err => console.error("Reviews Error:", err));
 
-        // 2. VENDORS & ITEMS (Fixed Scope)
+        // 2. VENDORS & ITEMS
         fetch(`${apiRoot}/Vendors`)
         .then(res => res.json())
         .then(vendors => {
-            const phoneBook = {};
+            allVendors = vendors; // Save for search
+
+            // Build Global Phonebook
             vendors.forEach(v => {
                 const vID = v.vendor_id || v.Vendor_ID;
                 const vPhone = v.whatsapp || v.Whatsapp;
-                if(vID) phoneBook[vID] = String(vPhone).replace(/[^0-9]/g, '');
+                if(vID) globalPhoneBook[vID] = String(vPhone).replace(/[^0-9]/g, '');
             });
 
-            renderVendors(vendors);
+            renderVendors(allVendors);
 
-            // Return both promise and phoneBook data
-            return fetch(`${apiRoot}/Products`)
-                .then(res => res.json())
-                .then(products => ({ products, phoneBook }));
+            return fetch(`${apiRoot}/Products`);
         })
-        .then(({ products, phoneBook }) => {
-            const itemGrid = document.getElementById("home-items-grid");
-            if(itemGrid) {
-                const available = products.filter(p => (p.status || p.Status) !== "Sold");
-                const random = shuffle(available).slice(0, 15);
-                itemGrid.innerHTML = ""; 
-
-                random.forEach(p => {
-                    const pName = p.name || p.Name;
-                    const pPrice = p.price || p.Price;
-                    const pDesc = p.description || p.Description || ""; 
-                    const pVendor = p.vendor_id || p.Vendor_ID;
-                    const pImage = p.image || p.Image;
-
-                    const img = pImage.startsWith('http') ? pImage : `img/${pImage}`;
-                    const vendorPhone = phoneBook[pVendor] || ADMIN_PHONE;
-                    const waLink = `https://wa.me/${vendorPhone}?text=${encodeURIComponent(`Hi, I saw "${pName}" on AFIT Market. Is it available?`)}`;
-
-                    itemGrid.innerHTML += `
-                    <div class="ad-card">
-                        <img class="ad-img" src="${img}" alt="${pName}" onerror="this.src='img/logo-blue.png'">
-                        <div class="ad-info">
-                            <div class="ad-price">${pPrice}</div>
-                            <div class="ad-title">${pName}</div>
-                            <div class="ad-desc">${pDesc}</div>
-                            <div class="ad-location">Vendor: ${pVendor}</div>
-                            <a href="${waLink}" class="chat-btn" target="_blank">Get Item</a>
-                        </div>
-                    </div>`;
-                });
-            }
+        .then(res => res.json())
+        .then(products => {
+            // Filter out 'Sold' items and save to global
+            allProducts = products.filter(p => (p.status || p.Status) !== "Sold");
+            
+            // Render random mix initially
+            const randomMix = shuffle([...allProducts]).slice(0, 15);
+            renderItems(randomMix); 
         })
         .catch(err => console.error("Data Error:", err));
     });
 
-    function renderVendors(data) {
-        const vendorGrid = document.getElementById("vendor-grid");
-        if(vendorGrid) {
-            const random = shuffle(data).slice(0, 15);
-            vendorGrid.innerHTML = "";
+    // --- SEARCH LOGIC ---
+    function setupMainSearch() {
+        const searchInput = document.getElementById('main-search');
+        const searchType = document.getElementById('search-type');
 
-            random.forEach(v => {
-                const vName = v.business_name || v.Business_Name;
-                const vDesc = v.description || v.Description;
-                const vImage = v.image || v.Image;
-                const vID = v.vendor_id || v.Vendor_ID;
-                const vVerified = String(v.verified || v.Verified || "").toLowerCase().trim();
+        if(searchInput) {
+            // Collapse keyboard on "Enter"
+            searchInput.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') {
+                    searchInput.blur();
+                }
+            });
 
-                const vImg = vImage.startsWith('http') ? vImage : `img/${vImage}`;
-                let badgeHtml = "";
-                
-                if (vVerified === "gold") badgeHtml = '<i class="fas fa-check-circle tick-gold"></i>';
-                else if (vVerified === "blue") badgeHtml = '<i class="fas fa-check-circle tick-blue"></i>';
+            // Filtering
+            searchInput.addEventListener('input', (e) => {
+                const query = e.target.value.toLowerCase().trim();
+                const type = searchType.value; // 'product' or 'vendor'
 
-                vendorGrid.innerHTML += `
-                <div class="vendor-card">
-                    <img src="${vImg}" class="vendor-logo" alt="${vName}" onerror="this.src='img/person.png'">
-                    <span class="vendor-id">${vID}</span>
-                    <div class="vendor-name">${vName} ${badgeHtml}</div>
-                    <div class="vendor-cat">${vDesc.substring(0, 20)}...</div>
-                    <button class="view-vendor-btn" onclick="window.location.href='profile.html?vendor=${vID}'">View Vendor</button>
-                </div>`;
+                if(query === "") {
+                    // Reset to random if empty
+                    renderItems(shuffle([...allProducts]).slice(0, 15));
+                    renderVendors(shuffle([...allVendors]).slice(0, 15));
+                    return;
+                }
+
+                if (type === 'product') {
+                    const filteredItems = allProducts.filter(p => {
+                        const name = (p.name || p.Name).toLowerCase();
+                        return name.includes(query);
+                    });
+                    renderItems(filteredItems);
+                } 
+                else if (type === 'vendor') {
+                    const filteredVendors = allVendors.filter(v => {
+                        const name = (v.business_name || v.Business_Name).toLowerCase();
+                        const vid = (v.vendor_id || v.Vendor_ID).toLowerCase();
+                        return name.includes(query) || vid.includes(query);
+                    });
+                    renderVendors(filteredVendors);
+                }
             });
         }
+    }
+
+    // --- RENDER ITEMS FUNCTION ---
+    function renderItems(data) {
+        const itemGrid = document.getElementById("home-items-grid");
+        if(!itemGrid) return;
+
+        itemGrid.innerHTML = ""; 
+
+        if(data.length === 0) {
+            itemGrid.innerHTML = `
+                <div style="grid-column: 1/-1; text-align:center; padding: 20px; color:#777;">
+                    <p>No items found matching your search.</p>
+                    <a href="items/index.html" class="chat-btn" style="background:#2d8eff; display:inline-block; margin-top:10px; width:auto; padding: 8px 20px;">See All Items</a>
+                </div>
+            `;
+            return;
+        }
+
+        data.forEach(p => {
+            const pName = p.name || p.Name;
+            const pPrice = p.price || p.Price;
+            const pDesc = p.description || p.Description || ""; 
+            const pVendor = p.vendor_id || p.Vendor_ID;
+            const pImage = p.image || p.Image;
+
+            const img = pImage.startsWith('http') ? pImage : `img/${pImage}`;
+            const vendorPhone = globalPhoneBook[pVendor] || ADMIN_PHONE;
+            const waLink = `https://wa.me/${vendorPhone}?text=${encodeURIComponent(`Hi, I saw "${pName}" on AFIT Market. Is it available?`)}`;
+
+            itemGrid.innerHTML += `
+            <div class="ad-card">
+                <img class="ad-img" src="${img}" alt="${pName}" onerror="this.src='img/logo-blue.png'">
+                <div class="ad-info">
+                    <div class="ad-price">${pPrice}</div>
+                    <div class="ad-title">${pName}</div>
+                    <div class="ad-desc">${pDesc}</div>
+                    <div class="ad-location">Vendor: ${pVendor}</div>
+                    <a href="${waLink}" class="chat-btn" target="_blank">Get Item</a>
+                </div>
+            </div>`;
+        });
+    }
+
+    // --- RENDER VENDORS FUNCTION ---
+    function renderVendors(data) {
+        const vendorGrid = document.getElementById("vendor-grid");
+        if(!vendorGrid) return;
+
+        vendorGrid.innerHTML = "";
+
+        if(data.length === 0) {
+            vendorGrid.innerHTML = `
+                <div style="grid-column: 1/-1; text-align:center; padding: 20px; color:#777;">
+                    <p>No vendors found.</p>
+                    <a href="vendors/index.html" class="chat-btn" style="background:#2d8eff; display:inline-block; margin-top:10px; width:auto; padding: 8px 20px;">See All Vendors</a>
+                </div>
+            `;
+            return;
+        }
+
+        // Limit to first 15 if it's the default shuffle, otherwise show all filtered results
+        const displayData = data.length > 15 ? data.slice(0, 15) : data;
+
+        displayData.forEach(v => {
+            const vName = v.business_name || v.Business_Name;
+            const vDesc = v.description || v.Description;
+            const vImage = v.image || v.Image;
+            const vID = v.vendor_id || v.Vendor_ID;
+            const vVerified = String(v.verified || v.Verified || "").toLowerCase().trim();
+
+            const vImg = vImage.startsWith('http') ? vImage : `img/${vImage}`;
+            let badgeHtml = "";
+            
+            if (vVerified === "gold") badgeHtml = '<i class="fas fa-check-circle tick-gold"></i>';
+            else if (vVerified === "blue") badgeHtml = '<i class="fas fa-check-circle tick-blue"></i>';
+
+            vendorGrid.innerHTML += `
+            <div class="vendor-card">
+                <img src="${vImg}" class="vendor-logo" alt="${vName}" onerror="this.src='img/person.png'">
+                <span class="vendor-id">${vID}</span>
+                <div class="vendor-name">${vName} ${badgeHtml}</div>
+                <div class="vendor-cat">${vDesc.substring(0, 20)}...</div>
+                <button class="view-vendor-btn" onclick="window.location.href='profile.html?vendor=${vID}'">View Vendor</button>
+            </div>`;
+        });
     }
 </script>
 </body>
