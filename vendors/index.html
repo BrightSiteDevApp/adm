@@ -1,134 +1,214 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <script async src="https://www.googletagmanager.com/gtag/js?id=G-70VSGR5WBW"></script>
-  <script>
-    window.dataLayer = window.dataLayer || [];
-    function gtag(){dataLayer.push(arguments);}
-    gtag('js', new Date());
-    gtag('config', 'G-70VSGR5WBW');
-  </script>
-  <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
-  <script>
-    window.OneSignalDeferred = window.OneSignalDeferred || [];
-    OneSignalDeferred.push(async function(OneSignal) {
-      await OneSignal.init({ appId: "f62f27b5-a5a3-4018-aade-0a44f357c7e0" });
-    });
-  </script>
+    <!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-70VSGR5WBW"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
 
+  gtag('config', 'G-70VSGR5WBW');
+</script>
+
+<script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
+<script>
+  window.OneSignalDeferred = window.OneSignalDeferred || [];
+  OneSignalDeferred.push(async function(OneSignal) {
+    await OneSignal.init({
+      appId: "f62f27b5-a5a3-4018-aade-0a44f357c7e0",
+    });
+  });
+</script>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
-  <title>All Vendors - AFIT Market</title>
   
+  <title>All Verified Vendors | AFIT Digital Market (ADM) Directory</title>
+  <meta name="description" content="Browse the complete list of verified vendors on AFIT campus. Find trusted student businesses for food, fashion, gadgets, and services. Safe and student-verified.">
+  <meta name="keywords" content="AFIT verified vendors, ADM vendor list, student businesses AFIT, trusted sellers Kaduna, AFIT campus services, buy from students">
+  <meta name="author" content="BrightSiteDev">
+  <meta name="robots" content="index, follow">
+
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Find Verified Vendors - AFIT Digital Market">
+  <meta property="og:description" content="Looking for a trusted seller? Browse our directory of verified AFIT student businesses.">
+  <meta property="og:url" content="https://afitdgm.store/vendors/">
+  <meta property="og:image" content="https://afitdgm.store/img/logo-blue.png">
+
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="AFIT Vendor Directory">
+  <meta name="twitter:description" content="Connect with verified student entrepreneurs on AFIT Digital Market.">
+  <meta name="twitter:image" content="https://afitdgm.store/img/logo-blue.png">
+
+  <link rel="canonical" href="https://afitdgm.store/vendors/">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <link rel="stylesheet" href="../asset/style.css"> <link rel="icon" href="../img/app-logo.png">
+  <link rel="stylesheet" href="../asset/style.css">
+  
+   <link rel="icon" href="../img/app-logo.png" type="image/png" sizes="32x32">
+<link rel="icon" href="../img/app-logo.png" type="image/png" sizes="192x192">
+<link rel="apple-touch-icon" href="../img/app-logo.png">
+<link rel="shortcut icon" href="../favicon.ico">
 </head>
 <body>
+    <div id="preloader">
+    <div class="loader-content">
+        <img src="../img/logo-blue.png" alt="Loading..." class="loader-logo">
+        <div class="loading-bar"></div>
+    </div>
+</div>
+
 
   <div class="app-container">
-    <div class="header">
-      <a href="../index.html" class="back-btn"><i class="fas fa-arrow-left"></i></a>
-      <span style="font-weight:bold;">All Vendors</span>
+    
+   <div class="header" style="display: flex; align-items: center; gap: 10px;">
+    
+    <a href="../" class="back-btn"><i class="fas fa-arrow-left"></i></a>
+    
+    <div class="search-wrapper" style="flex: 1;">
+        <i class="fas fa-search search-icon"></i>
+        <input type="text" id="vendor-search" class="search-input" placeholder="Search Vendor Name or ID...">
     </div>
 
-    <div class="cat-search-container">
-        <div class="search-wrapper cat-search-box">
-            <i class="fas fa-search search-icon"></i>
-            <input type="text" id="vendor-search" class="search-input" placeholder="Search vendor by name or ID...">
-        </div>
+    <div class="notification-icon-box" id="theme-toggle" style="margin: 0; position: relative;">
+        <i class="fas fa-moon"></i>
     </div>
 
-    <div class="trending-grid" id="all-vendors-container" style="padding: 15px;">
+</div>
+
+    <div style="padding: 15px; font-weight:bold; color:#555; border-bottom:1px solid #eee;">
+        All Verified Campus Vendors
+    </div>
+
+    <div class="trending-grid" id="all-vendors-container" style="padding-top:15px;">
         
-        <div class="skeleton-card">
-            <div class="skeleton sk-img"></div> <div class="skeleton sk-text-short"></div>
-            <div class="skeleton sk-text-long"></div>
-            <div class="skeleton sk-btn"></div>
+        <div class="vendor-card">
+            <img src="../img/person.png" class="vendor-logo" alt="Logo">
+            <span class="vendor-id">V000</span>
+            <div class="vendor-name">Null <i class="fas fa-check-circle tick-gold"></i></div>
+            <div class="vendor-cat">category | location</div>
+            <button class="view-vendor-btn" onclick="window.location.href='../ID/V001/'">View Vendor</button>
         </div>
-        <div class="skeleton-card">
-            <div class="skeleton sk-img"></div>
-            <div class="skeleton sk-text-short"></div>
-            <div class="skeleton sk-text-long"></div>
-            <div class="skeleton sk-btn"></div>
+
+        <div class="vendor-card">
+            <img src="../img/person.png" class="vendor-logo" alt="Logo">
+            <span class="vendor-id">V000</span>
+            <div class="vendor-name">Null <i class="fas fa-check-circle tick-blue"></i></div>
+            <div class="vendor-cat">category | location</div>
+            <button class="view-vendor-btn" onclick="window.location.href='../ID/V002/'">View Vendor</button>
         </div>
-        <div class="skeleton-card">
-            <div class="skeleton sk-img"></div>
-            <div class="skeleton sk-text-short"></div>
-            <div class="skeleton sk-text-long"></div>
-            <div class="skeleton sk-btn"></div>
+        
+
+ <!------rest 
+
+
+ ---- verification
+      (Blue):<i class="fas fa-check-circle tick-blue"></i>
+      (Gold):<i class="fas fa-check-circle tick-gold"></i>
+       
+
+         <div class="vendor-card">
+            <img src="../img/person.png" class="vendor-logo" alt="Logo">
+            <span class="vendor-id">V000</span>
+            <div class="vendor-name">Null<i class="fas fa-check-circle" style="color:#2d8eff; font-size:10px;"></i></div>
+            <div class="vendor-cat">category | location</div>
+            <button class="view-vendor-btn" onclick="window.location.href='../ID/V001/'">View Vendor</button>
         </div>
-        <div class="skeleton-card">
-            <div class="skeleton sk-img"></div>
-            <div class="skeleton sk-text-short"></div>
-            <div class="skeleton sk-text-long"></div>
-            <div class="skeleton sk-btn"></div>
+
+         <div class="vendor-card">
+            <img src="../img/person.png" class="vendor-logo" alt="Logo">
+            <span class="vendor-id">V000</span>
+            <div class="vendor-name">Null<i class="fas fa-check-circle" style="color:#2d8eff; font-size:10px;"></i></div>
+            <div class="vendor-cat">category | location</div>
+            <button class="view-vendor-btn" onclick="window.location.href='../ID/V001/'">View Vendor</button>
         </div>
+
+         <div class="vendor-card">
+            <img src="../img/person.png" class="vendor-logo" alt="Logo">
+            <span class="vendor-id">V000</span>
+            <div class="vendor-name">Null<i class="fas fa-check-circle" style="color:#2d8eff; font-size:10px;"></i></div>
+            <div class="vendor-cat">category | location</div>
+            <button class="view-vendor-btn" onclick="window.location.href='../ID/V001/'">View Vendor</button>
+        </div>
+
+        -->
 
     </div>
 
+   
     <footer class="site-footer">
+        
+        <div class="footer-newsletter" style="margin-bottom: 20px; padding-bottom: 20px; border-bottom: 1px solid #444;">
+            <h4 style="color: white; margin-bottom: 8px; font-size: 14px;">Join our Community</h4>
+            <p style="font-size: 11px; color: #aaa; margin-bottom: 12px;">Get updates on new vendors and flash sales.</p>
+            
+            <form action="https://formspree.io/f/mdakzbpy" method="POST" style="display: flex; justify-content: center; gap: 8px; max-width: 300px; margin: 0 auto;">
+                <input type="email" name="email" placeholder="Enter email" required 
+                       style="width: 70%; padding: 8px 12px; border-radius: 20px; border: none; outline: none; font-size: 12px;">
+                <button type="submit" 
+                        style="width: 30%; background: var(--primary-blue); color: white; border: none; padding: 8px; border-radius: 20px; font-size: 11px; font-weight: bold; cursor: pointer;">
+                    Join
+                </button>
+            </form>
+            </div>
+
+        <div class="footer-links">
+            <a href="../about-us/">About Us</a> | 
+            <a href="../safety/">Safety Tips</a> | 
+            <a href="../t&c/">T & C</a> | 
+            <a href="../contact-us/">Contact</a>
+        </div>
+        
         <p style="margin-top:10px; color:#777;">&copy; 2026 BrightSiteDev</p>
     </footer>
   </div>
 
   <script src="../asset/script.js"></script>
-
- <script>
-    // ✅ NEW ID
-    const sheetID = "1SvVUbEnDgqgw2Z_M1ShQkzyFTsnnS6n8mTs7UMXVvF4";
-    const vendorsUrl = `https://opensheet.elk.sh/${sheetID}/Vendors`;
-
+  
+  <script>
     document.addEventListener("DOMContentLoaded", () => {
-        fetch(vendorsUrl)
-        .then(res => res.json())
-        .then(data => {
-            const container = document.getElementById('all-vendors-container');
-            container.innerHTML = "";
+        const searchInput = document.getElementById('vendor-search');
+        const container = document.getElementById('all-vendors-container');
 
-            if(data.length === 0) {
-                container.innerHTML = "<p style='text-align:center; padding:20px; color:#777;'>No vendors found.</p>";
-                return;
+        // 1. SHUFFLE LOGIC
+        if (container) {
+            const cards = Array.from(container.children);
+            
+            // Shuffle
+            for (let i = cards.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [cards[i], cards[j]] = [cards[j], cards[i]];
             }
+            
+            // Re-append shuffled cards
+            container.innerHTML = "";
+            cards.forEach(card => container.appendChild(card));
+        }
 
-            const shuffled = data.sort(() => 0.5 - Math.random());
-
-            shuffled.forEach(v => {
-                const vName = v.business_name || v.Business_Name;
-                const vDesc = v.description || v.Description;
-                const vImage = v.image || v.Image;
-                const vID = v.vendor_id || v.Vendor_ID;
-                const vVerified = String(v.verified || v.Verified || "").toLowerCase().trim();
-
-                const img = vImage.startsWith('http') ? vImage : `../img/${vImage}`;
-                let badgeHtml = "";
-                
-                if (vVerified === "gold") badgeHtml = '<i class="fas fa-check-circle tick-gold"></i>';
-                else if (vVerified === "blue") badgeHtml = '<i class="fas fa-check-circle tick-blue"></i>';
-
-                container.innerHTML += `
-                <div class="vendor-card">
-                    <img src="${img}" class="vendor-logo" alt="Logo" onerror="this.src='../img/person.png'">
-                    <span class="vendor-id">${vID}</span>
-                    <div class="vendor-name">${vName} ${badgeHtml}</div>
-                    <div class="vendor-cat">${vDesc.substring(0, 20)}...</div>
-                    <button class="view-vendor-btn" onclick="window.location.href='../profile.html?vendor=${vID}'">View Vendor</button>
-                </div>`;
+        // 2. SEARCH LOGIC
+        if (searchInput && container) {
+            // Close keyboard on enter
+            searchInput.addEventListener('keyup', (e) => {
+                if (e.key === 'Enter') searchInput.blur();
             });
 
-            const searchInput = document.getElementById('vendor-search');
-            if (searchInput) {
-                searchInput.addEventListener('input', (e) => {
-                    const query = e.target.value.toLowerCase().trim();
-                    document.querySelectorAll('.vendor-card').forEach(card => {
-                        const text = card.innerText.toLowerCase();
-                        card.style.display = text.includes(query) ? "" : "none";
-                    });
-                });
-            }
-        })
-        .catch(err => console.error(err));
-    });
-</script>
+            // Filter logic
+            searchInput.addEventListener('input', (e) => {
+                const query = e.target.value.toLowerCase().trim();
+                const vendors = container.querySelectorAll('.vendor-card');
 
+                vendors.forEach(card => {
+                    const name = card.querySelector('.vendor-name').innerText.toLowerCase();
+                    const id = card.querySelector('.vendor-id').innerText.toLowerCase();
+
+                    if (name.includes(query) || id.includes(query)) {
+                        card.style.display = ""; // Show
+                    } else {
+                        card.style.display = "none"; // Hide
+                    }
+                });
+            });
+        }
+    });
+  </script>
 </body>
 </html>
