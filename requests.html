@@ -7,6 +7,27 @@
     <link rel="stylesheet" href="asset/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="icon" href="img/app-logo.png">
+
+    <style>
+        /* HEADER BOX STYLES */
+        .request-header-box {
+            padding: 20px;
+            text-align: center;
+            background: #f9f9f9;
+            border-bottom: 1px solid #eee;
+            color: #333;
+        }
+
+        /* Dark Mode Overrides */
+        body.dark-mode .request-header-box {
+            background: #222 !important;
+            border-bottom: 1px solid #444 !important;
+            color: #fff !important;
+        }
+        
+        body.dark-mode .request-header-box h3 { color: #fff !important; }
+        body.dark-mode .request-header-box p { color: #bbb !important; }
+    </style>
 </head>
 <body data-page="requests">
 
@@ -25,9 +46,9 @@
             </div>
         </div>
 
-        <div style="padding: 20px; text-align: center; background: #f9f9f9; border-bottom: 1px solid #eee;">
+        <div class="request-header-box">
             <h3>Looking for something?</h3>
-            <p style="font-size: 12px; color: #666; margin-bottom: 15px;">Post your request here and let vendors find you!</p>
+            <p style="font-size: 12px; margin-bottom: 15px;">Post your request here and let vendors find you!</p>
             
             <a href="https://docs.google.com/forms/d/e/1FAIpQLSejry_A33x76Y8BxHYnJcv4_sbz0irToz30TNs4s6N55YdT8w/viewform?usp=dialog" target="_blank" class="chat-btn" style="background: #2d8eff; display: inline-block; width: auto; padding: 10px 30px;">
                 <i class="fas fa-plus"></i> Post a Request
@@ -35,14 +56,33 @@
         </div>
 
         <div id="requests-list" style="padding: 15px;">
-            <p style="text-align:center; color:#888; margin-top:20px;">Loading requests...</p>
+            <div class="skeleton-card" style="width: 100%; display: flex; align-items: center; padding: 15px; margin-bottom: 10px; height: auto;">
+                <div style="flex: 1;">
+                    <div class="skeleton sk-text-short" style="width: 60%; margin-bottom: 10px;"></div>
+                    <div class="skeleton sk-text-short" style="width: 40%;"></div>
+                </div>
+                <div class="skeleton sk-btn" style="width: 80px; height: 30px;"></div>
+            </div>
+            <div class="skeleton-card" style="width: 100%; display: flex; align-items: center; padding: 15px; margin-bottom: 10px; height: auto;">
+                <div style="flex: 1;">
+                    <div class="skeleton sk-text-short" style="width: 50%; margin-bottom: 10px;"></div>
+                    <div class="skeleton sk-text-short" style="width: 30%;"></div>
+                </div>
+                <div class="skeleton sk-btn" style="width: 80px; height: 30px;"></div>
+            </div>
+            <div class="skeleton-card" style="width: 100%; display: flex; align-items: center; padding: 15px; margin-bottom: 10px; height: auto;">
+                <div style="flex: 1;">
+                    <div class="skeleton sk-text-short" style="width: 70%; margin-bottom: 10px;"></div>
+                    <div class="skeleton sk-text-short" style="width: 40%;"></div>
+                </div>
+                <div class="skeleton sk-btn" style="width: 80px; height: 30px;"></div>
+            </div>
         </div>
     </div>
 
     <script src="asset/script.js"></script>
 
     <script>
-        // ✅ YOUR SHEET ID
         const sheetID = "1SvVUbEnDgqgw2Z_M1ShQkzyFTsnnS6n8mTs7UMXVvF4";
         const apiRoot = `https://opensheet.elk.sh/${sheetID}`;
 
@@ -51,24 +91,30 @@
             .then(res => res.json())
             .then(data => {
                 const container = document.getElementById('requests-list');
-                container.innerHTML = "";
+                container.innerHTML = ""; // Clears the skeletons
 
                 if(data.length === 0) {
                     container.innerHTML = "<p style='text-align:center; color:#888; margin-top:20px;'>No requests yet.</p>";
                     return;
                 }
 
-                // Reverse to show newest first
                 data.reverse().forEach(req => {
-                    // Matching your exact Google Form Questions
-                    const item = req["What do you need?"] || "Unknown Item";
-                    const budget = req["Your Budget"] || "Negotiable";
-                    const contact = req["WhatsApp Number"];
+                    const keys = Object.keys(req);
+                    
+                    const itemKey = keys.find(k => k.toLowerCase().includes("need") || k.toLowerCase().includes("item"));
+                    const item = req[itemKey] || "Unknown Item";
+
+                    const budgetKey = keys.find(k => k.toLowerCase().includes("budget") || k.toLowerCase().includes("price"));
+                    const budget = req[budgetKey] || "Negotiable";
+
+                    const contactKey = keys.find(k => k.toLowerCase().includes("whatsapp") || k.toLowerCase().includes("phone"));
+                    const contact = req[contactKey];
                     
                     let waLink = "#";
                     if(contact) {
                         const cleanPhone = String(contact).replace(/[^0-9]/g, '');
-                        waLink = `https://wa.me/${cleanPhone}?text=Hi,%20I%20saw%20your%20request%20for%20"${item}"%20on%20AFIT%20Market.%20I%20have%20it.`;
+                        const message = `Hi, I saw your request for "${item}" on AFIT Market. I have it.`;
+                        waLink = `https://wa.me/${cleanPhone}?text=${encodeURIComponent(message)}`;
                     }
 
                     container.innerHTML += `

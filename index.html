@@ -277,7 +277,7 @@
     // -- INIT --
     setupMainSearch();
     loadAds(); 
-    loadRecentItems(); // NEW: Load history on startup
+    // Note: We load Recent Items LATER, inside the Vendor fetch, so we have phone numbers ready.
 
     // -- AUTH CHECK --
     onAuthStateChanged(auth, async (user) => {
@@ -351,24 +351,15 @@
         });
     }
 
-    // -- NEW: HISTORY LOGIC (localStorage) --
-    // 1. Save to History when clicked
+    // -- HISTORY LOGIC --
     window.addToHistory = function(id, name, price, image, vendor) {
         let history = JSON.parse(localStorage.getItem('adm_history')) || [];
-        
-        // Remove duplicate if it exists (so we can move it to the top)
         history = history.filter(item => item.id !== id);
-        
-        // Add new item to front
         history.unshift({ id, name, price, image, vendor });
-        
-        // Keep only last 6 items
         if(history.length > 6) history.pop();
-        
         localStorage.setItem('adm_history', JSON.stringify(history));
     };
 
-    // 2. Load History on Homepage
     function loadRecentItems() {
         const history = JSON.parse(localStorage.getItem('adm_history')) || [];
         const container = document.getElementById('recent-grid');
@@ -379,22 +370,22 @@
             container.innerHTML = "";
             
             history.forEach(p => {
-                const waLink = `https://wa.me/?text=I%20saw%20${p.name}`; // Generic link since we might not have phone stored
+                const vendorPhone = globalPhoneBook[p.vendor] || ADMIN_PHONE;
+                const waLink = `https://wa.me/${vendorPhone}?text=${encodeURIComponent(`Hi, I saw "${p.name}" in my recently viewed items. Is it available?`)}`;
                 const img = p.image.startsWith('http') ? p.image : `img/${p.image}`;
-                
                 container.innerHTML += `
                 <div class="ad-card" style="min-width: 140px;"> <img class="ad-img" src="${img}" alt="${p.name}" onerror="this.src='img/logo-blue.png'">
                     <div class="ad-info">
                         <div class="ad-price" style="font-size:12px;">${p.price}</div>
                         <div class="ad-title" style="font-size:11px;">${p.name}</div>
-                        <a href="${waLink}" class="chat-btn" style="padding:4px 10px; font-size:10px;">Get Again</a>
+                        <a href="${waLink}" class="chat-btn" style="padding:4px 10px; font-size:10px;">Get</a>
                     </div>
                 </div>`;
             });
         }
     }
 
-    // -- STORIES, ADS, DATA LOADING (Same as before) --
+    // -- STORIES, ADS, DATA LOADING --
     function loadAds() {
         fetch(`${apiRoot}/Ads`)
         .then(res => res.json())
@@ -415,9 +406,26 @@
                 const modalTitle = document.getElementById('modal-title'); if(modalTitle) modalTitle.innerText = title;
                 const modalText = document.getElementById('modal-text'); if(modalText) modalText.innerText = text;
                 const modalLink = document.getElementById('modal-link'); if(modalLink) { modalLink.href = link; modalLink.innerText = "Chat on WhatsApp"; }
+                
+                // 1. ADD NOTIFICATION BADGE TO BELL
+                const notifBtn = document.getElementById('notif-btn');
+                if(notifBtn) {
+                    // Check if badge already exists to avoid duplicates
+                    if(!notifBtn.querySelector('.badge-dot')) {
+                        notifBtn.style.position = 'relative';
+                        notifBtn.innerHTML += `<span class="badge-dot" style="position:absolute; top:5px; right:5px; width:10px; height:10px; background:#ff4757; border-radius:50%; border:2px solid white;"></span>`;
+                    }
+                    // Make Bell Click Re-open Modal
+                    notifBtn.addEventListener('click', () => {
+                        document.getElementById('promo-modal').style.display = 'flex';
+                    });
+                }
+
+                // 2. SHOW MODAL (Auto pop up)
                 setTimeout(() => {
-                    if(!sessionStorage.getItem('adSeen')) {
-                        const modal = document.getElementById('promo-modal'); if(modal) { modal.style.display = 'flex'; sessionStorage.setItem('adSeen', 'true'); }
+                    const modal = document.getElementById('promo-modal'); 
+                    if(modal) { 
+                        modal.style.display = 'flex'; 
                     }
                 }, 2500);
             }
@@ -450,7 +458,7 @@
                    document.getElementById('modal-text').innerText = pDesc;
                    const btn = document.getElementById('modal-link'); btn.innerText = "Buy Now"; btn.href = waLink;
                    document.getElementById('promo-modal').style.display = 'flex';
-                   addToHistory(pVendor + "-" + pName, pName, pPrice, pImage, pVendor); // Also save story clicks!
+                   addToHistory(pVendor + "-" + pName, pName, pPrice, pImage, pVendor);
                 });
                 container.appendChild(storyDiv);
             });
@@ -459,6 +467,7 @@
 
     function shuffle(array) { return array.sort(() => 0.5 - Math.random()); }
     
+    // 1. REVIEWS
     fetch(`${apiRoot}/Reviews`)
     .then(res => res.json())
     .then(data => {
@@ -475,6 +484,7 @@
         }
     }).catch(err => console.error("Reviews Error:", err));
 
+    // 2. VENDORS (LOADS PHONEBOOK)
     fetch(`${apiRoot}/Vendors`)
     .then(res => res.json())
     .then(vendors => {
@@ -484,7 +494,9 @@
             const vPhone = v.whatsapp || v.Whatsapp;
             if(vID) globalPhoneBook[vID] = String(vPhone).replace(/[^0-9]/g, '');
         });
+        
         renderVendors(allVendors);
+        loadRecentItems();
         return fetch(`${apiRoot}/Products`);
     })
     .then(res => res.json())
@@ -554,7 +566,7 @@
                     
                     <a href="${waLink}" class="chat-btn" target="_blank" 
                        onclick="addToHistory('${pID}', '${pName}', '${pPrice}', '${pImage}', '${pVendor}')">
-                       Get Item
+                       Get
                     </a>
                 </div>
             </div>`;

@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vendor Dashboard - AFIT Market</title>
+    <link rel="stylesheet" href="asset/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="icon" href="img/app-logo.png">
+    
+    <style>
+        /* Dashboard Styles */
+        .dash-header {
+            background: linear-gradient(135deg, #2d8eff, #6c5ce7);
+            color: white;
+            padding: 25px 20px 40px;
+            border-radius: 0 0 25px 25px;
+            margin-bottom: -30px;
+            box-shadow: 0 4px 15px rgba(45, 142, 255, 0.3);
+        }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            padding: 0 20px;
+            margin-bottom: 25px;
+        }
+        .stat-card {
+            background: white;
+            padding: 15px;
+            border-radius: 15px;
+            text-align: center;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+        }
+        .stat-num { font-size: 24px; font-weight: bold; color: #333; }
+        .stat-label { font-size: 11px; color: #777; text-transform: uppercase; letter-spacing: 1px; margin-top: 5px; }
+
+        /* Floating Add Button */
+        .fab-add {
+            position: fixed;
+            bottom: 25px;
+            right: 25px;
+            background: #2d8eff;
+            color: white;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 24px;
+            box-shadow: 0 4px 15px rgba(45, 142, 255, 0.5);
+            cursor: pointer;
+            z-index: 100;
+            transition: transform 0.2s;
+        }
+        .fab-add:active { transform: scale(0.9); }
+
+        /* Modal */
+        .upload-modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(0,0,0,0.6);
+            z-index: 2000;
+            justify-content: center;
+            align-items: flex-end;
+        }
+        .upload-content {
+            background: white;
+            width: 100%;
+            max-width: 500px;
+            border-radius: 25px 25px 0 0;
+            padding: 30px 25px;
+            animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .form-group { margin-bottom: 15px; }
+        .form-label { display: block; font-size: 12px; font-weight: 600; color: #555; margin-bottom: 8px; }
+        .form-input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            font-size: 14px;
+            box-sizing: border-box;
+            background: #f9f9f9;
+        }
+        
+        /* Dark Mode */
+        body.dark-mode .stat-card, 
+        body.dark-mode .upload-content { background: #1e1e1e; color: white; }
+        body.dark-mode .form-input { background: #333; border-color: #444; color: white; }
+        body.dark-mode .stat-num { color: white; }
+        body.dark-mode .dash-header { box-shadow: none; border-bottom: 1px solid #333; }
+        
+        @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+    </style>
+</head>
+<body data-page="dashboard">
+
+    <script>
+        if (localStorage.getItem('theme') === 'dark') document.body.classList.add('dark-mode');
+    </script>
+
+    <div class="app-container">
+        
+        <div class="dash-header">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+                <a href="index.html" style="color:white;"><i class="fas fa-arrow-left"></i> Home</a>
+                <div id="vendor-badge" style="font-size:10px; background:rgba(255,255,255,0.25); padding:4px 10px; border-radius:15px; font-weight:bold;">
+                    Checking Status...
+                </div>
+            </div>
+            <h2 style="margin-top:20px; font-size:22px; margin-bottom: 5px;">Hi, <span id="dash-name">...</span></h2>
+            <p style="font-size:13px; opacity:0.9;">Manage your shop items.</p>
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-num" id="item-count">0</div>
+                <div class="stat-label">My Items</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-num" id="view-count">--</div>
+                <div class="stat-label">Total Views</div>
+            </div>
+        </div>
+
+        <div id="status-message" style="text-align:center; padding:30px; color:#777; font-size:14px;">
+            <i class="fas fa-circle-notch fa-spin"></i> Verifying Vendor Access...
+        </div>
+
+        <div style="padding: 0 15px;">
+            <h4 style="margin-bottom:15px; font-size: 16px;">Active Inventory</h4>
+            <div id="my-items-grid" class="trending-grid">
+                </div>
+        </div>
+
+    </div>
+
+    <div class="fab-add" id="add-btn" style="display:none;" onclick="openUploadModal()">
+        <i class="fas fa-plus"></i>
+    </div>
+
+    <div id="upload-modal" class="upload-modal">
+        <div class="upload-content">
+            <div style="display:flex; justify-content:space-between; margin-bottom:20px;">
+                <h3 style="margin:0;">New Item</h3>
+                <i class="fas fa-times" onclick="closeUploadModal()" style="font-size:20px; color:#777; cursor:pointer;"></i>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Item Name</label>
+                <input type="text" id="p-name" class="form-input" placeholder="e.g. iPhone 12 UK Used">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Price (e.g. 150,000)</label>
+                <input type="text" id="p-price" class="form-input" placeholder="Price">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Description (Optional)</label>
+                <input type="text" id="p-desc" class="form-input" placeholder="Short description...">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Category</label>
+                <select id="p-cat" class="form-input">
+                    <option value="Phones">Phones</option>
+                    <option value="Laptops">Laptops</option>
+                    <option value="Fashion">Fashion</option>
+                    <option value="Food">Food</option>
+                    <option value="Gadgets">Gadgets</option>
+                    <option value="Services">Services</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Photo</label>
+                <input type="file" id="p-file" class="form-input" accept="image/*">
+            </div>
+
+            <button id="btn-submit" class="chat-btn" style="width:100%; background:#2d8eff; height: 50px; font-size: 16px;">Post Item</button>
+        </div>
+    </div>
+
+    <script src="asset/script.js"></script>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+        import { getFirestore, collection, addDoc, getDocs, query, where, deleteDoc, doc } 
+        from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+        // CONFIG
+        const firebaseConfig = {
+            apiKey: "AIzaSyA1eQbrJpH9OtDNDN7z9oTFTRSAE7vCFbg",
+            authDomain: "afit-market-auth.firebaseapp.com",
+            projectId: "afit-market-auth",
+            storageBucket: "afit-market-auth.firebasestorage.app",
+            messagingSenderId: "894920886640",
+            appId: "1:894920886640:web:77d0a6b39bf89ff8f767b5"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        // IMGBB KEY (Your Key)
+        const IMGBB_KEY = "2ac38bef2c73c5a65e7ddf94efe37962";
+        const SHEET_API = "https://opensheet.elk.sh/1SvVUbEnDgqgw2Z_M1ShQkzyFTsnnS6n8mTs7UMXVvF4/Vendors";
+
+        let currentVendorID = null;
+
+        // 1. AUTH & VENDOR CHECK
+        onAuthStateChanged(auth, async (user) => {
+            const statusMsg = document.getElementById('status-message');
+            
+            if (user) {
+                document.getElementById('dash-name').innerText = user.displayName || "Vendor";
+                
+                // Check if this user is a registered vendor in the Sheet
+                try {
+                    const res = await fetch(SHEET_API);
+                    const vendors = await res.json();
+                    
+                    // Match Email (Case insensitive)
+                    const myVendorProfile = vendors.find(v => 
+                        v.Email && v.Email.toLowerCase().trim() === user.email.toLowerCase().trim()
+                    );
+
+                    if (myVendorProfile) {
+                        // SUCCESS: User is a Vendor
+                        currentVendorID = myVendorProfile.Vendor_ID || myVendorProfile.vendor_id;
+                        document.getElementById('vendor-badge').innerText = `ID: ${currentVendorID}`;
+                        document.getElementById('add-btn').style.display = 'flex';
+                        statusMsg.style.display = 'none';
+                        
+                        // Load their items
+                        loadMyItems(currentVendorID);
+                    } else {
+                        // FAIL: User not found in sheet
+                        statusMsg.innerHTML = `
+                            <i class="fas fa-lock" style="font-size:30px; margin-bottom:10px;"></i><br>
+                            Access Denied.<br>Your email <b>${user.email}</b> is not registered as a Vendor.<br>
+                            <a href="index.html" style="color:#2d8eff;">Go Home</a>
+                        `;
+                    }
+                } catch (err) {
+                    console.error(err);
+                    statusMsg.innerText = "Error connecting to vendor database.";
+                }
+            } else {
+                // Not logged in
+                window.location.href = "login.html";
+            }
+        });
+
+        // 2. LOAD VENDOR'S ITEMS (From Firestore)
+        async function loadMyItems(vid) {
+            const grid = document.getElementById('my-items-grid');
+            grid.innerHTML = "";
+            
+            try {
+                // Query items where vendor_id == currentVendorID
+                const q = query(collection(db, "products"), where("vendor_id", "==", vid));
+                const querySnapshot = await getDocs(q);
+                
+                document.getElementById('item-count').innerText = querySnapshot.size;
+
+                if(querySnapshot.empty) {
+                    grid.innerHTML = `<p style="grid-column:1/-1; text-align:center; color:#999;">You haven't posted any items yet.</p>`;
+                    return;
+                }
+
+                querySnapshot.forEach((docSnap) => {
+                    const data = docSnap.data();
+                    grid.innerHTML += `
+                    <div class="ad-card" style="position:relative;">
+                        <button onclick="deleteItem('${docSnap.id}')" style="position:absolute; top:10px; right:10px; background:rgba(255,0,0,0.8); color:white; border:none; border-radius:50%; width:30px; height:30px; cursor:pointer; z-index:10;">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                        <img class="ad-img" src="${data.image}" onerror="this.src='img/logo-blue.png'">
+                        <div class="ad-info">
+                            <div class="ad-price">${data.price}</div>
+                            <div class="ad-title">${data.name}</div>
+                            <div class="ad-location" style="font-size:10px; color:green;">Active</div>
+                        </div>
+                    </div>`;
+                });
+
+            } catch (err) {
+                console.error("Error loading items:", err);
+            }
+        }
+
+        // 3. UPLOAD & SUBMIT LOGIC
+        document.getElementById('btn-submit').addEventListener('click', async () => {
+            const btn = document.getElementById('btn-submit');
+            const name = document.getElementById('p-name').value;
+            const price = document.getElementById('p-price').value;
+            const desc = document.getElementById('p-desc').value;
+            const cat = document.getElementById('p-cat').value;
+            const fileInput = document.getElementById('p-file');
+
+            if (!name || !price || fileInput.files.length === 0) {
+                alert("Please fill Name, Price and select an Image.");
+                return;
+            }
+
+            // Start Loading
+            btn.innerText = "Uploading Image...";
+            btn.disabled = true;
+            btn.style.opacity = "0.7";
+
+            try {
+                // A. Upload to ImgBB
+                const file = fileInput.files[0];
+                const formData = new FormData();
+                formData.append("image", file);
+
+                const imgReq = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_KEY}`, {
+                    method: "POST",
+                    body: formData
+                });
+                const imgData = await imgReq.json();
+
+                if (!imgData.success) throw new Error("Image Upload Failed");
+
+                const imageUrl = imgData.data.url;
+
+                // B. Save to Firestore
+                btn.innerText = "Saving Item...";
+                
+                await addDoc(collection(db, "products"), {
+                    name: name,
+                    price: price, // Ideally store as number for sorting later
+                    description: desc,
+                    category: cat,
+                    image: imageUrl,
+                    vendor_id: currentVendorID,
+                    status: "Active",
+                    timestamp: new Date()
+                });
+
+                alert("Item Posted Successfully! 🚀");
+                closeUploadModal();
+                location.reload(); // Reload to see new item
+
+            } catch (error) {
+                console.error(error);
+                alert("Error: " + error.message);
+                btn.innerText = "Post Item";
+                btn.disabled = false;
+                btn.style.opacity = "1";
+            }
+        });
+
+        // 4. DELETE FUNCTION (Global)
+        window.deleteItem = async function(docID) {
+            if(!confirm("Are you sure you want to delete this item?")) return;
+            try {
+                await deleteDoc(doc(db, "products", docID));
+                alert("Deleted!");
+                location.reload();
+            } catch(e) {
+                alert("Error deleting: " + e.message);
+            }
+        };
+
+        // UI Functions
+        window.openUploadModal = function() { document.getElementById('upload-modal').style.display = 'flex'; };
+        window.closeUploadModal = function() { document.getElementById('upload-modal').style.display = 'none'; };
+
+    </script>
+</body>
+</html>
