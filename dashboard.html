@@ -37,57 +37,48 @@
 
         /* Floating Add Button */
         .fab-add {
-            position: fixed;
-            bottom: 25px;
-            right: 25px;
-            background: #2d8eff;
-            color: white;
-            width: 60px;
-            height: 60px;
-            border-radius: 50%;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            font-size: 24px;
-            box-shadow: 0 4px 15px rgba(45, 142, 255, 0.5);
-            cursor: pointer;
-            z-index: 100;
-            transition: transform 0.2s;
+            position: fixed; bottom: 25px; right: 25px;
+            background: #2d8eff; color: white;
+            width: 60px; height: 60px; border-radius: 50%;
+            display: flex; justify-content: center; align-items: center;
+            font-size: 24px; box-shadow: 0 4px 15px rgba(45, 142, 255, 0.5);
+            cursor: pointer; z-index: 100; transition: transform 0.2s;
         }
         .fab-add:active { transform: scale(0.9); }
 
         /* Modal */
         .upload-modal {
-            display: none;
-            position: fixed;
-            top: 0; left: 0;
-            width: 100%; height: 100%;
-            background: rgba(0,0,0,0.6);
-            z-index: 2000;
-            justify-content: center;
-            align-items: flex-end;
+            display: none; position: fixed; top: 0; left: 0;
+            width: 100%; height: 100%; background: rgba(0,0,0,0.6);
+            z-index: 2000; justify-content: center; align-items: flex-end;
         }
         .upload-content {
-            background: white;
-            width: 100%;
-            max-width: 500px;
-            border-radius: 25px 25px 0 0;
-            padding: 30px 25px;
+            background: white; width: 100%; max-width: 500px;
+            border-radius: 25px 25px 0 0; padding: 30px 25px;
             animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-            max-height: 90vh;
-            overflow-y: auto;
+            max-height: 90vh; overflow-y: auto;
         }
         .form-group { margin-bottom: 15px; }
         .form-label { display: block; font-size: 12px; font-weight: 600; color: #555; margin-bottom: 8px; }
         .form-input {
-            width: 100%;
-            padding: 12px;
-            border: 1px solid #ddd;
-            border-radius: 10px;
-            font-size: 14px;
-            box-sizing: border-box;
-            background: #f9f9f9;
+            width: 100%; padding: 12px; border: 1px solid #ddd;
+            border-radius: 10px; font-size: 14px; box-sizing: border-box; background: #f9f9f9;
         }
+
+        /* ACTIONS BAR ON CARD */
+        .card-actions {
+            position: absolute; top: 10px; right: 10px; z-index: 10;
+            display: flex; gap: 5px;
+        }
+        .action-btn {
+            width: 30px; height: 30px; border-radius: 50%; border: none;
+            color: white; display: flex; align-items: center; justify-content: center;
+            cursor: pointer; font-size: 12px;
+        }
+        .btn-del { background: rgba(255, 71, 87, 0.9); }
+        .btn-sold { background: rgba(46, 204, 113, 0.9); } 
+        .btn-sold.is-sold { background: rgba(50, 50, 50, 0.9); }
+        .btn-edit { background: rgba(52, 152, 219, 0.9); } /* Blue Edit Button */
 
         /* LIMIT POPUP */
         .limit-alert {
@@ -99,16 +90,13 @@
             animation: popIn 0.3s ease;
         }
         @keyframes popIn { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+        @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
         
         /* Dark Mode */
-        body.dark-mode .stat-card, 
-        body.dark-mode .upload-content,
-        body.dark-mode .limit-box { background: #1e1e1e; color: white; }
+        body.dark-mode .stat-card, body.dark-mode .upload-content, body.dark-mode .limit-box { background: #1e1e1e; color: white; }
         body.dark-mode .form-input { background: #333; border-color: #444; color: white; }
         body.dark-mode .stat-num { color: white; }
         body.dark-mode .dash-header { box-shadow: none; border-bottom: 1px solid #333; }
-        
-        @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
     </style>
 </head>
 <body data-page="dashboard">
@@ -127,7 +115,6 @@
                 </div>
             </div>
             <h2 style="margin-top:20px; font-size:22px; margin-bottom: 5px;">Hi, <span id="dash-name">...</span></h2>
-            
             <div style="font-size:12px; opacity:0.9; margin-top:5px; display:flex; align-items:center; gap:5px;">
                 <i class="fas fa-crown" style="color:#ffd700;"></i> 
                 Limit: <span id="limit-display">Checking...</span> items
@@ -157,14 +144,14 @@
 
     </div>
 
-    <div class="fab-add" id="add-btn" style="display:none;" onclick="handleUploadClick()">
+    <div class="fab-add" id="add-btn" style="display:none;" onclick="openNewUpload()">
         <i class="fas fa-plus"></i>
     </div>
 
     <div id="upload-modal" class="upload-modal">
         <div class="upload-content">
             <div style="display:flex; justify-content:space-between; margin-bottom:20px;">
-                <h3 style="margin:0;">New Item</h3>
+                <h3 style="margin:0;" id="modal-title">New Item</h3>
                 <i class="fas fa-times" onclick="closeUploadModal()" style="font-size:20px; color:#777; cursor:pointer;"></i>
             </div>
 
@@ -199,7 +186,16 @@
             </div>
 
             <div class="form-group">
-                <label class="form-label">Photo</label>
+                <label class="form-label">Condition</label>
+                <select id="p-condition" class="form-input">
+                    <option value="New">New</option>
+                    <option value="Used" selected>Used</option>
+                    <option value="Refurbished">Refurbished</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Photo <span id="photo-label" style="font-weight:normal; color:#2d8eff;"></span></label>
                 <input type="file" id="p-file" class="form-input" accept="image/*">
             </div>
 
@@ -223,7 +219,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-        import { getFirestore, collection, addDoc, getDocs, query, where, deleteDoc, doc } 
+        import { getFirestore, collection, addDoc, getDocs, query, where, deleteDoc, doc, updateDoc } 
         from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
         // CONFIG
@@ -240,58 +236,42 @@
         const auth = getAuth(app);
         const db = getFirestore(app);
 
-        // KEYS & API
         const IMGBB_KEY = "2ac38bef2c73c5a65e7ddf94efe37962";
         const SHEET_API = "https://opensheet.elk.sh/1SvVUbEnDgqgw2Z_M1ShQkzyFTsnnS6n8mTs7UMXVvF4/Vendors";
 
         let currentVendorID = null;
-        let maxItems = 5; // Default Limit
+        let maxItems = 5; 
         let currentCount = 0;
+        
+        // EDIT MODE VARS
+        let isEditing = false;
+        let editDocID = null;
+        let currentImageURL = "";
 
-        // 1. AUTH & VENDOR CHECK
         onAuthStateChanged(auth, async (user) => {
             const statusMsg = document.getElementById('status-message');
-            
             if (user) {
                 document.getElementById('dash-name').innerText = user.displayName || "Vendor";
-                
                 try {
                     const res = await fetch(SHEET_API);
                     const vendors = await res.json();
-                    
-                    const myVendorProfile = vendors.find(v => 
-                        v.Email && v.Email.toLowerCase().trim() === user.email.toLowerCase().trim()
-                    );
+                    const myVendorProfile = vendors.find(v => v.Email && v.Email.toLowerCase().trim() === user.email.toLowerCase().trim());
 
                     if (myVendorProfile) {
                         currentVendorID = myVendorProfile.Vendor_ID || myVendorProfile.vendor_id;
-                        
-                        // ⚡ FETCH LIMIT FROM SHEET (Default to 5 if empty)
                         maxItems = parseInt(myVendorProfile.Max_Items) || 5;
-
                         document.getElementById('vendor-badge').innerText = `ID: ${currentVendorID}`;
                         document.getElementById('limit-display').innerText = maxItems;
                         document.getElementById('add-btn').style.display = 'flex';
                         statusMsg.style.display = 'none';
-                        
                         loadMyItems(currentVendorID);
                     } else {
-                        statusMsg.innerHTML = `
-                            <i class="fas fa-lock" style="font-size:30px; margin-bottom:10px;"></i><br>
-                            Access Denied.<br>Your email <b>${user.email}</b> is not registered as a Vendor.<br>
-                            <a href="index.html" style="color:#2d8eff;">Go Home</a>
-                        `;
+                        statusMsg.innerHTML = `Access Denied.<br>Your email <b>${user.email}</b> is not registered as a Vendor.`;
                     }
-                } catch (err) {
-                    console.error(err);
-                    statusMsg.innerText = "Error connecting to vendor database.";
-                }
-            } else {
-                window.location.href = "login.html";
-            }
+                } catch (err) { console.error(err); statusMsg.innerText = "Error connecting to vendor database."; }
+            } else { window.location.href = "login.html"; }
         });
 
-        // 2. LOAD VENDOR'S ITEMS
         async function loadMyItems(vid) {
             const grid = document.getElementById('my-items-grid');
             grid.innerHTML = "";
@@ -300,14 +280,9 @@
                 const q = query(collection(db, "products"), where("vendor_id", "==", vid));
                 const querySnapshot = await getDocs(q);
                 
-                // ✅ UPDATE COUNT
                 currentCount = querySnapshot.size;
                 document.getElementById('item-count').innerText = `${currentCount} / ${maxItems}`;
-
-                // Color code the counter
-                if(currentCount >= maxItems) {
-                    document.getElementById('item-count').style.color = "#ff4757";
-                }
+                if(currentCount >= maxItems) document.getElementById('item-count').style.color = "#ff4757";
 
                 if(querySnapshot.empty) {
                     grid.innerHTML = `<p style="grid-column:1/-1; text-align:center; color:#999;">You haven't posted any items yet.</p>`;
@@ -317,123 +292,168 @@
                 querySnapshot.forEach((docSnap) => {
                     const data = docSnap.data();
                     const isStory = data.is_story === "true";
+                    const isSold = data.status === "Sold";
                     const badge = isStory ? '<span style="background:#ff4757; color:white; font-size:9px; padding:2px 5px; border-radius:4px; margin-left:5px;">⚡ FLASH</span>' : '';
+                    
+                    const opacity = isSold ? '0.6' : '1';
+                    const soldBtnClass = isSold ? 'btn-sold is-sold' : 'btn-sold';
+                    const soldIcon = isSold ? 'fa-eye-slash' : 'fa-check';
+                    const soldText = isSold ? "Sold" : "Active";
 
+                    // Prepare safe strings for Edit
+                    const safeName = (data.name || "").replace(/'/g, "\\'");
+                    const safeDesc = (data.description || "").replace(/'/g, "\\'").replace(/\n/g, " ");
+                    const safePrice = (data.price || "").replace(/'/g, "\\'");
+                    
                     grid.innerHTML += `
-                    <div class="ad-card" style="position:relative;">
-                        <button onclick="deleteItem('${docSnap.id}')" style="position:absolute; top:10px; right:10px; background:rgba(255,0,0,0.8); color:white; border:none; border-radius:50%; width:30px; height:30px; cursor:pointer; z-index:10;">
-                            <i class="fas fa-trash"></i>
-                        </button>
+                    <div class="ad-card" style="position:relative; opacity:${opacity};">
+                        <div class="card-actions">
+                            <button onclick="editItem('${docSnap.id}', '${safeName}', '${safePrice}', '${safeDesc}', '${data.category}', '${data.condition}', '${data.image}')" class="action-btn btn-edit" title="Edit Item">
+                                <i class="fas fa-pencil-alt"></i>
+                            </button>
+                            <button onclick="toggleSold('${docSnap.id}', '${data.status}')" class="action-btn ${soldBtnClass}" title="Mark Sold">
+                                <i class="fas ${soldIcon}"></i>
+                            </button>
+                            <button onclick="deleteItem('${docSnap.id}')" class="action-btn btn-del" title="Delete">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                        
                         <img class="ad-img" src="${data.image}" onerror="this.src='img/logo-blue.png'">
                         <div class="ad-info">
                             <div class="ad-price">${data.price}</div>
                             <div class="ad-title">${data.name} ${badge}</div>
-                            <div class="ad-location" style="font-size:10px; color:green;">Active</div>
+                            <div class="ad-location" style="font-size:10px; color:${isSold ? 'red' : 'green'};">${soldText}</div>
                         </div>
                     </div>`;
                 });
 
-            } catch (err) {
-                console.error("Error loading items:", err);
-            }
+            } catch (err) { console.error("Error loading items:", err); }
         }
 
-        // 3. CHECK LIMIT BEFORE OPENING UPLOAD MODAL
-        window.handleUploadClick = function() {
+        // --- EDIT LOGIC ---
+        window.editItem = function(id, name, price, desc, cat, cond, img) {
+            isEditing = true;
+            editDocID = id;
+            currentImageURL = img;
+
+            // Fill Form
+            document.getElementById('modal-title').innerText = "Edit Item";
+            document.getElementById('btn-submit').innerText = "Update Item";
+            document.getElementById('p-name').value = name;
+            // Extract raw numbers from "₦15,000"
+            document.getElementById('p-price').value = price.replace(/[^0-9]/g, '');
+            document.getElementById('p-desc').value = desc;
+            document.getElementById('p-cat').value = cat;
+            document.getElementById('p-condition').value = cond || "Used";
+            document.getElementById('photo-label').innerText = "(Leave empty to keep current photo)";
+
+            document.getElementById('upload-modal').style.display = 'flex';
+        };
+
+        window.openNewUpload = function() {
             if (currentCount >= maxItems) {
-                // Show Limit Popup
                 document.getElementById('alert-limit').innerText = maxItems;
                 document.getElementById('limit-modal').style.display = 'flex';
             } else {
-                // Open Upload Form
+                // Reset Form
+                isEditing = false;
+                editDocID = null;
+                document.getElementById('modal-title').innerText = "New Item";
+                document.getElementById('btn-submit').innerText = "Post Item";
+                document.getElementById('p-name').value = "";
+                document.getElementById('p-price').value = "";
+                document.getElementById('p-desc').value = "";
+                document.getElementById('p-file').value = "";
+                document.getElementById('photo-label').innerText = "";
+                
                 document.getElementById('upload-modal').style.display = 'flex';
             }
         };
 
-        // 4. SUBMIT LOGIC
+        // --- SUBMIT LOGIC (HANDLES BOTH) ---
         document.getElementById('btn-submit').addEventListener('click', async () => {
-            // Double Check Limit (Security)
-            if (currentCount >= maxItems) {
-                alert("Limit Reached! Cannot post.");
-                return;
-            }
+            // If New, check limit. If Editing, ignore limit.
+            if (!isEditing && currentCount >= maxItems) { alert("Limit Reached!"); return; }
 
             const btn = document.getElementById('btn-submit');
             const name = document.getElementById('p-name').value;
             const rawPrice = document.getElementById('p-price').value;
             const desc = document.getElementById('p-desc').value;
             const cat = document.getElementById('p-cat').value;
+            const condition = document.getElementById('p-condition').value; 
             const fileInput = document.getElementById('p-file');
 
-            if (!name || !rawPrice || fileInput.files.length === 0) {
-                alert("Please fill Name, Price and select an Image.");
-                return;
-            }
+            if (!name || !rawPrice) { alert("Name and Price are required."); return; }
+            // For new items, image is required. For edit, it's optional.
+            if (!isEditing && fileInput.files.length === 0) { alert("Please select an image."); return; }
 
-            const cleanNumber = rawPrice.replace(/[^0-9]/g, ''); 
-            const formattedPrice = "₦" + Number(cleanNumber).toLocaleString(); 
+            const formattedPrice = "₦" + Number(rawPrice.replace(/[^0-9]/g, '')).toLocaleString(); 
 
-            btn.innerText = "Uploading Image...";
+            btn.innerText = isEditing ? "Updating..." : "Uploading...";
             btn.disabled = true;
             btn.style.opacity = "0.7";
 
             try {
-                // Upload Image
-                const file = fileInput.files[0];
-                const formData = new FormData();
-                formData.append("image", file);
+                let finalImageUrl = currentImageURL;
 
-                const imgReq = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_KEY}`, {
-                    method: "POST",
-                    body: formData
-                });
-                const imgData = await imgReq.json();
+                // Upload NEW image if selected
+                if (fileInput.files.length > 0) {
+                    const file = fileInput.files[0];
+                    const formData = new FormData();
+                    formData.append("image", file);
+                    const imgReq = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_KEY}`, { method: "POST", body: formData });
+                    const imgData = await imgReq.json();
+                    if (!imgData.success) throw new Error("Image Upload Failed");
+                    finalImageUrl = imgData.data.url;
+                }
 
-                if (!imgData.success) throw new Error("Image Upload Failed");
-                const imageUrl = imgData.data.url;
+                if (isEditing) {
+                    // UPDATE Existing
+                    const itemRef = doc(db, "products", editDocID);
+                    await updateDoc(itemRef, {
+                        name: name, price: formattedPrice, description: desc, 
+                        category: cat, condition: condition, image: finalImageUrl
+                    });
+                    alert("Item Updated!");
+                } else {
+                    // CREATE New
+                    await addDoc(collection(db, "products"), {
+                        name: name, price: formattedPrice, description: desc, 
+                        category: cat, condition: condition, image: finalImageUrl,
+                        vendor_id: currentVendorID, status: "Active", is_story: "false", timestamp: new Date()
+                    });
+                    alert("Item Posted!");
+                }
 
-                // Save to Firestore
-                btn.innerText = "Saving Item...";
-                
-                await addDoc(collection(db, "products"), {
-                    name: name,
-                    price: formattedPrice,
-                    description: desc,
-                    category: cat,
-                    image: imageUrl,
-                    vendor_id: currentVendorID,
-                    status: "Active",
-                    is_story: "false", 
-                    timestamp: new Date()
-                });
-
-                alert("Item Posted Successfully! 🚀");
                 closeUploadModal();
                 location.reload();
 
-            } catch (error) {
-                console.error(error);
-                alert("Error: " + error.message);
-                btn.innerText = "Post Item";
-                btn.disabled = false;
-                btn.style.opacity = "1";
+            } catch (error) { 
+                alert("Error: " + error.message); 
+                btn.innerText = isEditing ? "Update Item" : "Post Item"; 
+                btn.disabled = false; 
+                btn.style.opacity = "1"; 
             }
         });
 
-        window.deleteItem = async function(docID) {
-            if(!confirm("Are you sure you want to delete this item?")) return;
+        window.toggleSold = async function(docID, currentStatus) {
+            const newStatus = currentStatus === "Sold" ? "Active" : "Sold";
+            if(!confirm(`Mark as ${newStatus}?`)) return;
             try {
-                await deleteDoc(doc(db, "products", docID));
-                alert("Deleted!");
-                location.reload();
-            } catch(e) {
-                alert("Error deleting: " + e.message);
-            }
+                await updateDoc(doc(db, "products", docID), { status: newStatus });
+                loadMyItems(currentVendorID);
+            } catch(e) { alert("Error: " + e.message); }
+        };
+
+        window.deleteItem = async function(docID) {
+            if(!confirm("Delete this item?")) return;
+            try { await deleteDoc(doc(db, "products", docID)); alert("Deleted!"); location.reload(); } 
+            catch(e) { alert("Error deleting: " + e.message); }
         };
 
         window.closeUploadModal = function() { document.getElementById('upload-modal').style.display = 'none'; };
         window.closeLimitModal = function() { document.getElementById('limit-modal').style.display = 'none'; };
-
     </script>
 </body>
 </html>

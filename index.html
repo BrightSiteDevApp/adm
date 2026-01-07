@@ -13,64 +13,113 @@
   <script>
     window.OneSignalDeferred = window.OneSignalDeferred || [];
     OneSignalDeferred.push(async function(OneSignal) {
-      await OneSignal.init({
-        appId: "f62f27b5-a5a3-4018-aade-0a44f357c7e0",
-      });
+      await OneSignal.init({ appId: "f62f27b5-a5a3-4018-aade-0a44f357c7e0" });
     });
   </script>
 
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
-  
   <title>AFIT Digital Market (ADM) | Buy & Sell on Campus</title>
   <meta name="description" content="AFIT Digital Market (AFIT DGM) is the official student marketplace for AFIT. Buy and sell phones, food, fashion, and services directly on campus. Safe, fast, and student-verified.">
+  
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <link rel="stylesheet" href="asset/style.css">
+  <link rel="stylesheet" href="asset/style.css"> 
   <link rel="icon" href="img/app-logo.png">
 
+  <style>
+      /* GLOBAL ANNOUNCEMENT BANNER */
+      #global-announcement {
+          background: #ff4757; color: white; padding: 8px;
+          display: none; 
+      }
+      #announce-text {
+          font-size: 13px; font-weight: bold; width: 100%; white-space: nowrap; overflow: hidden;
+      }
 
-  
-  <div class="app-container">
-  <div class="header">
-    <div class="header-top">
-      <a href="/"> <img src="img/logo-white.png" alt="AFIT Market" class="site-logo"> </a>
+      /* PRODUCT DETAIL MODAL */
+      .product-modal {
+          display: none; position: fixed; top: 0; left: 0;
+          width: 100%; height: 100%; background: rgba(0,0,0,0.8);
+          z-index: 3000; justify-content: center; align-items: center; padding: 20px;
+      }
+      .pm-content {
+          background: white; width: 100%; max-width: 400px;
+          border-radius: 15px; overflow: hidden; position: relative;
+          max-height: 90vh; overflow-y: auto;
+          animation: zoomIn 0.2s ease;
+      }
+      .pm-img { width: 100%; height: 250px; object-fit: cover; background: #eee; }
+      .pm-body { padding: 20px; }
+      .pm-title { font-size: 20px; font-weight: bold; margin: 0; color: #333; }
+      .pm-price { font-size: 18px; color: #2d8eff; font-weight: bold; margin: 5px 0 10px; }
+      .pm-desc { font-size: 14px; color: #555; line-height: 1.5; margin-bottom: 20px; }
       
-      <div style="display: flex; gap: 10px; align-items: center;">
-          <div class="notification-icon-box" id="theme-toggle">
-              <i class="fas fa-moon"></i>
-          </div>
-          <div class="notification-icon-box" id="notif-btn">
-              <i class="far fa-bell"></i>
-          </div>
-          <a href="saved.html" class="notification-icon-box" style="text-decoration:none; color:inherit;">
-    <i class="far fa-heart"></i>
-</a>
+      /* SAFETY BOX */
+      .safety-box {
+          background: #fff3cd; border: 1px solid #ffeeba;
+          color: #856404; padding: 12px; border-radius: 8px;
+          font-size: 12px; display: flex; gap: 10px; align-items: start;
+          margin-bottom: 20px;
+      }
+      
+      /* SIMILAR ITEMS */
+      .similar-section { margin-top: 20px; border-top: 1px solid #eee; padding-top: 15px; }
+      .similar-header { font-size: 13px; font-weight: bold; color: #777; margin-bottom: 10px; }
+      .similar-grid { display: flex; gap: 10px; overflow-x: auto; padding-bottom: 5px; scrollbar-width: none; }
+      .similar-grid::-webkit-scrollbar { display: none; }
+      .sim-card { min-width: 110px; cursor: pointer; }
+      .sim-img { width: 110px; height: 110px; object-fit: cover; border-radius: 10px; background: #eee; }
+      .sim-price { font-size: 11px; font-weight: bold; margin-top: 5px; color: #333; }
+
+      .close-pm {
+          position: absolute; top: 15px; right: 15px;
+          background: rgba(0,0,0,0.5); color: white;
+          width: 30px; height: 30px; border-radius: 50%;
+          display: flex; justify-content: center; align-items: center;
+          cursor: pointer; font-size: 16px; z-index: 10;
+      }
+      
+      .ad-img { cursor: pointer; }
+      @keyframes zoomIn { from { transform: scale(0.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+  </style>
+</head>
+
+<body>
+
+  <div class="app-container">
+    
+    <div class="header">
+        <div class="header-top">
+          <a href="/"> <img src="img/logo-white.png" alt="AFIT Market" class="site-logo"> </a>
           
-          <a href="account.html" class="notification-icon-box" id="header-profile-btn" style="overflow: hidden; padding: 0;">
-              <i class="far fa-user" style="padding: 8px;"></i>
-          </a>
-      </div>
-    </div>
-
-    <div class="search-box">
-      <select id="search-type">
-        <option value="product">Product</option>
-        <option value="vendor">Vendor ID</option>
-        </select>
-      <input type="text" id="main-search" placeholder="Search..." />
-      <i class="fas fa-search" style="padding:10px; color:#777;"></i>
-    </div>
-</div>
-
-<section class="stories-container" id="stories-section" style="display:none;">
-        <div style="font-size:12px; font-weight:bold; margin-bottom:8px; color:#555; padding-left:5px;">
-            ⚡ Flash Sales
+          <div style="display: flex; gap: 10px; align-items: center;">
+              <div class="notification-icon-box" id="theme-toggle"><i class="fas fa-moon"></i></div>
+              <div class="notification-icon-box" id="notif-btn"><i class="far fa-bell"></i></div>
+              <a href="saved.html" class="notification-icon-box" style="text-decoration:none; color:inherit;"><i class="far fa-heart"></i></a>
+              <a href="account.html" class="notification-icon-box" id="header-profile-btn" style="overflow: hidden; padding: 0;"><i class="far fa-user" style="padding: 8px;"></i></a>
+          </div>
         </div>
-        <div class="stories-scroll" id="stories-list">
-            </div>
+
+        <div class="search-box">
+          <select id="search-type">
+            <option value="product">Product</option>
+            <option value="vendor">Vendor ID</option>
+          </select>
+          <input type="text" id="main-search" placeholder="Search..." />
+          <i class="fas fa-search" style="padding:10px; color:#777;"></i>
+        </div>
+    </div>
+
+    <div id="global-announcement">
+        <marquee scrollamount="5" id="announce-text">Welcome to AFIT Market!</marquee>
+    </div>
+
+    <section class="stories-container" id="stories-section" style="display:none;">
+        <div style="font-size:12px; font-weight:bold; margin-bottom:8px; color:#555; padding-left:5px;">⚡ Flash Sales</div>
+        <div class="stories-scroll" id="stories-list"></div>
     </section>
 
-  <section class="info-cards">
+    <section class="info-cards">
       <a href="requests.html"><div class="info-card"><i class="fas fa-bullhorn"></i> Requests</div></a>
       <a href="ambassadors/"><div class="info-card"><i class="fas fa-briefcase"></i> Ambassadors</div> </a>
       <a href="safety/"><div class="info-card"><i class="fas fa-shield-alt"></i> Safety</div></a>
@@ -78,30 +127,14 @@
     </section>
 
     <section class="categories">
-      <a href="category.html?cat=Phones" class="cat" style="text-decoration:none;">
-        <div class="cat-icon"><i class="fas fa-mobile-alt"></i></div> Phones
-      </a>
-      <a href="category.html?cat=Laptops" class="cat" style="text-decoration:none;">
-        <div class="cat-icon"><i class="fas fa-laptop"></i></div> Laptops
-      </a>
-      <a href="category.html?cat=Fashion" class="cat" style="text-decoration:none;">
-        <div class="cat-icon"><i class="fas fa-tshirt"></i></div> Fashion
-      </a>
-      <a href="category.html?cat=Fashion Accessories" class="cat" style="text-decoration:none;">
-        <div class="cat-icon"><i class="fas fa-glasses"></i></div> Fashion accessories
-      </a>
-      <a href="category.html?cat=Phone Accessories" class="cat" style="text-decoration:none;">
-        <div class="cat-icon"><i class="fas fa-headphones"></i></div> Phone accessories
-      </a>
-      <a href="category.html?cat=Gadgets" class="cat" style="text-decoration:none;">
-        <div class="cat-icon"><i class="fas fa-gamepad"></i></div> Gadgets
-      </a>
-      <a href="category.html?cat=Food" class="cat" style="text-decoration:none;">
-        <div class="cat-icon"><i class="fas fa-utensils"></i></div> Food vendors
-      </a>
-      <a href="category.html?cat=Appliances" class="cat" style="text-decoration:none;">
-        <div class="cat-icon"><i class="fas fa-blender"></i></div> Appliances
-      </a>
+      <a href="category.html?cat=Phones" class="cat" style="text-decoration:none;"><div class="cat-icon"><i class="fas fa-mobile-alt"></i></div> Phones</a>
+      <a href="category.html?cat=Laptops" class="cat" style="text-decoration:none;"><div class="cat-icon"><i class="fas fa-laptop"></i></div> Laptops</a>
+      <a href="category.html?cat=Fashion" class="cat" style="text-decoration:none;"><div class="cat-icon"><i class="fas fa-tshirt"></i></div> Fashion</a>
+      <a href="category.html?cat=Fashion Accessories" class="cat" style="text-decoration:none;"><div class="cat-icon"><i class="fas fa-glasses"></i></div> Accessories</a>
+      <a href="category.html?cat=Phone Accessories" class="cat" style="text-decoration:none;"><div class="cat-icon"><i class="fas fa-headphones"></i></div> Gadgets</a>
+      <a href="category.html?cat=Gadgets" class="cat" style="text-decoration:none;"><div class="cat-icon"><i class="fas fa-gamepad"></i></div> Gaming</a>
+      <a href="category.html?cat=Food" class="cat" style="text-decoration:none;"><div class="cat-icon"><i class="fas fa-utensils"></i></div> Food</a>
+      <a href="category.html?cat=Appliances" class="cat" style="text-decoration:none;"><div class="cat-icon"><i class="fas fa-blender"></i></div> Appliances</a>
     </section>
 
     <section class="reviews-container">
@@ -110,20 +143,7 @@
             <a href="reviews/" style="font-size:12px; color:var(--primary-blue); font-weight:600; text-decoration:none;">See all</a>
         </div>
         <div class="reviews-slider" id="reviews-slider">
-            <div class="skeleton-card" style="min-width: 250px;">
-                <div style="display:flex; gap:10px; margin-bottom:10px;">
-                    <div class="skeleton sk-img" style="width:40px; height:40px;"></div>
-                    <div style="flex:1;"><div class="skeleton sk-text-short" style="width:60%; margin-bottom:5px;"></div><div class="skeleton sk-text-short" style="width:30%;"></div></div>
-                </div>
-                <div class="skeleton sk-text-long"></div><div class="skeleton sk-text-long" style="width:70%;"></div>
-            </div>
-            <div class="skeleton-card" style="min-width: 250px;">
-                <div style="display:flex; gap:10px; margin-bottom:10px;">
-                    <div class="skeleton sk-img" style="width:40px; height:40px;"></div>
-                    <div style="flex:1;"><div class="skeleton sk-text-short" style="width:60%; margin-bottom:5px;"></div><div class="skeleton sk-text-short" style="width:30%;"></div></div>
-                </div>
-                <div class="skeleton sk-text-long"></div><div class="skeleton sk-text-long" style="width:70%;"></div>
-            </div>
+            <div class="skeleton-card" style="min-width: 250px;"><div style="display:flex; gap:10px; margin-bottom:10px;"><div class="skeleton sk-img" style="width:40px; height:40px;"></div><div style="flex:1;"><div class="skeleton sk-text-short" style="width:60%; margin-bottom:5px;"></div><div class="skeleton sk-text-short" style="width:30%;"></div></div></div><div class="skeleton sk-text-long"></div><div class="skeleton sk-text-long" style="width:70%;"></div></div>
         </div>
     </section>
 
@@ -135,28 +155,18 @@
       <div class="trending-grid" id="home-items-grid">
         <div class="skeleton-card"><div class="skeleton sk-img-rect"></div><div class="skeleton sk-text-short"></div><div class="skeleton sk-text-long"></div><div class="skeleton sk-btn"></div></div>
         <div class="skeleton-card"><div class="skeleton sk-img-rect"></div><div class="skeleton sk-text-short"></div><div class="skeleton sk-text-long"></div><div class="skeleton sk-btn"></div></div>
-        <div class="skeleton-card"><div class="skeleton sk-img-rect"></div><div class="skeleton sk-text-short"></div><div class="skeleton sk-text-long"></div><div class="skeleton sk-btn"></div></div>
-        <div class="skeleton-card"><div class="skeleton sk-img-rect"></div><div class="skeleton sk-text-short"></div><div class="skeleton sk-text-long"></div><div class="skeleton sk-btn"></div></div>
       </div>
     </section>
 
-
-    <!---- BECAUSE YOU VIEWED 
-
     <section id="recent-section" style="display:none; margin-top: 20px;">
-        <div class="section-header">
-            <div class="trending-title" style="font-size: 14px; color: #555;">Because you viewed...</div>
-        </div>
-        <div class="trending-grid" id="recent-grid">
-            </div>
+        <div class="section-header"><div class="trending-title" style="font-size: 14px; color: #555;">Recently Viewed</div></div>
+        <div class="trending-grid" id="recent-grid" style="display:flex; overflow-x:auto; gap:10px; padding-bottom:10px;"></div>
     </section> 
 
-    -->
-
-    <section  class="trust-banner" style="display: flex; justify-content: space-around; background: #f9f9f9; padding: 15px; margin: 20px 0; border-radius: 8px;">
-        <div style="text-align: center;"><i class="fas fa-user-check" style="color: #2d8eff; font-size: 20px;"></i><div style="font-size: 10px; margin-top: 5px; font-weight: bold;">Verified Vendors</div></div>
-        <div style="text-align: center;"><i class="fas fa-handshake" style="color: #2d8eff; font-size: 20px;"></i><div style="font-size: 10px; margin-top: 5px; font-weight: bold;">Campus Meetups</div></div>
-        <div style="text-align: center;"><i class="fas fa-headset" style="color: #2d8eff; font-size: 20px;"></i><div style="font-size: 10px; margin-top: 5px; font-weight: bold;">Admin Support</div></div>
+    <section class="trust-banner" style="display: flex; justify-content: space-around; background: #f9f9f9; padding: 15px; margin: 20px 0; border-radius: 8px;">
+        <div style="text-align: center;"><i class="fas fa-user-check" style="color: #2d8eff; font-size: 20px;"></i><div style="font-size: 10px; margin-top: 5px; font-weight: bold;">Verified</div></div>
+        <div style="text-align: center;"><i class="fas fa-handshake" style="color: #2d8eff; font-size: 20px;"></i><div style="font-size: 10px; margin-top: 5px; font-weight: bold;">Meetups</div></div>
+        <div style="text-align: center;"><i class="fas fa-headset" style="color: #2d8eff; font-size: 20px;"></i><div style="font-size: 10px; margin-top: 5px; font-weight: bold;">Support</div></div>
     </section>
 
     <section class="pricing-promo-section" style="padding: 10px 14px 20px;">
@@ -164,23 +174,18 @@
             <img src="https://i.ibb.co/rfkxX3r9/1.png" alt="Vendor Pricing Plan" style="width: 100%; display: block;">
         </div>
         <div style="text-align: center;">
-            <a href="https://wa.me/2348144516127?text=I%20want%20to%20register%20as%20a%20vendor" 
-               style="background: #2d8eff; color: white; padding: 12px 35px; border-radius: 30px; text-decoration: none; font-weight: bold; font-size: 14px; box-shadow: 0 4px 10px rgba(45, 142, 255, 0.3); display: inline-block;">
-               Become a Vendor
-            </a>
+            <a href="https://wa.me/2348144516127?text=I%20want%20to%20register%20as%20a%20vendor" style="background: #2d8eff; color: white; padding: 12px 35px; border-radius: 30px; text-decoration: none; font-weight: bold; font-size: 14px; box-shadow: 0 4px 10px rgba(45, 142, 255, 0.3); display: inline-block;">Become a Vendor</a>
         </div>
     </section>
 
-   <section class="vendor-section-wrapper" style="padding: 0 14px 20px;">
+    <section class="vendor-section-wrapper" style="padding: 0 14px 20px;">
         <div class="section-header">
             <div class="trending-title">Verified Vendors</div>
             <a href="vendors/" style="font-size:12px; color:var(--primary-blue); font-weight:600; text-decoration:none;">See all</a>
         </div>
        <div class="trending-grid" id="vendor-grid">
-            <div class="skeleton-card"><div class="skeleton sk-img"></div><div class="skeleton sk-text-short"></div><div class="skeleton sk-text-long"></div><div class="skeleton sk-btn"></div></div>
-            <div class="skeleton-card"><div class="skeleton sk-img"></div><div class="skeleton sk-text-short"></div><div class="skeleton sk-text-long"></div><div class="skeleton sk-btn"></div></div>
-            <div class="skeleton-card"><div class="skeleton sk-img"></div><div class="skeleton sk-text-short"></div><div class="skeleton sk-text-long"></div><div class="skeleton sk-btn"></div></div>
-            <div class="skeleton-card"><div class="skeleton sk-img"></div><div class="skeleton sk-text-short"></div><div class="skeleton sk-text-long"></div><div class="skeleton sk-btn"></div></div>
+           <div class="skeleton-card"><div class="skeleton sk-img"></div><div class="skeleton sk-text-short"></div></div>
+           <div class="skeleton-card"><div class="skeleton sk-img"></div><div class="skeleton sk-text-short"></div></div>
        </div>
     </section>
 
@@ -193,11 +198,6 @@
                 <button type="submit" style="width: 30%; background: var(--primary-blue); color: white; border: none; padding: 8px; border-radius: 20px; font-size: 11px; font-weight: bold; cursor: pointer;">Join</button>
             </form>
         </div>
-        <div id="manual-install-container" style="display: none; margin-bottom: 20px;">
-            <button id="manual-install-btn" style="background: transparent; border: 1px solid #777; color: #ccc; padding: 8px 20px; border-radius: 20px; font-size: 12px; cursor: pointer;">
-                <i class="fas fa-download" style="margin-right: 5px;"></i> Install App
-            </button>
-        </div>
         <div class="footer-links">
             <a href="about-us/">About Us</a> | <a href="faq/">FAQ</a> | <a href="t&c/">T & C</a> | <a href="contact-us/">Contact</a>
         </div>
@@ -208,9 +208,11 @@
       <div class="modal-content">
         <span class="close-modal">&times;</span>
         <img id="modal-img" src="img/ads.png" alt="Promo" class="modal-img">
-        <h3 id="modal-title"></h3>
-        <p id="modal-text"></p>
-        <a id="modal-link" href="#" class="modal-btn">Place an ad</a>
+        <div class="promo-text">
+            <h3 id="modal-title"></h3>
+            <p id="modal-text"></p>
+            <a id="modal-link" href="#" class="modal-btn">View Details</a>
+        </div>
       </div>
     </div>
     
@@ -222,8 +224,7 @@
             <img src="img/logo-blue.png" style="width: 50px; margin-bottom: 10px;">
             <h3 style="margin: 0; font-size: 16px; color:#333;">Welcome to AFIT Market</h3>
             <p style="font-size: 12px; color: #777; margin: 10px 0;">Sign in to save items and customize your profile.</p>
-
-            <button id="popup-google-btn" class="google-btn-small">
+            <button id="popup-google-btn" class="google-btn-small" style="width:100%; padding:10px; background:white; border:1px solid #ddd; border-radius:20px; display:flex; align-items:center; justify-content:center; gap:10px; cursor:pointer;">
                 <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" width="18">
                 Sign in with Google
             </button>
@@ -231,28 +232,57 @@
         </div>
     </div>
 
-  </div> 
+    <div id="product-modal" class="product-modal">
+        <div class="pm-content">
+            <div class="close-pm" onclick="closeProductModal()">&times;</div>
+            <img id="pm-img" src="" class="pm-img">
+            <div class="pm-body">
+                <div id="pm-title" class="pm-title">...</div>
+                <div id="pm-price" class="pm-price">...</div>
+                <div id="pm-desc" class="pm-desc">...</div>
 
-  <script src="asset/script.js"></script>
-  
-  <div id="install-popup" style="display: none; position: fixed; bottom: 20px; left: 5%; width: 90%; background: white; padding: 20px; border-radius: 15px; box-shadow: 0 5px 20px rgba(0,0,0,0.2); z-index: 1000; text-align: center; animation: slideUp 0.5s ease;">
-    <img src="img/logo-blue.png" style="width: 50px; margin-bottom: 10px;">
-    <h3 style="margin: 0; font-size: 16px;">Install AFIT Market App</h3>
-    <p style="font-size: 12px; color: #777; margin: 5px 0 15px;">Get better experience and faster access!</p>
-    <button id="install-btn" style="background: #2d8eff; color: white; border: none; padding: 10px 30px; border-radius: 20px; font-weight: bold; width: 100%;">Install Now</button>
-    <button onclick="document.getElementById('install-popup').style.display='none'" style="background: none; border: none; color: #999; font-size: 12px; margin-top: 10px;">Maybe later</button>
+                <div class="safety-box">
+                    <i class="fas fa-shield-alt" style="font-size:20px;"></i>
+                    <div>
+                        <strong>Safety Tip:</strong><br>
+                        Meet in open places on campus. Do not pay before seeing the item.
+                    </div>
+                </div>
+
+                <a id="pm-btn" href="#" class="chat-btn" style="width:100%; text-align:center; display:block;">
+                    <i class="fab fa-whatsapp"></i> Contact Vendor
+                </a>
+
+                <div class="similar-section" id="similar-wrapper" style="display:none;">
+                    <div class="similar-header">You might also like</div>
+                    <div class="similar-grid" id="pm-similar-grid"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="install-popup" style="display: none; position: fixed; bottom: 20px; left: 5%; width: 90%; background: white; padding: 20px; border-radius: 15px; box-shadow: 0 5px 20px rgba(0,0,0,0.2); z-index: 1000; text-align: center; animation: slideUp 0.5s ease;">
+        <img src="img/logo-blue.png" style="width: 50px; margin-bottom: 10px;">
+        <h3 style="margin: 0; font-size: 16px;">Install AFIT Market App</h3>
+        <p style="font-size: 12px; color: #777; margin: 5px 0 15px;">Get better experience and faster access!</p>
+        <button id="install-btn" style="background: #2d8eff; color: white; border: none; padding: 10px 30px; border-radius: 20px; font-weight: bold; width: 100%;">Install Now</button>
+        <button onclick="document.getElementById('install-popup').style.display='none'" style="background: none; border: none; color: #999; font-size: 12px; margin-top: 10px;">Maybe later</button>
+    </div>
+
+    <a href="https://wa.me/2349153375488?text=Hello%20Admin" class="whatsapp-float" target="_blank">
+        <i class="fab fa-whatsapp my-float"></i>
+        <span class="tooltip-text">Chat with Admin</span>
+    </a>
+
   </div>
 
-  <a href="https://wa.me/2349153375488?text=Hello%20Admin,%20I%20need%20assistance%20with%20AFIT%20Market" class="whatsapp-float" target="_blank">
-    <i class="fab fa-whatsapp my-float"></i>
-    <span class="tooltip-text">Chat with Admin</span>
-  </a>
+  <script src="asset/script.js"></script>
 
-<script type="module">
+  <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
     import { getAuth, onAuthStateChanged, signInWithPopup, GoogleAuthProvider } 
     from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-    import { getFirestore, doc, setDoc, deleteDoc, collection, getDocs, query } 
+    import { getFirestore, doc, setDoc, deleteDoc, collection, getDocs, query, getDoc } 
     from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
     // FIREBASE CONFIG
@@ -270,7 +300,6 @@
     const db = getFirestore(app);
     const provider = new GoogleAuthProvider();
 
-    // VARIABLES
     let savedItemIds = new Set();
     const sheetID = "1SvVUbEnDgqgw2Z_M1ShQkzyFTsnnS6n8mTs7UMXVvF4";
     const apiRoot = `https://opensheet.elk.sh/${sheetID}`;
@@ -278,14 +307,25 @@
     let allProducts = [];
     let allVendors = [];
     let globalPhoneBook = {}; 
-    let suspendedVendors = new Set(); // ⛔ BLOCKLIST
+    let suspendedVendors = new Set(); 
 
-    // -- INIT --
     setupMainSearch();
     loadAds(); 
-    initData(); // ✅ NEW: Starts the data loading process
+    initData();
+    loadAnnouncement(); 
 
-    // -- AUTH CHECK --
+    // FETCH GLOBAL ANNOUNCEMENT
+    async function loadAnnouncement() {
+        try {
+            const docSnap = await getDoc(doc(db, "settings", "global_alert"));
+            if(docSnap.exists() && docSnap.data().active) {
+                const banner = document.getElementById('global-announcement');
+                document.getElementById('announce-text').innerText = docSnap.data().message;
+                banner.style.display = 'block';
+            }
+        } catch(e) { console.error("Banner error:", e); }
+    }
+
     onAuthStateChanged(auth, async (user) => {
         const headerBtn = document.getElementById('header-profile-btn');
         if (user) {
@@ -316,20 +356,13 @@
             }).catch((error) => { alert("Login failed: " + error.message); });
     });
 
-    // -- CORE DATA LOADER (SHEETS + DATABASE) --
     async function initData() {
         try {
-            // 1. Get Blocklist from Firestore (Admin Suspensions)
             const suspendedSnap = await getDocs(collection(db, "vendor_status"));
-            suspendedSnap.forEach(doc => {
-                if (doc.data().status === "suspended") suspendedVendors.add(doc.id);
-            });
+            suspendedSnap.forEach(doc => { if (doc.data().status === "suspended") suspendedVendors.add(doc.id); });
 
-            // 2. Fetch Vendors from Sheet
             const vendorRes = await fetch(`${apiRoot}/Vendors`);
             const vendors = await vendorRes.json();
-
-            // Filter out suspended vendors
             allVendors = vendors.filter(v => !suspendedVendors.has(v.vendor_id || v.Vendor_ID));
 
             allVendors.forEach(v => {
@@ -341,28 +374,36 @@
             renderVendors(allVendors);
             loadRecentItems();
 
-            // 3. Fetch Products (Google Sheet)
             const productsRes = await fetch(`${apiRoot}/Products`);
             const sheetProducts = await productsRes.json();
-
-            // 4. Fetch Products (Firestore Database)
             const firestoreProducts = await loadFirestoreProducts();
             
-            // 5. Combine Both & Filter
             let combined = [...sheetProducts, ...firestoreProducts];
-            allProducts = combined.filter(p => 
-                (p.status || p.Status) !== "Sold" && 
-                !suspendedVendors.has(p.vendor_id || p.Vendor_ID)
-            );
+            allProducts = combined.filter(p => !suspendedVendors.has(p.vendor_id || p.Vendor_ID));
             
             renderStories(allProducts, globalPhoneBook);
-            const randomMix = shuffle([...allProducts]).slice(0, 15);
-            renderItems(randomMix); 
+            
+            // ✅ FEATURED SORTING LOGIC
+            const featured = [];
+            const normal = [];
+            
+            allProducts.forEach(p => {
+                if (p.status !== "Sold") { // Filter out sold items from main list if you want
+                    if (p.is_featured === "true") featured.push(p);
+                    else normal.push(p);
+                }
+            });
+
+            // Shuffle normal items
+            const shuffledNormal = shuffle(normal);
+            // Put Featured FIRST, then random others
+            const displayList = [...featured, ...shuffledNormal].slice(0, 15);
+
+            renderItems(displayList); 
 
         } catch (err) { console.error("Init Error:", err); }
     }
 
-    // Helper: Get Items from Database
     async function loadFirestoreProducts() {
         try {
             const q = query(collection(db, "products")); 
@@ -372,14 +413,15 @@
                 const d = doc.data();
                 items.push({
                     name: d.name, price: d.price, image: d.image, vendor_id: d.vendor_id,
-                    description: d.description, status: d.status, is_story: d.is_story || "false"
+                    description: d.description, status: d.status, is_story: d.is_story || "false",
+                    is_featured: d.is_featured || "false", // ✅ Load Feature Status
+                    category: d.category 
                 });
             });
             return items;
-        } catch(e) { console.error(e); return []; }
+        } catch(e) { return []; }
     }
 
-    // -- UI RENDERING --
     window.toggleSave = async function(id, name, price, image, vendor) {
         const user = auth.currentUser;
         if (!user) { document.getElementById('login-modal').style.display = 'flex'; return; }
@@ -410,6 +452,48 @@
         });
     }
 
+    window.viewProduct = function(name, price, desc, img, phone, category) {
+        document.getElementById('pm-title').innerText = name;
+        document.getElementById('pm-price').innerText = price;
+        document.getElementById('pm-desc').innerText = desc || "No description provided.";
+        document.getElementById('pm-img').src = img;
+        document.getElementById('pm-btn').href = `https://wa.me/${phone}?text=${encodeURIComponent(`Hi, I saw "${name}" on AFIT Market. Is it available?`)}`;
+        
+        const similarWrapper = document.getElementById('similar-wrapper');
+        const similarGrid = document.getElementById('pm-similar-grid');
+        similarGrid.innerHTML = "";
+
+        if (category && allProducts.length > 0) {
+            const similarItems = allProducts.filter(p => (p.category || p.Category) === category && (p.name || p.Name) !== name);
+            const picked = similarItems.sort(() => 0.5 - Math.random()).slice(0, 3);
+
+            if (picked.length > 0) {
+                similarWrapper.style.display = 'block';
+                picked.forEach(p => {
+                    const sName = p.name || p.Name;
+                    const sPrice = p.price || p.Price;
+                    const sImg = (p.image || p.Image).startsWith('http') ? (p.image || p.Image) : `img/${p.image || p.Image}`;
+                    const sVendor = p.vendor_id || p.Vendor_ID;
+                    const sPhone = globalPhoneBook[sVendor] || ADMIN_PHONE;
+                    const safeName = sName.replace(/'/g, "\\'");
+                    const safeDesc = (p.description || "No description").replace(/'/g, "\\'").replace(/\n/g, " ");
+
+                    similarGrid.innerHTML += `
+                    <div class="sim-card" onclick="viewProduct('${safeName}', '${sPrice}', '${safeDesc}', '${sImg}', '${sPhone}', '${category}')">
+                        <img src="${sImg}" class="sim-img" onerror="this.src='img/logo-blue.png'">
+                        <div class="sim-price">${sPrice}</div>
+                    </div>`;
+                });
+            } else { similarWrapper.style.display = 'none'; }
+        } else { similarWrapper.style.display = 'none'; }
+
+        document.getElementById('product-modal').style.display = 'flex';
+    };
+
+    window.closeProductModal = function() {
+        document.getElementById('product-modal').style.display = 'none';
+    };
+
     window.addToHistory = function(id, name, price, image, vendor) {
         let history = JSON.parse(localStorage.getItem('adm_history')) || [];
         history = history.filter(item => item.id !== id);
@@ -430,14 +514,17 @@
                 container.innerHTML = "";
                 cleanHistory.forEach(p => {
                     const vendorPhone = globalPhoneBook[p.vendor] || ADMIN_PHONE;
-                    const waLink = `https://wa.me/${vendorPhone}?text=${encodeURIComponent(`Hi, I saw "${p.name}" in my recently viewed items. Is it available?`)}`;
                     const img = p.image.startsWith('http') ? p.image : `img/${p.image}`;
+                    const category = "General"; 
+                    
                     container.innerHTML += `
-                    <div class="ad-card" style="min-width: 140px;"> <img class="ad-img" src="${img}" alt="${p.name}" onerror="this.src='img/logo-blue.png'">
+                    <div class="ad-card" style="min-width: 140px;"> 
+                        <img class="ad-img" src="${img}" alt="${p.name}" onerror="this.src='img/logo-blue.png'"
+                             onclick="viewProduct('${p.name}', '${p.price}', 'Check details...', '${img}', '${vendorPhone}', '${category}')">
                         <div class="ad-info">
                             <div class="ad-price" style="font-size:12px;">${p.price}</div>
                             <div class="ad-title" style="font-size:11px;">${p.name}</div>
-                            <a href="${waLink}" class="chat-btn" style="padding:4px 10px; font-size:10px;">Get</a>
+                            <a href="#" onclick="viewProduct('${p.name}', '${p.price}', 'Check details...', '${img}', '${vendorPhone}', '${category}')" class="chat-btn" style="padding:4px 10px; font-size:10px;">Get</a>
                         </div>
                     </div>`;
                 });
@@ -456,14 +543,12 @@
                 const title = ad.title || ad.Title || "Special Offer";
                 const text = ad.text || ad.Text || "Check out this deal!";
                 const waPhone = ad.whatsapp || ad.Whatsapp;
-                let link = "#";
-                if(waPhone) {
-                    const cleanPhone = String(waPhone).replace(/[^0-9]/g, '');
-                    link = `https://wa.me/${cleanPhone}?text=Hi,%20I%20saw%20your%20ad%20"${title}"%20on%20AFIT%20Market.`;
-                }
+                const cleanPhone = waPhone ? String(waPhone).replace(/[^0-9]/g, '') : ADMIN_PHONE;
+                const link = `https://wa.me/${cleanPhone}?text=Hi,%20I%20saw%20your%20ad%20"${title}"`;
+
                 const modalImg = document.getElementById('modal-img'); if(modalImg) modalImg.src = img.startsWith('http') ? img : `img/${img}`;
-                const modalTitle = document.getElementById('modal-title'); if(modalTitle) modalTitle.innerText = title;
-                const modalText = document.getElementById('modal-text'); if(modalText) modalText.innerText = text;
+                document.getElementById('modal-title').innerText = title;
+                document.getElementById('modal-text').innerText = text;
                 const modalLink = document.getElementById('modal-link'); if(modalLink) { modalLink.href = link; modalLink.innerText = "Chat on WhatsApp"; }
                 
                 const notifBtn = document.getElementById('notif-btn');
@@ -474,10 +559,7 @@
                     }
                     notifBtn.addEventListener('click', () => { document.getElementById('promo-modal').style.display = 'flex'; });
                 }
-                setTimeout(() => {
-                    const modal = document.getElementById('promo-modal'); 
-                    if(modal) { modal.style.display = 'flex'; }
-                }, 2500);
+                setTimeout(() => { const modal = document.getElementById('promo-modal'); if(modal) { modal.style.display = 'flex'; } }, 2500);
             }
         }).catch(err => console.log("No Ads Found"));
     }
@@ -496,18 +578,16 @@
                 const pPrice = p.price || p.Price;
                 const pVendor = p.vendor_id || p.Vendor_ID;
                 const pDesc = p.description || p.Description || "Flash Sale Item";
+                const pCat = p.category || p.Category || "General";
                 const img = pImage.startsWith('http') ? pImage : `img/${pImage}`;
                 const vendorPhone = phoneBook[pVendor] || ADMIN_PHONE;
-                const waLink = `https://wa.me/${vendorPhone}?text=${encodeURIComponent(`Hi, I saw your Story Item "${pName}". Is it available?`)}`;
+                
                 const storyDiv = document.createElement('div');
                 storyDiv.className = 'story-item';
                 storyDiv.innerHTML = `<div class="story-ring"><img src="${img}" class="story-img" alt="${pName}" onerror="this.src='img/logo-blue.png'"></div><div class="story-name">${pName}</div>`;
+                
                 storyDiv.addEventListener('click', () => {
-                   document.getElementById('modal-img').src = img;
-                   document.getElementById('modal-title').innerText = pName + " (" + pPrice + ")";
-                   document.getElementById('modal-text').innerText = pDesc;
-                   const btn = document.getElementById('modal-link'); btn.innerText = "Buy Now"; btn.href = waLink;
-                   document.getElementById('promo-modal').style.display = 'flex';
+                   viewProduct(pName, pPrice, pDesc, img, vendorPhone, pCat);
                    addToHistory(pVendor + "-" + pName, pName, pPrice, pImage, pVendor);
                 });
                 container.appendChild(storyDiv);
@@ -517,7 +597,6 @@
 
     function shuffle(array) { return array.sort(() => 0.5 - Math.random()); }
     
-    // REVIEWS
     fetch(`${apiRoot}/Reviews`)
     .then(res => res.json())
     .then(data => {
@@ -569,30 +648,54 @@
             const pPrice = p.price || p.Price;
             const pVendor = p.vendor_id || p.Vendor_ID;
             const pImage = p.image || p.Image;
+            const pDesc = p.description || p.Description || "No description provided.";
+            const pCat = p.category || p.Category || "General";
+            const pStatus = p.status || p.Status || "Active"; 
+            const isFeatured = p.is_featured === "true"; // Check Featured
+            
             const pID = (pVendor + "-" + pName).replace(/\s+/g, '-').toLowerCase();
             const img = pImage.startsWith('http') ? pImage : `img/${pImage}`;
             const vendorPhone = globalPhoneBook[pVendor] || ADMIN_PHONE;
-            const waLink = `https://wa.me/${vendorPhone}?text=${encodeURIComponent(`Hi, I saw "${pName}". Is it available?`)}`;
             const isSaved = savedItemIds.has(pID);
             const heartClass = isSaved ? 'fas' : 'far';
             const heartColor = isSaved ? '#ff4757' : '#777';
 
+            // Safe strings for onclick
+            const safeName = pName.replace(/'/g, "\\'");
+            const safeDesc = pDesc.replace(/'/g, "\\'").replace(/\n/g, " ");
+
+            // SOLD LOGIC
+            const isSold = pStatus === "Sold";
+            const opacity = isSold ? 'opacity:0.6;' : '';
+            
+            // BADGE LOGIC (Sold > Sponsored)
+            let badge = '';
+            if (isSold) {
+                badge = '<span style="background:red; color:white; font-size:9px; padding:2px 5px; position:absolute; top:10px; left:10px; border-radius:4px; z-index:10;">SOLD</span>';
+            } else if (isFeatured) {
+                badge = '<span style="background:#f1c40f; color:white; font-size:9px; padding:2px 5px; position:absolute; top:10px; left:10px; border-radius:4px; z-index:10; font-weight:bold;">⭐ Sponsored</span>';
+            }
+
+            const clickAction = isSold ? "" : `onclick="viewProduct('${safeName}', '${pPrice}', '${safeDesc}', '${img}', '${vendorPhone}', '${pCat}')"`;
+            const btnText = isSold ? "Sold" : "Get";
+            const btnStyle = isSold ? "background:#777; pointer-events:none;" : "";
+
             itemGrid.innerHTML += `
-            <div class="ad-card" style="position:relative;">
-                <button onclick="toggleSave('${pID}', '${pName}', '${pPrice}', '${pImage}', '${pVendor}')" 
+            <div class="ad-card" style="position:relative; ${opacity}">
+                ${badge}
+                <button onclick="toggleSave('${pID}', '${safeName}', '${pPrice}', '${pImage}', '${pVendor}')" 
                         class="save-btn" id="save-${pID}"
                         style="position:absolute; top:10px; right:10px; background:white; border:none; border-radius:50%; width:30px; height:30px; display:flex; align-items:center; justify-content:center; cursor:pointer; box-shadow:0 2px 5px rgba(0,0,0,0.2); z-index:10;">
                     <i class="${heartClass} fa-heart" style="color:${heartColor}; font-size:16px;"></i>
                 </button>
-                <img class="ad-img" src="${img}" alt="${pName}" onerror="this.src='img/logo-blue.png'">
+                
+                <img class="ad-img" src="${img}" alt="${pName}" onerror="this.src='img/logo-blue.png'" ${clickAction}>
+                
                 <div class="ad-info">
                     <div class="ad-price">${pPrice}</div>
                     <div class="ad-title">${pName}</div>
                     <div class="ad-location">Vendor: ${pVendor}</div>
-                    <a href="${waLink}" class="chat-btn" target="_blank" 
-                       onclick="addToHistory('${pID}', '${pName}', '${pPrice}', '${pImage}', '${pVendor}')">
-                       Get
-                    </a>
+                    <a href="#" ${clickAction} class="chat-btn" style="${btnStyle}">${btnText}</a>
                 </div>
             </div>`;
         });
@@ -626,6 +729,6 @@
             </div>`;
         });
     }
-</script>
+  </script>
 </body>
 </html>

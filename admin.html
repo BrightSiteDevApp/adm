@@ -11,51 +11,65 @@
     <style>
         body { background-color: #f4f7f6; font-family: sans-serif; padding-bottom: 50px; }
         .admin-header {
-            background: #2d3436;
-            color: white;
-            padding: 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-            position: sticky; top: 0; z-index: 1000;
+            background: #2d3436; color: white; padding: 20px;
+            display: flex; justify-content: space-between; align-items: center;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1); position: sticky; top: 0; z-index: 1000;
         }
         .container { max-width: 900px; margin: 20px auto; padding: 0 15px; }
         
         .section-title { margin: 30px 0 15px; color: #555; border-bottom: 2px solid #ddd; padding-bottom: 10px; }
 
-        /* VENDOR LIST STYLES */
+        /* ANNOUNCEMENT CARD */
+        .announce-card {
+            background: white; padding: 20px; border-radius: 12px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05); margin-bottom: 30px;
+            border-left: 5px solid #ff9f43;
+        }
+        .announce-input {
+            width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ddd;
+            border-radius: 8px; font-size: 14px; box-sizing: border-box;
+        }
+
+        /* VENDOR LIST */
         .vendor-list { display: flex; flex-direction: column; gap: 10px; }
         .vendor-row {
             display: flex; justify-content: space-between; align-items: center;
             background: white; padding: 15px 20px; border-radius: 12px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-            border-left: 5px solid #00b894;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05); border-left: 5px solid #00b894;
         }
         .vendor-row.suspended { border-left: 5px solid #d63031; background: #ffecec; opacity: 0.8; }
         .btn-action { padding: 8px 15px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 12px; }
         .btn-suspend { background: #fff5f5; color: #d63031; border: 1px solid #d63031; }
         .btn-unsuspend { background: #00b894; color: white; }
 
-        /* FLASH SALE GRID STYLES */
+        /* PRODUCT MANAGER GRID */
         .flash-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 15px; }
         .flash-card {
             background: white; padding: 15px; border-radius: 12px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-            display: flex; align-items: center; gap: 15px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05); display: flex; align-items: center; gap: 15px;
         }
         .flash-img { width: 50px; height: 50px; object-fit: cover; border-radius: 8px; background: #eee; }
         .flash-info { flex: 1; }
         .flash-title { font-size: 14px; font-weight: bold; margin: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 140px; }
         .flash-meta { font-size: 11px; color: #777; margin-top: 3px; }
 
-        /* TOGGLE SWITCH */
-        .switch { position: relative; display: inline-block; width: 40px; height: 22px; flex-shrink: 0; }
+        /* CONTROLS */
+        .controls { display: flex; align-items: center; gap: 10px; }
+        
+        /* Star Button */
+        .btn-star {
+            background: none; border: none; font-size: 18px; cursor: pointer; color: #ccc;
+            transition: transform 0.2s;
+        }
+        .btn-star.active { color: #f1c40f; transform: scale(1.2); }
+
+        /* Toggle Switch */
+        .switch { position: relative; display: inline-block; width: 34px; height: 20px; flex-shrink: 0; }
         .switch input { opacity: 0; width: 0; height: 0; }
         .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .4s; border-radius: 34px; }
-        .slider:before { position: absolute; content: ""; height: 16px; width: 16px; left: 3px; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%; }
-        input:checked + .slider { background-color: #2d8eff; }
-        input:checked + .slider:before { transform: translateX(18px); }
+        .slider:before { position: absolute; content: ""; height: 14px; width: 14px; left: 3px; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%; }
+        input:checked + .slider { background-color: #ff4757; } /* Red for Flash */
+        input:checked + .slider:before { transform: translateX(14px); }
 
         #loading { margin-top: 50px; color: #555; }
     </style>
@@ -77,11 +91,23 @@
 
     <div id="admin-content" class="container" style="display:none;">
         
-        <h4 class="section-title"><i class="fas fa-users-cog"></i> Vendor Management</h4>
-        <div class="vendor-list" id="vendor-list">
+        <h4 class="section-title"><i class="fas fa-bullhorn" style="color:#ff9f43;"></i> Global Announcement</h4>
+        <div class="announce-card">
+            <p style="margin:0 0 5px; color:#555; font-size:13px;">Enter a message to scroll on the Home Page:</p>
+            <input type="text" id="announce-input" class="announce-input" placeholder="e.g. Site maintenance at 10 PM...">
+            <div style="display:flex; gap:10px;">
+                <button onclick="postAnnouncement()" class="btn-action" style="background:#2d8eff; color:white;">Post Live</button>
+                <button onclick="clearAnnouncement()" class="btn-action" style="background:#ff4757; color:white;">Clear</button>
             </div>
+        </div>
 
-        <h4 class="section-title" style="margin-top: 40px;"><i class="fas fa-bolt" style="color:#f1c40f;"></i> Flash Sale Manager</h4>
+        <h4 class="section-title"><i class="fas fa-users-cog"></i> Vendor Management</h4>
+        <div class="vendor-list" id="vendor-list"></div>
+
+        <h4 class="section-title" style="margin-top: 40px;"><i class="fas fa-box-open" style="color:#2d8eff;"></i> Item Manager</h4>
+        <div style="background:#e3f2fd; padding:10px; border-radius:8px; margin-bottom:15px; font-size:12px; color:#555;">
+            <b>Controls:</b> ⚡ = Flash Sale (Story) | ⭐ = Featured (Top of Home)
+        </div>
         <input type="text" id="product-search" placeholder="Search items..." style="width:100%; padding:10px; margin-bottom:15px; border:1px solid #ddd; border-radius:8px;">
         <div class="flash-grid" id="flash-list">
             <p>Loading products...</p>
@@ -93,10 +119,10 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getAuth, onAuthStateChanged, signInWithPopup, GoogleAuthProvider } 
         from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-        import { getFirestore, doc, setDoc, updateDoc, collection, getDocs } 
+        import { getFirestore, doc, setDoc, updateDoc, collection, getDocs, getDoc } 
         from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-        // FIREBASE CONFIG
+        // CONFIG
         const firebaseConfig = {
             apiKey: "AIzaSyA1eQbrJpH9OtDNDN7z9oTFTRSAE7vCFbg",
             authDomain: "afit-market-auth.firebaseapp.com",
@@ -113,29 +139,44 @@
 
         const ADMIN_EMAIL = "afitdgm@gmail.com"; 
         const SHEET_API = "https://opensheet.elk.sh/1SvVUbEnDgqgw2Z_M1ShQkzyFTsnnS6n8mTs7UMXVvF4/Vendors";
-        let allProducts = []; // Store locally for search
+        let allProducts = []; 
 
         onAuthStateChanged(auth, async (user) => {
             const loader = document.getElementById('loading');
-            
             if (user) {
                 if (user.email.toLowerCase().trim() === ADMIN_EMAIL.toLowerCase().trim()) {
                     loader.innerHTML = '<i class="fas fa-check-circle" style="color:green; font-size:30px;"></i><br><br>Access Granted.';
                     setTimeout(() => {
                         loader.style.display = 'none';
                         document.getElementById('admin-content').style.display = 'block';
-                        loadVendors();
-                        loadProducts(); // Load Flash Sale Items
+                        loadVendors(); loadProducts(); loadCurrentAnnouncement();
                     }, 800);
-                } else {
-                    document.body.innerHTML = "<h2 style='text-align:center; margin-top:50px; color:red;'>⛔ ACCESS DENIED</h2>";
-                }
-            } else {
-                signInWithPopup(auth, provider).catch(() => window.location.href = "index.html");
-            }
+                } else { document.body.innerHTML = "<h2 style='text-align:center; margin-top:50px; color:red;'>⛔ ACCESS DENIED</h2>"; }
+            } else { signInWithPopup(auth, provider).catch(() => window.location.href = "index.html"); }
         });
 
-        // --- 1. VENDOR LOGIC ---
+        // --- ANNOUNCEMENT ---
+        async function loadCurrentAnnouncement() {
+            try {
+                const docSnap = await getDoc(doc(db, "settings", "global_alert"));
+                if (docSnap.exists() && docSnap.data().active) {
+                    document.getElementById('announce-input').value = docSnap.data().message;
+                }
+            } catch(e) { console.error("Announce error", e); }
+        }
+        window.postAnnouncement = async function() {
+            const msg = document.getElementById('announce-input').value;
+            if(!msg) return alert("Type a message.");
+            await setDoc(doc(db, "settings", "global_alert"), { message: msg, active: true, timestamp: new Date() });
+            alert("Live!");
+        };
+        window.clearAnnouncement = async function() {
+            await setDoc(doc(db, "settings", "global_alert"), { active: false }, { merge: true });
+            document.getElementById('announce-input').value = "";
+            alert("Cleared.");
+        };
+
+        // --- VENDORS ---
         async function loadVendors() {
             const list = document.getElementById('vendor-list');
             try {
@@ -163,52 +204,34 @@
                             </button>
                         </div>`;
                 });
-            } catch (err) { console.error("Vendor Load Error", err); }
+            } catch (err) { console.error("Vendor error", err); }
         }
-
         window.toggleSuspend = async function(vid, currentlySuspended, vName) {
             const newStatus = currentlySuspended ? "active" : "suspended";
             if(!confirm(`Change ${vName} to ${newStatus}?`)) return;
-            try {
-                await setDoc(doc(db, "vendor_status", vid), { status: newStatus }, { merge: true });
-                alert("Status updated!");
-                loadVendors();
-            } catch(e) { alert("Error: " + e.message); }
+            await setDoc(doc(db, "vendor_status", vid), { status: newStatus }, { merge: true });
+            loadVendors();
         };
 
-        // --- 2. FLASH SALE LOGIC ---
+        // --- PRODUCTS (FLASH & FEATURED) ---
         async function loadProducts() {
             const grid = document.getElementById('flash-list');
-            grid.innerHTML = "<p>Fetching inventory...</p>";
-            
             try {
                 const querySnapshot = await getDocs(collection(db, "products"));
                 allProducts = [];
-                
-                querySnapshot.forEach((doc) => {
-                    const d = doc.data();
-                    allProducts.push({ id: doc.id, ...d });
-                });
-
+                querySnapshot.forEach((doc) => { allProducts.push({ id: doc.id, ...doc.data() }); });
                 renderFlashList(allProducts);
-
-            } catch (err) {
-                console.error(err);
-                grid.innerHTML = "<p style='color:red;'>Error loading items.</p>";
-            }
+            } catch (err) { grid.innerHTML = "<p>Error loading items.</p>"; }
         }
 
         function renderFlashList(items) {
             const grid = document.getElementById('flash-list');
             grid.innerHTML = "";
-
-            if(items.length === 0) {
-                grid.innerHTML = "<p>No items found.</p>";
-                return;
-            }
+            if(items.length === 0) { grid.innerHTML = "<p>No items found.</p>"; return; }
 
             items.forEach(item => {
                 const isStory = item.is_story === "true";
+                const isFeatured = item.is_featured === "true";
                 const img = item.image.startsWith('http') ? item.image : `img/${item.image}`;
                 
                 grid.innerHTML += `
@@ -218,38 +241,37 @@
                         <div class="flash-title">${item.name}</div>
                         <div class="flash-meta">${item.price} • ${item.vendor_id}</div>
                     </div>
-                    <label class="switch">
-                        <input type="checkbox" ${isStory ? 'checked' : ''} onchange="toggleStory('${item.id}', this)">
-                        <span class="slider"></span>
-                    </label>
+                    <div class="controls">
+                        <button class="btn-star ${isFeatured ? 'active' : ''}" onclick="toggleFeatured('${item.id}', ${isFeatured})">
+                            <i class="fas fa-star"></i>
+                        </button>
+                        <label class="switch">
+                            <input type="checkbox" ${isStory ? 'checked' : ''} onchange="toggleStory('${item.id}', this)">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
                 </div>`;
             });
         }
 
-        // TOGGLE FLASH SALE FUNCTION
         window.toggleStory = async function(docID, checkbox) {
-            const newState = checkbox.checked ? "true" : "false";
-            try {
-                const productRef = doc(db, "products", docID);
-                await updateDoc(productRef, {
-                    is_story: newState
-                });
-                console.log(`Item ${docID} updated to is_story: ${newState}`);
-                // Optional: Show a tiny toast notification
-            } catch (error) {
-                console.error("Update failed:", error);
-                alert("Failed to update status. Check console.");
-                checkbox.checked = !checkbox.checked; // Revert switch if failed
-            }
+            try { await updateDoc(doc(db, "products", docID), { is_story: checkbox.checked ? "true" : "false" }); }
+            catch (e) { alert("Error."); checkbox.checked = !checkbox.checked; }
         };
 
-        // SEARCH FILTER
+        window.toggleFeatured = async function(docID, currentStatus) {
+            const newStatus = !currentStatus; // Toggle boolean
+            try { 
+                await updateDoc(doc(db, "products", docID), { is_featured: newStatus ? "true" : "false" });
+                loadProducts(); // Refresh UI to show gold star
+            } catch(e) { alert("Error updating featured status."); }
+        };
+
         document.getElementById('product-search').addEventListener('input', (e) => {
             const term = e.target.value.toLowerCase();
             const filtered = allProducts.filter(p => p.name.toLowerCase().includes(term) || p.vendor_id.toLowerCase().includes(term));
             renderFlashList(filtered);
         });
-
     </script>
 </body>
 </html>
