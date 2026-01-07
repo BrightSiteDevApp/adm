@@ -74,6 +74,8 @@
             border-radius: 25px 25px 0 0;
             padding: 30px 25px;
             animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            max-height: 90vh;
+            overflow-y: auto;
         }
         .form-group { margin-bottom: 15px; }
         .form-label { display: block; font-size: 12px; font-weight: 600; color: #555; margin-bottom: 8px; }
@@ -131,7 +133,7 @@
             <i class="fas fa-circle-notch fa-spin"></i> Verifying Vendor Access...
         </div>
 
-        <div style="padding: 0 15px;">
+        <div style="padding: 0 15px 80px;">
             <h4 style="margin-bottom:15px; font-size: 16px;">Active Inventory</h4>
             <div id="my-items-grid" class="trending-grid">
                 </div>
@@ -156,8 +158,11 @@
             </div>
 
             <div class="form-group">
-                <label class="form-label">Price (e.g. 150,000)</label>
-                <input type="text" id="p-price" class="form-input" placeholder="Price">
+                <label class="form-label">Price (Just type the number, e.g. 15000)</label>
+                <div style="position: relative;">
+                    <span style="position: absolute; left: 15px; top: 12px; font-weight: bold; color: #555;">₦</span>
+                    <input type="number" id="p-price" class="form-input" style="padding-left: 30px;" placeholder="15000">
+                </div>
             </div>
 
             <div class="form-group">
@@ -208,7 +213,7 @@
         const auth = getAuth(app);
         const db = getFirestore(app);
 
-        // IMGBB KEY (Your Key)
+        // IMGBB KEY
         const IMGBB_KEY = "2ac38bef2c73c5a65e7ddf94efe37962";
         const SHEET_API = "https://opensheet.elk.sh/1SvVUbEnDgqgw2Z_M1ShQkzyFTsnnS6n8mTs7UMXVvF4/Vendors";
 
@@ -221,27 +226,21 @@
             if (user) {
                 document.getElementById('dash-name').innerText = user.displayName || "Vendor";
                 
-                // Check if this user is a registered vendor in the Sheet
                 try {
                     const res = await fetch(SHEET_API);
                     const vendors = await res.json();
                     
-                    // Match Email (Case insensitive)
                     const myVendorProfile = vendors.find(v => 
                         v.Email && v.Email.toLowerCase().trim() === user.email.toLowerCase().trim()
                     );
 
                     if (myVendorProfile) {
-                        // SUCCESS: User is a Vendor
                         currentVendorID = myVendorProfile.Vendor_ID || myVendorProfile.vendor_id;
                         document.getElementById('vendor-badge').innerText = `ID: ${currentVendorID}`;
                         document.getElementById('add-btn').style.display = 'flex';
                         statusMsg.style.display = 'none';
-                        
-                        // Load their items
                         loadMyItems(currentVendorID);
                     } else {
-                        // FAIL: User not found in sheet
                         statusMsg.innerHTML = `
                             <i class="fas fa-lock" style="font-size:30px; margin-bottom:10px;"></i><br>
                             Access Denied.<br>Your email <b>${user.email}</b> is not registered as a Vendor.<br>
@@ -253,18 +252,16 @@
                     statusMsg.innerText = "Error connecting to vendor database.";
                 }
             } else {
-                // Not logged in
                 window.location.href = "login.html";
             }
         });
 
-        // 2. LOAD VENDOR'S ITEMS (From Firestore)
+        // 2. LOAD VENDOR'S ITEMS
         async function loadMyItems(vid) {
             const grid = document.getElementById('my-items-grid');
             grid.innerHTML = "";
             
             try {
-                // Query items where vendor_id == currentVendorID
                 const q = query(collection(db, "products"), where("vendor_id", "==", vid));
                 const querySnapshot = await getDocs(q);
                 
@@ -277,6 +274,9 @@
 
                 querySnapshot.forEach((docSnap) => {
                     const data = docSnap.data();
+                    const isStory = data.is_story === "true";
+                    const badge = isStory ? '<span style="background:#ff4757; color:white; font-size:9px; padding:2px 5px; border-radius:4px; margin-left:5px;">⚡ FLASH</span>' : '';
+
                     grid.innerHTML += `
                     <div class="ad-card" style="position:relative;">
                         <button onclick="deleteItem('${docSnap.id}')" style="position:absolute; top:10px; right:10px; background:rgba(255,0,0,0.8); color:white; border:none; border-radius:50%; width:30px; height:30px; cursor:pointer; z-index:10;">
@@ -285,7 +285,7 @@
                         <img class="ad-img" src="${data.image}" onerror="this.src='img/logo-blue.png'">
                         <div class="ad-info">
                             <div class="ad-price">${data.price}</div>
-                            <div class="ad-title">${data.name}</div>
+                            <div class="ad-title">${data.name} ${badge}</div>
                             <div class="ad-location" style="font-size:10px; color:green;">Active</div>
                         </div>
                     </div>`;
@@ -300,17 +300,20 @@
         document.getElementById('btn-submit').addEventListener('click', async () => {
             const btn = document.getElementById('btn-submit');
             const name = document.getElementById('p-name').value;
-            const price = document.getElementById('p-price').value;
+            const rawPrice = document.getElementById('p-price').value; // Get raw number
             const desc = document.getElementById('p-desc').value;
             const cat = document.getElementById('p-cat').value;
             const fileInput = document.getElementById('p-file');
 
-            if (!name || !price || fileInput.files.length === 0) {
+            if (!name || !rawPrice || fileInput.files.length === 0) {
                 alert("Please fill Name, Price and select an Image.");
                 return;
             }
 
-            // Start Loading
+            // ✅ AUTO-FORMAT PRICE: 15000 -> ₦15,000
+            const cleanNumber = rawPrice.replace(/[^0-9]/g, ''); // Ensure only numbers
+            const formattedPrice = "₦" + Number(cleanNumber).toLocaleString(); // Add ₦ and commas
+
             btn.innerText = "Uploading Image...";
             btn.disabled = true;
             btn.style.opacity = "0.7";
@@ -336,18 +339,19 @@
                 
                 await addDoc(collection(db, "products"), {
                     name: name,
-                    price: price, // Ideally store as number for sorting later
+                    price: formattedPrice, // ✅ Saves as ₦15,000
                     description: desc,
                     category: cat,
                     image: imageUrl,
                     vendor_id: currentVendorID,
                     status: "Active",
+                    is_story: "false", 
                     timestamp: new Date()
                 });
 
                 alert("Item Posted Successfully! 🚀");
                 closeUploadModal();
-                location.reload(); // Reload to see new item
+                location.reload();
 
             } catch (error) {
                 console.error(error);
@@ -358,7 +362,7 @@
             }
         });
 
-        // 4. DELETE FUNCTION (Global)
+        // 4. DELETE FUNCTION
         window.deleteItem = async function(docID) {
             if(!confirm("Are you sure you want to delete this item?")) return;
             try {
@@ -370,7 +374,6 @@
             }
         };
 
-        // UI Functions
         window.openUploadModal = function() { document.getElementById('upload-modal').style.display = 'flex'; };
         window.closeUploadModal = function() { document.getElementById('upload-modal').style.display = 'none'; };
 

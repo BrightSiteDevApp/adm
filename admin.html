@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Super Admin - AFIT Market</title>
+    <link rel="stylesheet" href="asset/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="icon" href="img/app-logo.png">
+    
+    <style>
+        body { background-color: #f4f7f6; font-family: sans-serif; }
+        .admin-header {
+            background: #2d3436;
+            color: white;
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+        .container { max-width: 800px; margin: 20px auto; padding: 0 15px; }
+        
+        .vendor-list { display: flex; flex-direction: column; gap: 10px; }
+        
+        .vendor-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            border-left: 5px solid #00b894; /* Green = Active */
+            transition: all 0.3s ease;
+        }
+        
+        /* Style for Suspended Vendors */
+        .vendor-row.suspended {
+            border-left: 5px solid #d63031; /* Red = Suspended */
+            background: #ffecec;
+        }
+        .vendor-row.suspended .v-name { text-decoration: line-through; color: #777; }
+
+        .v-info h4 { margin: 0; font-size: 16px; color: #333; }
+        .v-info p { margin: 5px 0 0; font-size: 12px; color: #777; font-family: monospace; }
+        
+        .btn-action {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 12px;
+            transition: transform 0.1s;
+        }
+        .btn-action:active { transform: scale(0.95); }
+        
+        .btn-suspend { background: #fff5f5; color: #d63031; border: 1px solid #d63031; }
+        .btn-unsuspend { background: #00b894; color: white; box-shadow: 0 4px 10px rgba(0, 184, 148, 0.3); }
+
+        #loading { margin-top: 50px; color: #555; }
+    </style>
+</head>
+<body>
+
+    <div class="admin-header">
+        <h3 style="margin:0;">⚡ Super Admin</h3>
+        <div style="font-size:12px; opacity:0.8;">afitdgm@gmail.com</div>
+        <a href="index.html" style="color:white; text-decoration:none; border:1px solid white; padding:5px 15px; border-radius:20px; font-size:12px;">Exit</a>
+    </div>
+
+    <div id="loading" style="text-align:center;">
+        <i class="fas fa-spinner fa-spin" style="font-size:30px; margin-bottom:15px;"></i>
+        <div>Verifying Clearance...</div>
+    </div>
+
+    <div id="admin-content" class="container" style="display:none;">
+        <h4 style="margin-bottom:15px; color:#555;">Vendor Management</h4>
+        <div class="vendor-list" id="vendor-list">
+            </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getAuth, onAuthStateChanged, signInWithPopup, GoogleAuthProvider } 
+        from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+        import { getFirestore, doc, setDoc, getDoc, collection, getDocs } 
+        from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+        // FIREBASE CONFIG
+        const firebaseConfig = {
+            apiKey: "AIzaSyA1eQbrJpH9OtDNDN7z9oTFTRSAE7vCFbg",
+            authDomain: "afit-market-auth.firebaseapp.com",
+            projectId: "afit-market-auth",
+            storageBucket: "afit-market-auth.firebasestorage.app",
+            messagingSenderId: "894920886640",
+            appId: "1:894920886640:web:77d0a6b39bf89ff8f767b5"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        const provider = new GoogleAuthProvider();
+
+        // 🔒 ADMIN EMAIL (Only this email gets in)
+        const ADMIN_EMAIL = "afitdgm@gmail.com"; 
+        
+        // DATA SOURCES
+        const SHEET_API = "https://opensheet.elk.sh/1SvVUbEnDgqgw2Z_M1ShQkzyFTsnnS6n8mTs7UMXVvF4/Vendors";
+
+        onAuthStateChanged(auth, async (user) => {
+            const loader = document.getElementById('loading');
+            
+            if (user) {
+                // Check Email Case-Insensitively
+                if (user.email.toLowerCase().trim() === ADMIN_EMAIL.toLowerCase().trim()) {
+                    loader.innerHTML = '<i class="fas fa-check-circle" style="color:green; font-size:30px;"></i><br><br>Access Granted.';
+                    setTimeout(() => {
+                        loader.style.display = 'none';
+                        loadVendors();
+                    }, 800);
+                } else {
+                    document.body.innerHTML = `
+                        <div style='text-align:center; margin-top:100px;'>
+                            <i class="fas fa-lock" style="font-size:50px; color:red; margin-bottom:20px;"></i>
+                            <h2 style='color:red;'>ACCESS DENIED</h2>
+                            <p>You are logged in as <b>${user.email}</b>.</p>
+                            <p>This area is restricted to Super Admin.</p>
+                            <a href="index.html" style="color:#2d8eff;">Go Home</a>
+                        </div>`;
+                }
+            } else {
+                // If not logged in, force popup
+                signInWithPopup(auth, provider).catch(e => {
+                    alert("Login failed");
+                    window.location.href = "index.html";
+                });
+            }
+        });
+
+        async function loadVendors() {
+            const list = document.getElementById('vendor-list');
+            list.innerHTML = "";
+
+            try {
+                // 1. Fetch Vendors from Sheet (Base Data)
+                const res = await fetch(SHEET_API);
+                const vendors = await res.json();
+
+                // 2. Fetch Suspension Status from Firestore (Overrides)
+                const snapshot = await getDocs(collection(db, "vendor_status"));
+                const statusMap = {};
+                snapshot.forEach(doc => { statusMap[doc.id] = doc.data().status; });
+
+                vendors.forEach(v => {
+                    const vid = v.vendor_id || v.Vendor_ID;
+                    const name = v.business_name || v.Business_Name;
+                    
+                    // Check if Suspended in DB
+                    const isSuspended = statusMap[vid] === "suspended";
+                    
+                    const row = document.createElement('div');
+                    row.className = `vendor-row ${isSuspended ? 'suspended' : ''}`;
+                    
+                    row.innerHTML = `
+                        <div class="v-info">
+                            <h4 class="v-name">${name}</h4>
+                            <p>ID: ${vid} | ${v.Email || "No Email"}</p>
+                        </div>
+                        <button class="btn-action ${isSuspended ? 'btn-unsuspend' : 'btn-suspend'}" 
+                                onclick="toggleSuspend('${vid}', ${isSuspended}, '${name}')">
+                            ${isSuspended ? 'Unsuspend' : 'Suspend'}
+                        </button>
+                    `;
+                    list.appendChild(row);
+                });
+
+                document.getElementById('admin-content').style.display = 'block';
+
+            } catch (err) {
+                console.error(err);
+                alert("Error loading vendor data. Check internet connection.");
+            }
+        }
+
+        // Global Function for Button Click
+        window.toggleSuspend = async function(vid, currentlySuspended, vName) {
+            const newStatus = currentlySuspended ? "active" : "suspended";
+            const actionWord = currentlySuspended ? "RESTORE" : "SUSPEND";
+            
+            const confirmMsg = currentlySuspended ? 
+                `Are you sure you want to RESTORE ${vName}?` : 
+                `⚠️ DANGER ZONE ⚠️\n\nAre you sure you want to SUSPEND ${vName}?\n\nThey will be hidden from the home page and profile page.`;
+
+            if(!confirm(confirmMsg)) return;
+
+            try {
+                // Save status to "vendor_status" collection in Firestore
+                await setDoc(doc(db, "vendor_status", vid), {
+                    status: newStatus,
+                    updated_at: new Date(),
+                    admin: ADMIN_EMAIL
+                }, { merge: true });
+
+                alert(`Success! Vendor marked as ${newStatus}.`);
+                location.reload(); // Refresh to see changes color
+            } catch(e) {
+                alert("Database Error: " + e.message);
+            }
+        };
+    </script>
+</body>
+</html>
