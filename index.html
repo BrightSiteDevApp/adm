@@ -247,7 +247,7 @@
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
     import { getAuth, onAuthStateChanged, signInWithPopup, GoogleAuthProvider } 
     from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-    import { getFirestore, doc, setDoc, deleteDoc, collection, getDocs } 
+    import { getFirestore, doc, setDoc, deleteDoc, collection, getDocs, query, where } 
     from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
     // ✅ FIREBASE CONFIG
@@ -277,7 +277,6 @@
     // -- INIT --
     setupMainSearch();
     loadAds(); 
-    // Note: We load Recent Items LATER, inside the Vendor fetch, so we have phone numbers ready.
 
     // -- AUTH CHECK --
     onAuthStateChanged(auth, async (user) => {
@@ -368,7 +367,6 @@
         if(history.length > 0 && container) {
             section.style.display = 'block';
             container.innerHTML = "";
-            
             history.forEach(p => {
                 const vendorPhone = globalPhoneBook[p.vendor] || ADMIN_PHONE;
                 const waLink = `https://wa.me/${vendorPhone}?text=${encodeURIComponent(`Hi, I saw "${p.name}" in my recently viewed items. Is it available?`)}`;
@@ -385,7 +383,7 @@
         }
     }
 
-    // -- STORIES, ADS, DATA LOADING --
+    // -- STORIES, ADS --
     function loadAds() {
         fetch(`${apiRoot}/Ads`)
         .then(res => res.json())
@@ -407,26 +405,19 @@
                 const modalText = document.getElementById('modal-text'); if(modalText) modalText.innerText = text;
                 const modalLink = document.getElementById('modal-link'); if(modalLink) { modalLink.href = link; modalLink.innerText = "Chat on WhatsApp"; }
                 
-                // 1. ADD NOTIFICATION BADGE TO BELL
                 const notifBtn = document.getElementById('notif-btn');
                 if(notifBtn) {
-                    // Check if badge already exists to avoid duplicates
                     if(!notifBtn.querySelector('.badge-dot')) {
                         notifBtn.style.position = 'relative';
                         notifBtn.innerHTML += `<span class="badge-dot" style="position:absolute; top:5px; right:5px; width:10px; height:10px; background:#ff4757; border-radius:50%; border:2px solid white;"></span>`;
                     }
-                    // Make Bell Click Re-open Modal
                     notifBtn.addEventListener('click', () => {
                         document.getElementById('promo-modal').style.display = 'flex';
                     });
                 }
-
-                // 2. SHOW MODAL (Auto pop up)
                 setTimeout(() => {
                     const modal = document.getElementById('promo-modal'); 
-                    if(modal) { 
-                        modal.style.display = 'flex'; 
-                    }
+                    if(modal) { modal.style.display = 'flex'; }
                 }, 2500);
             }
         }).catch(err => console.log("No Ads Found"));
@@ -484,7 +475,7 @@
         }
     }).catch(err => console.error("Reviews Error:", err));
 
-    // 2. VENDORS (LOADS PHONEBOOK)
+    // 2. VENDORS (LOADS PHONEBOOK + SHEET PRODUCTS + FIRESTORE PRODUCTS)
     fetch(`${apiRoot}/Vendors`)
     .then(res => res.json())
     .then(vendors => {
@@ -497,16 +488,51 @@
         
         renderVendors(allVendors);
         loadRecentItems();
+
+        // FETCH 1: Google Sheet Products
         return fetch(`${apiRoot}/Products`);
     })
     .then(res => res.json())
-    .then(products => {
-        allProducts = products.filter(p => (p.status || p.Status) !== "Sold");
+    .then(async (sheetProducts) => {
+        // FETCH 2: Firestore Products (Dashboard Items)
+        const firestoreProducts = await loadFirestoreProducts();
+        
+        // COMBINE THEM
+        const validSheetProducts = sheetProducts.filter(p => (p.status || p.Status) !== "Sold");
+        allProducts = [...validSheetProducts, ...firestoreProducts];
+        
+        // RENDER MIX
         renderStories(allProducts, globalPhoneBook);
         const randomMix = shuffle([...allProducts]).slice(0, 15);
         renderItems(randomMix); 
     })
     .catch(err => console.error("Data Error:", err));
+
+    // ✅ NEW: Helper to get Dashboard items
+    async function loadFirestoreProducts() {
+        try {
+            const q = query(collection(db, "products")); // Get all dashboard products
+            const snapshot = await getDocs(q);
+            let items = [];
+            snapshot.forEach(doc => {
+                const d = doc.data();
+                // Normalize data to match Sheet format
+                items.push({
+                    name: d.name,
+                    price: d.price,
+                    image: d.image,
+                    vendor_id: d.vendor_id,
+                    description: d.description,
+                    status: d.status,
+                    is_story: "false" // Default to normal item
+                });
+            });
+            return items;
+        } catch(e) {
+            console.error("Firestore Load Error:", e);
+            return [];
+        }
+    }
 
     function setupMainSearch() {
         const searchInput = document.getElementById('main-search');

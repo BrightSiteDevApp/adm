@@ -75,11 +75,11 @@
 
   <script src="../asset/script.js"></script>
 
- <script type="module">
+<script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
     import { getAuth, onAuthStateChanged, signInWithPopup, GoogleAuthProvider } 
     from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-    import { getFirestore, doc, setDoc, deleteDoc, collection, getDocs } 
+    import { getFirestore, doc, setDoc, deleteDoc, collection, getDocs, query } 
     from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
     // ✅ YOUR FIREBASE CONFIG
@@ -176,6 +176,30 @@
     // -- LOAD ITEMS LOGIC --
     function shuffle(array) { return array.sort(() => 0.5 - Math.random()); }
 
+    // ✅ NEW: Helper to get Dashboard items from Firestore
+    async function loadFirestoreProducts() {
+        try {
+            const q = query(collection(db, "products")); 
+            const snapshot = await getDocs(q);
+            let items = [];
+            snapshot.forEach(doc => {
+                const d = doc.data();
+                items.push({
+                    name: d.name,
+                    price: d.price,
+                    image: d.image,
+                    vendor_id: d.vendor_id,
+                    description: d.description,
+                    status: d.status
+                });
+            });
+            return items;
+        } catch(e) {
+            console.error("Firestore Load Error:", e);
+            return [];
+        }
+    }
+
     document.addEventListener("DOMContentLoaded", () => {
         // Fetch Vendors first
         fetch(`${apiRoot}/Vendors`)
@@ -188,10 +212,14 @@
                 if(vID) phoneBook[vID] = String(vPhone).replace(/[^0-9]/g, '');
             });
 
-            // Fetch Products
+            // Fetch Products (Sheets + Firestore)
             return fetch(`${apiRoot}/Products`)
                 .then(res => res.json())
-                .then(products => ({ products, phoneBook }));
+                .then(async (sheetProducts) => {
+                    const firestoreProducts = await loadFirestoreProducts();
+                    const allProducts = [...sheetProducts, ...firestoreProducts];
+                    return { products: allProducts, phoneBook };
+                });
         })
         .then(({ products, phoneBook }) => {
             const container = document.getElementById('all-items-container');

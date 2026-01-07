@@ -37,6 +37,12 @@
             <a href="login.html" class="chat-btn" style="background:#2d8eff;">Go to Login</a>
         </div>
 
+        <a href="dashboard.html" class="account-option" id="btn-dashboard" style="display: none; background: #e3f2fd; border: 1px solid #2d8eff;">
+    <div class="option-icon" style="color: #2d8eff;"><i class="fas fa-store"></i></div>
+    <div class="option-text" style="color: #2d8eff; font-weight: bold;">Open Vendor Dashboard</div>
+    <i class="fas fa-chevron-right"></i>
+</a>
+
         <div id="profile-view" style="display:none;">
             <div class="profile-header-card">
                 <img id="user-img" src="" class="profile-pic-large" alt="User">
@@ -78,95 +84,69 @@
 
     </div>
 
-    <script src="asset/script.js"></script> <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getAuth, onAuthStateChanged, signOut, updateProfile } 
-        from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+    <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+    import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+    import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-        // YOUR CONFIG
-        const firebaseConfig = {
-            apiKey: "AIzaSyA1eQbrJpH9OtDNDN7z9oTFTRSAE7vCFbg",
-            authDomain: "afit-market-auth.firebaseapp.com",
-            projectId: "afit-market-auth",
-            storageBucket: "afit-market-auth.firebasestorage.app",
-            messagingSenderId: "894920886640",
-            appId: "1:894920886640:web:77d0a6b39bf89ff8f767b5"
-        };
+    // FIREBASE CONFIG
+    const firebaseConfig = {
+        apiKey: "AIzaSyA1eQbrJpH9OtDNDN7z9oTFTRSAE7vCFbg",
+        authDomain: "afit-market-auth.firebaseapp.com",
+        projectId: "afit-market-auth",
+        storageBucket: "afit-market-auth.firebasestorage.app",
+        messagingSenderId: "894920886640",
+        appId: "1:894920886640:web:77d0a6b39bf89ff8f767b5"
+    };
 
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
 
-        // UI Elements
-        const loadingState = document.getElementById('loading-state');
-        const loggedOutState = document.getElementById('logged-out-state');
-        const profileView = document.getElementById('profile-view');
-        
-        const userName = document.getElementById('user-name');
-        const userEmail = document.getElementById('user-email');
-        const userImg = document.getElementById('user-img');
+    // VENDOR SHEET CONFIG
+    const sheetID = "1SvVUbEnDgqgw2Z_M1ShQkzyFTsnnS6n8mTs7UMXVvF4";
+    const apiRoot = `https://opensheet.elk.sh/${sheetID}`;
 
-        // Check Login Status
-        onAuthStateChanged(auth, (user) => {
-            loadingState.style.display = 'none';
+    onAuthStateChanged(auth, async (user) => {
+        if (user) {
+            // 1. Load User Info
+            document.getElementById('user-name').innerText = user.displayName || "Student";
+            document.getElementById('user-email').innerText = user.email;
+            document.getElementById('user-img').src = user.photoURL || "img/person.png";
+
+            // 2. CHECK IF VENDOR (To show Dashboard Button)
+            checkIfVendor(user.email);
+
+        } else {
+            window.location.href = "login.html";
+        }
+    });
+
+    async function checkIfVendor(email) {
+        try {
+            const res = await fetch(`${apiRoot}/Vendors`);
+            const vendors = await res.json();
             
-            if (user) {
-                // Show Profile
-                profileView.style.display = 'block';
-                loggedOutState.style.display = 'none';
+            // Check if email exists in sheet (Case Insensitive)
+            const isVendor = vendors.some(v => 
+                v.Email && v.Email.toLowerCase().trim() === email.toLowerCase().trim()
+            );
 
-                // Populate Data
-                userName.innerText = user.displayName || "User";
-                userEmail.innerText = user.email;
-                userImg.src = user.photoURL || "img/person.png";
-
-                // Pre-fill edit form
-                document.getElementById('new-name').value = user.displayName;
-            } else {
-                // Show Login Prompt
-                profileView.style.display = 'none';
-                loggedOutState.style.display = 'block';
+            if (isVendor) {
+                document.getElementById('btn-dashboard').style.display = "flex";
             }
-        });
+        } catch (err) {
+            console.error("Error checking vendor status:", err);
+        }
+    }
 
-        // Logout Logic
-        document.getElementById('btn-logout').addEventListener('click', () => {
+    window.handleLogout = () => {
+        if(confirm("Are you sure you want to log out?")) {
             signOut(auth).then(() => {
-                window.location.href = "index.html"; 
+                window.location.href = "index.html";
             });
-        });
-
-        // Edit Profile Logic
-        window.toggleEdit = function() {
-            const form = document.getElementById('edit-form');
-            form.style.display = form.style.display === 'block' ? 'none' : 'block';
-        };
-
-        // Save Changes Logic
-        document.getElementById('save-btn').addEventListener('click', () => {
-            const newName = document.getElementById('new-name').value;
-            const newPic = document.getElementById('new-pic').value;
-            const btn = document.getElementById('save-btn');
-
-            if(!newName) return alert("Name cannot be empty");
-
-            btn.innerText = "Saving...";
-            
-            // Build update object
-            const updates = { displayName: newName };
-            if(newPic && newPic.startsWith('http')) {
-                updates.photoURL = newPic;
-            }
-
-            updateProfile(auth.currentUser, updates).then(() => {
-                alert("Profile Updated!");
-                location.reload(); 
-            }).catch((error) => {
-                console.error(error);
-                alert("Error updating profile.");
-                btn.innerText = "Save Changes";
-            });
-        });
-
-    </script>
+        }
+    };
+</script>
 </body>
 </html>
