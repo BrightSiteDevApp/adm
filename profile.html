@@ -71,39 +71,35 @@
                 </span>
             </div>
 
-            <div style="display: flex; gap: 20px; justify-content: center; margin: 15px 0;">
-                <a id="link-phone" href="#" style="text-decoration:none; color:#333;">
-                    <i class="fas fa-phone-alt fa-lg"></i>
-                </a>
-                <a id="link-insta" href="#" style="text-decoration:none; color:#E1306C; display:none;"> 
-                    <i class="fab fa-instagram fa-lg"></i>
-                </a>
-                <button onclick="shareVendor()" style="background:none; border:none; color:#2d8eff; cursor:pointer; font-size: 16px; padding: 0;">
-                    <i class="fas fa-share-alt"></i>
+            <div style="margin-top: 20px; display: flex; flex-direction: column; gap: 12px; align-items: center;">
+                
+                <button id="btn-manage" onclick="window.location.href='dashboard.html'" 
+                    style="display:none; width: 100%; max-width: 280px; background: #6c5ce7; color: white; border: none; padding: 12px; border-radius: 30px; font-weight: bold; font-size: 14px; cursor: pointer; box-shadow: 0 4px 10px rgba(108, 92, 231, 0.3);">
+                    <i class="fas fa-store"></i> Manage My Shop
                 </button>
 
-                <button id="btn-manage" onclick="window.location.href='dashboard.html'" style="display:none; width:100%; margin-top:10px; background:#6c5ce7; color:white; border:none; padding:10px; border-radius:8px; font-weight:bold; cursor:pointer;">
-    <i class="fas fa-edit"></i> Manage Shop
-</button>
+                <a id="btn-contact" href="#" class="chat-btn" 
+                   style="width: 100%; max-width: 280px; background: #25D366; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 14px; font-weight: bold;">
+                    <i class="fab fa-whatsapp"></i> Contact Shop
+                </a>
+
+                <div style="display: flex; gap: 20px; margin-top: 5px;">
+                    <a id="link-phone" href="#" style="color:#333;"><i class="fas fa-phone-alt fa-lg"></i></a>
+                    <a id="link-insta" href="#" style="color:#E1306C; display:none;"><i class="fab fa-instagram fa-lg"></i></a>
+                    <button onclick="shareVendor()" style="background:none; border:none; color:#2d8eff; cursor:pointer; font-size: 16px;"><i class="fas fa-share-alt"></i></button>
+                </div>
             </div>
 
-            <div class="business-meta">
+            <div class="business-meta" style="margin-top: 20px;">
                 <span><i class="fas fa-map-marker-alt"></i> <span id="p-location">Location</span></span>
                 <span><i class="fas fa-user-shield"></i> Joined: <span id="p-date">Date</span></span>
             </div>
             
-            <a id="btn-contact" href="#" style="display:inline-block; margin-top:15px; background:#25D366; color:white; padding:10px 25px; border-radius:30px; text-decoration:none; font-weight:bold; font-size:14px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
-                <i class="fab fa-whatsapp"></i> Contact Shop
-            </a>
-
-            <div style="margin-top: 15px;">
+            <div style="margin-top: 15px; display: flex; gap: 20px; justify-content: center;">
                 <a href="https://forms.gle/pgHNnm7tUydg5zu57" style="color: #2d8eff; font-size: 12px; text-decoration: none; font-weight: 600;">
                     <i class="far fa-star"></i> Drop a Review
                 </a>
-            </div>
-
-            <div style="margin-top: 10px;">
-                <a href="https://forms.gle/rmweoNk7yfgMkwtk8" style="color: #d9534f; font-size: 11px; text-decoration: none;">
+                <a href="https://forms.gle/rmweoNk7yfgMkwtk8" style="color: #d9534f; font-size: 12px; text-decoration: none;">
                     <i class="fas fa-flag"></i> Report Vendor
                 </a>
             </div>
