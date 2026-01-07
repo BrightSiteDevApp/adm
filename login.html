@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - AFIT Market</title>
+    
+    <link rel="stylesheet" href="asset/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="icon" href="img/app-logo.png">
+
+    <style>
+        .login-wrapper {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 80vh;
+            text-align: center;
+            padding: 20px;
+        }
+        .google-btn {
+            background: white;
+            color: #333;
+            border: 1px solid #ddd;
+            padding: 12px 25px;
+            border-radius: 25px;
+            font-weight: bold;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            cursor: pointer;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            margin-top: 25px;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .google-btn:active {
+            transform: scale(0.98);
+            box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+        }
+        .user-info {
+            display: none; /* Hidden by default */
+            margin-top: 20px;
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            width: 100%;
+            max-width: 300px;
+        }
+        .user-img {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            margin-bottom: 15px;
+            border: 3px solid #2d8eff;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="app-container">
+        
+        <div class="header">
+            <a href="index.html" class="back-btn"><i class="fas fa-arrow-left"></i></a>
+            <span style="font-weight:bold;">My Account</span>
+        </div>
+
+        <div class="login-wrapper">
+            <div id="login-view">
+                <img src="img/logo-blue.png" style="width: 80px; margin-bottom: 20px;">
+                <h2 style="color: #2d8eff; margin-bottom: 10px;">Welcome Back!</h2>
+                <p style="color: #666; font-size: 14px; line-height: 1.5;">
+                    Sign in to save items, contact vendors easily, and manage your profile.
+                </p>
+
+                <button id="btn-login" class="google-btn">
+                    <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" width="20" alt="Google">
+                    Sign in with Google
+                </button>
+            </div>
+
+            <div id="user-area" class="user-info">
+                <img id="user-pic" class="user-img" src="" alt="Profile">
+                <h3 id="user-name" style="margin-bottom: 5px;"></h3>
+                <p id="user-email" style="color:#777; font-size:12px; margin-bottom: 20px;"></p>
+                
+                <button id="btn-logout" class="chat-btn" style="background:#ff4757; width:100%; padding: 12px; border-radius: 25px; font-weight: bold; border: none; color: white; cursor: pointer;">
+                    Logout
+                </button>
+            </div>
+        </div>
+
+    </div>
+
+    <script type="module">
+        // Import Firebase functions directly from the web
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getAuth, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged } 
+        from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+
+        // YOUR SPECIFIC FIREBASE CONFIG
+        const firebaseConfig = {
+            apiKey: "AIzaSyA1eQbrJpH9OtDNDN7z9oTFTRSAE7vCFbg",
+            authDomain: "afit-market-auth.firebaseapp.com",
+            projectId: "afit-market-auth",
+            storageBucket: "afit-market-auth.firebasestorage.app",
+            messagingSenderId: "894920886640",
+            appId: "1:894920886640:web:77d0a6b39bf89ff8f767b5"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const provider = new GoogleAuthProvider();
+
+        // Get DOM Elements
+        const loginView = document.getElementById('login-view');
+        const userArea = document.getElementById('user-area');
+        const btnLogin = document.getElementById('btn-login');
+        const btnLogout = document.getElementById('btn-logout');
+        
+        const userPic = document.getElementById('user-pic');
+        const userName = document.getElementById('user-name');
+        const userEmail = document.getElementById('user-email');
+
+        // 1. HANDLE LOGIN
+        btnLogin.addEventListener('click', () => {
+            signInWithPopup(auth, provider)
+                .then((result) => {
+                    console.log("Logged in:", result.user.displayName);
+                    // The onAuthStateChanged listener below will handle the UI update
+                })
+                .catch((error) => {
+                    console.error("Login Failed:", error);
+                    alert("Login failed: " + error.message);
+                });
+        });
+
+        // 2. HANDLE LOGOUT
+        btnLogout.addEventListener('click', () => {
+            signOut(auth).then(() => {
+                console.log("User signed out");
+                // The onAuthStateChanged listener below will handle the UI update
+            });
+        });
+
+        // 3. MONITOR AUTH STATE (Checks if user is logged in/out)
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                // USER IS LOGGED IN
+                loginView.style.display = 'none';
+                userArea.style.display = 'block';
+                
+                // Update Profile Info
+                userName.innerText = user.displayName;
+                userEmail.innerText = user.email;
+                userPic.src = user.photoURL;
+                
+            } else {
+                // USER IS LOGGED OUT
+                loginView.style.display = 'block';
+                userArea.style.display = 'none';
+            }
+        });
+    </script>
+
+</body>
+</html>

@@ -27,6 +27,56 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link rel="stylesheet" href="asset/style.css">
   <link rel="icon" href="img/app-logo.png">
+
+  <style>
+      /* Style for the Header Profile Image */
+      .header-profile-img {
+          width: 100%;
+          height: 100%;
+          border-radius: 50%;
+          object-fit: cover;
+          border: 1px solid #2d8eff;
+      }
+      
+      /* Login Modal Styles */
+      .login-modal-overlay {
+          position: fixed;
+          top: 0; left: 0;
+          width: 100%; height: 100%;
+          background: rgba(0,0,0,0.5);
+          display: none; /* Hidden by default */
+          justify-content: center;
+          align-items: center;
+          z-index: 2000;
+          animation: fadeIn 0.3s ease;
+      }
+      .login-box {
+          background: white;
+          padding: 25px;
+          border-radius: 15px;
+          text-align: center;
+          width: 90%;
+          max-width: 320px;
+          position: relative;
+      }
+      .google-btn-small {
+          background: white;
+          color: #333;
+          border: 1px solid #ddd;
+          padding: 10px 15px;
+          border-radius: 25px;
+          font-weight: bold;
+          font-size: 13px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 10px;
+          cursor: pointer;
+          margin-top: 15px;
+          width: 100%;
+          box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+      }
+  </style>
 </head>
 <body data-page="home">
   <div id="preloader">
@@ -61,6 +111,10 @@
           <div class="notification-icon-box" id="notif-btn">
               <i class="far fa-bell"></i>
           </div>
+          
+          <a href="login.html" class="notification-icon-box" id="header-profile-btn" style="overflow: hidden; padding: 0;">
+              <i class="far fa-user" style="padding: 8px;"></i>
+          </a>
       </div>
     </div>
 
@@ -112,29 +166,20 @@
             <div class="trending-title">Student Reviews</div>
             <a href="reviews/" style="font-size:12px; color:var(--primary-blue); font-weight:600; text-decoration:none;">See all</a>
         </div>
-        
         <div class="reviews-slider" id="reviews-slider">
             <div class="skeleton-card" style="min-width: 250px;">
                 <div style="display:flex; gap:10px; margin-bottom:10px;">
                     <div class="skeleton sk-img" style="width:40px; height:40px;"></div>
-                    <div style="flex:1;">
-                        <div class="skeleton sk-text-short" style="width:60%; margin-bottom:5px;"></div>
-                        <div class="skeleton sk-text-short" style="width:30%;"></div>
-                    </div>
+                    <div style="flex:1;"><div class="skeleton sk-text-short" style="width:60%; margin-bottom:5px;"></div><div class="skeleton sk-text-short" style="width:30%;"></div></div>
                 </div>
-                <div class="skeleton sk-text-long"></div>
-                <div class="skeleton sk-text-long" style="width:70%;"></div>
+                <div class="skeleton sk-text-long"></div><div class="skeleton sk-text-long" style="width:70%;"></div>
             </div>
             <div class="skeleton-card" style="min-width: 250px;">
                 <div style="display:flex; gap:10px; margin-bottom:10px;">
                     <div class="skeleton sk-img" style="width:40px; height:40px;"></div>
-                    <div style="flex:1;">
-                        <div class="skeleton sk-text-short" style="width:60%; margin-bottom:5px;"></div>
-                        <div class="skeleton sk-text-short" style="width:30%;"></div>
-                    </div>
+                    <div style="flex:1;"><div class="skeleton sk-text-short" style="width:60%; margin-bottom:5px;"></div><div class="skeleton sk-text-short" style="width:30%;"></div></div>
                 </div>
-                <div class="skeleton sk-text-long"></div>
-                <div class="skeleton sk-text-long" style="width:70%;"></div>
+                <div class="skeleton sk-text-long"></div><div class="skeleton sk-text-long" style="width:70%;"></div>
             </div>
         </div>
     </section>
@@ -144,32 +189,11 @@
         <div class="trending-title">Available Items</div>
         <a href="items/" style="font-size:12px; color:var(--primary-blue); font-weight:600; text-decoration:none;">See all</a>
       </div>
-      
       <div class="trending-grid" id="home-items-grid">
-        <div class="skeleton-card">
-            <div class="skeleton sk-img-rect"></div>
-            <div class="skeleton sk-text-short"></div>
-            <div class="skeleton sk-text-long"></div>
-            <div class="skeleton sk-btn"></div>
-        </div>
-        <div class="skeleton-card">
-            <div class="skeleton sk-img-rect"></div>
-            <div class="skeleton sk-text-short"></div>
-            <div class="skeleton sk-text-long"></div>
-            <div class="skeleton sk-btn"></div>
-        </div>
-        <div class="skeleton-card">
-            <div class="skeleton sk-img-rect"></div>
-            <div class="skeleton sk-text-short"></div>
-            <div class="skeleton sk-text-long"></div>
-            <div class="skeleton sk-btn"></div>
-        </div>
-        <div class="skeleton-card">
-            <div class="skeleton sk-img-rect"></div>
-            <div class="skeleton sk-text-short"></div>
-            <div class="skeleton sk-text-long"></div>
-            <div class="skeleton sk-btn"></div>
-        </div>
+        <div class="skeleton-card"><div class="skeleton sk-img-rect"></div><div class="skeleton sk-text-short"></div><div class="skeleton sk-text-long"></div><div class="skeleton sk-btn"></div></div>
+        <div class="skeleton-card"><div class="skeleton sk-img-rect"></div><div class="skeleton sk-text-short"></div><div class="skeleton sk-text-long"></div><div class="skeleton sk-btn"></div></div>
+        <div class="skeleton-card"><div class="skeleton sk-img-rect"></div><div class="skeleton sk-text-short"></div><div class="skeleton sk-text-long"></div><div class="skeleton sk-btn"></div></div>
+        <div class="skeleton-card"><div class="skeleton sk-img-rect"></div><div class="skeleton sk-text-short"></div><div class="skeleton sk-text-long"></div><div class="skeleton sk-btn"></div></div>
       </div>
     </section>
 
@@ -233,6 +257,24 @@
         <a id="modal-link" href="#" class="modal-btn">Place an ad</a>
       </div>
     </div>
+    
+    <div id="login-modal" class="login-modal-overlay">
+        <div class="login-box">
+            <div style="text-align:right;">
+                <span onclick="document.getElementById('login-modal').style.display='none'" style="cursor:pointer; font-size:20px; color:#999;">&times;</span>
+            </div>
+            <img src="img/logo-blue.png" style="width: 50px; margin-bottom: 10px;">
+            <h3 style="margin: 0; font-size: 16px; color:#333;">Welcome to AFIT Market</h3>
+            <p style="font-size: 12px; color: #777; margin: 10px 0;">Sign in to save items and customize your profile.</p>
+
+            <button id="popup-google-btn" class="google-btn-small">
+                <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" width="18">
+                Sign in with Google
+            </button>
+            <p style="margin-top:15px; font-size:11px; color:#aaa; cursor:pointer;" onclick="document.getElementById('login-modal').style.display='none'">Maybe later</p>
+        </div>
+    </div>
+
   </div> 
 
   <script src="asset/script.js"></script>
@@ -250,116 +292,143 @@
     <span class="tooltip-text">Chat with Admin</span>
   </a>
 
-<script>
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+    import { getAuth, onAuthStateChanged, signInWithPopup, GoogleAuthProvider } 
+    from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+
+    // ✅ YOUR FIREBASE CONFIG
+    const firebaseConfig = {
+        apiKey: "AIzaSyA1eQbrJpH9OtDNDN7z9oTFTRSAE7vCFbg",
+        authDomain: "afit-market-auth.firebaseapp.com",
+        projectId: "afit-market-auth",
+        storageBucket: "afit-market-auth.firebasestorage.app",
+        messagingSenderId: "894920886640",
+        appId: "1:894920886640:web:77d0a6b39bf89ff8f767b5"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const provider = new GoogleAuthProvider();
+
+    // -- FIREBASE AUTH STATE CHECK --
+    onAuthStateChanged(auth, (user) => {
+        const headerBtn = document.getElementById('header-profile-btn');
+        
+        if (user) {
+            // LOGGED IN: Show Profile Picture
+            headerBtn.innerHTML = `<img src="${user.photoURL}" class="header-profile-img" alt="Profile">`;
+            // Do NOT show login popup if logged in
+        } else {
+            // NOT LOGGED IN: Show Default Icon
+            headerBtn.innerHTML = `<i class="far fa-user" style="padding: 8px;"></i>`;
+            
+            // SHOW LOGIN POPUP after 5 seconds (Only if not logged in)
+            setTimeout(() => {
+                // Optional: Check if already dismissed in this session
+                if(!sessionStorage.getItem('loginPopupDismissed')) {
+                    document.getElementById('login-modal').style.display = 'flex';
+                }
+            }, 5000);
+        }
+    });
+
+    // -- HANDLE POPUP SIGN IN CLICK --
+    document.getElementById('popup-google-btn').addEventListener('click', () => {
+        signInWithPopup(auth, provider)
+            .then((result) => {
+                document.getElementById('login-modal').style.display = 'none';
+                sessionStorage.setItem('loginPopupDismissed', 'true');
+                // Page will likely reload or UI updates via onAuthStateChanged
+            }).catch((error) => {
+                alert("Login failed: " + error.message);
+            });
+    });
+
+    // -- DATA LOADING SCRIPT (Standard JS logic) --
     const sheetID = "1SvVUbEnDgqgw2Z_M1ShQkzyFTsnnS6n8mTs7UMXVvF4";
     const apiRoot = `https://opensheet.elk.sh/${sheetID}`;
     const ADMIN_PHONE = "2348144516127"; 
 
-    // GLOBAL VARIABLES (Needed for Search)
+    // GLOBAL VARIABLES
     let allProducts = [];
     let allVendors = [];
     let globalPhoneBook = {}; 
 
     function shuffle(array) { return array.sort(() => 0.5 - Math.random()); }
 
-    document.addEventListener("DOMContentLoaded", () => {
-        setupMainSearch(); // Init Search Logic
-
-        // 1. REVIEWS
-        fetch(`${apiRoot}/Reviews`)
-        .then(res => res.json())
-        .then(data => {
-            const container = document.getElementById('reviews-slider');
-            if(container && data.length > 0) {
-                container.innerHTML = ""; 
-                const shuffled = shuffle(data).slice(0, 5); 
-
-                shuffled.forEach(r => {
-                    const starCount = parseInt(r.stars || r.Stars) || 5;
-                    const starString = "⭐".repeat(starCount);
-                    let img = r.image || r.Image || "person.png";
-                    if(!img.startsWith('http')) img = `img/${img}`;
-
-                    const name = r.name || r.Name || "Student";
-                    const txt = r.review || r.Review || "Great service!";
-
-                    container.innerHTML += `
-                    <div class="review-card">
-                        <div class="review-header">
-                            <img src="${img}" class="review-img" alt="User" onerror="this.src='img/person.png'">
-                            <div>
-                                <div class="review-name">${name}</div>
-                                <div class="stars">${starString}</div>
-                            </div>
+    // Init Data Load
+    setupMainSearch(); 
+    
+    // 1. REVIEWS
+    fetch(`${apiRoot}/Reviews`)
+    .then(res => res.json())
+    .then(data => {
+        const container = document.getElementById('reviews-slider');
+        if(container && data.length > 0) {
+            container.innerHTML = ""; 
+            const shuffled = shuffle(data).slice(0, 5); 
+            shuffled.forEach(r => {
+                const starCount = parseInt(r.stars || r.Stars) || 5;
+                const starString = "⭐".repeat(starCount);
+                let img = r.image || r.Image || "person.png";
+                if(!img.startsWith('http')) img = `img/${img}`;
+                const name = r.name || r.Name || "Student";
+                const txt = r.review || r.Review || "Great service!";
+                container.innerHTML += `
+                <div class="review-card">
+                    <div class="review-header">
+                        <img src="${img}" class="review-img" alt="User" onerror="this.src='img/person.png'">
+                        <div>
+                            <div class="review-name">${name}</div>
+                            <div class="stars">${starString}</div>
                         </div>
-                        <div class="review-text">"${txt}"</div>
-                    </div>`;
-                });
-            }
-        }).catch(err => console.error("Reviews Error:", err));
-
-        // 2. VENDORS & ITEMS
-        fetch(`${apiRoot}/Vendors`)
-        .then(res => res.json())
-        .then(vendors => {
-            allVendors = vendors; // Save for search
-
-            // Build Global Phonebook
-            vendors.forEach(v => {
-                const vID = v.vendor_id || v.Vendor_ID;
-                const vPhone = v.whatsapp || v.Whatsapp;
-                if(vID) globalPhoneBook[vID] = String(vPhone).replace(/[^0-9]/g, '');
+                    </div>
+                    <div class="review-text">"${txt}"</div>
+                </div>`;
             });
+        }
+    }).catch(err => console.error("Reviews Error:", err));
 
-            renderVendors(allVendors);
-
-            return fetch(`${apiRoot}/Products`);
-        })
-        .then(res => res.json())
-        .then(products => {
-            // Filter out 'Sold' items and save to global
-            allProducts = products.filter(p => (p.status || p.Status) !== "Sold");
-            
-            // Render random mix initially
-            const randomMix = shuffle([...allProducts]).slice(0, 15);
-            renderItems(randomMix); 
-        })
-        .catch(err => console.error("Data Error:", err));
-    });
+    // 2. VENDORS & ITEMS
+    fetch(`${apiRoot}/Vendors`)
+    .then(res => res.json())
+    .then(vendors => {
+        allVendors = vendors;
+        vendors.forEach(v => {
+            const vID = v.vendor_id || v.Vendor_ID;
+            const vPhone = v.whatsapp || v.Whatsapp;
+            if(vID) globalPhoneBook[vID] = String(vPhone).replace(/[^0-9]/g, '');
+        });
+        renderVendors(allVendors);
+        return fetch(`${apiRoot}/Products`);
+    })
+    .then(res => res.json())
+    .then(products => {
+        allProducts = products.filter(p => (p.status || p.Status) !== "Sold");
+        const randomMix = shuffle([...allProducts]).slice(0, 15);
+        renderItems(randomMix); 
+    })
+    .catch(err => console.error("Data Error:", err));
 
     // --- SEARCH LOGIC ---
     function setupMainSearch() {
         const searchInput = document.getElementById('main-search');
         const searchType = document.getElementById('search-type');
-
         if(searchInput) {
-            // Collapse keyboard on "Enter"
-            searchInput.addEventListener('keydown', (e) => {
-                if (e.key === 'Enter') {
-                    searchInput.blur();
-                }
-            });
-
-            // Filtering
+            searchInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') searchInput.blur(); });
             searchInput.addEventListener('input', (e) => {
                 const query = e.target.value.toLowerCase().trim();
-                const type = searchType.value; // 'product' or 'vendor'
-
+                const type = searchType.value; 
                 if(query === "") {
-                    // Reset to random if empty
                     renderItems(shuffle([...allProducts]).slice(0, 15));
                     renderVendors(shuffle([...allVendors]).slice(0, 15));
                     return;
                 }
-
                 if (type === 'product') {
-                    const filteredItems = allProducts.filter(p => {
-                        const name = (p.name || p.Name).toLowerCase();
-                        return name.includes(query);
-                    });
+                    const filteredItems = allProducts.filter(p => (p.name || p.Name).toLowerCase().includes(query));
                     renderItems(filteredItems);
-                } 
-                else if (type === 'vendor') {
+                } else if (type === 'vendor') {
                     const filteredVendors = allVendors.filter(v => {
                         const name = (v.business_name || v.Business_Name).toLowerCase();
                         const vid = (v.vendor_id || v.Vendor_ID).toLowerCase();
@@ -371,30 +440,21 @@
         }
     }
 
-    // --- RENDER ITEMS FUNCTION ---
+    // --- RENDER FUNCTIONS ---
     function renderItems(data) {
         const itemGrid = document.getElementById("home-items-grid");
         if(!itemGrid) return;
-
         itemGrid.innerHTML = ""; 
-
         if(data.length === 0) {
-            itemGrid.innerHTML = `
-                <div style="grid-column: 1/-1; text-align:center; padding: 20px; color:#777;">
-                    <p>No items found matching your search.</p>
-                    <a href="items/index.html" class="chat-btn" style="background:#2d8eff; display:inline-block; margin-top:10px; width:auto; padding: 8px 20px;">See All Items</a>
-                </div>
-            `;
+            itemGrid.innerHTML = `<div style="grid-column: 1/-1; text-align:center; padding: 20px; color:#777;"><p>No items found matching your search.</p><a href="items/index.html" class="chat-btn" style="background:#2d8eff; display:inline-block; margin-top:10px; width:auto; padding: 8px 20px;">See All Items</a></div>`;
             return;
         }
-
         data.forEach(p => {
             const pName = p.name || p.Name;
             const pPrice = p.price || p.Price;
             const pDesc = p.description || p.Description || ""; 
             const pVendor = p.vendor_id || p.Vendor_ID;
             const pImage = p.image || p.Image;
-
             const img = pImage.startsWith('http') ? pImage : `img/${pImage}`;
             const vendorPhone = globalPhoneBook[pVendor] || ADMIN_PHONE;
             const waLink = `https://wa.me/${vendorPhone}?text=${encodeURIComponent(`Hi, I saw "${pName}" on AFIT Market. Is it available?`)}`;
@@ -413,39 +473,25 @@
         });
     }
 
-    // --- RENDER VENDORS FUNCTION ---
     function renderVendors(data) {
         const vendorGrid = document.getElementById("vendor-grid");
         if(!vendorGrid) return;
-
         vendorGrid.innerHTML = "";
-
         if(data.length === 0) {
-            vendorGrid.innerHTML = `
-                <div style="grid-column: 1/-1; text-align:center; padding: 20px; color:#777;">
-                    <p>No vendors found.</p>
-                    <a href="vendors/index.html" class="chat-btn" style="background:#2d8eff; display:inline-block; margin-top:10px; width:auto; padding: 8px 20px;">See All Vendors</a>
-                </div>
-            `;
+            vendorGrid.innerHTML = `<div style="grid-column: 1/-1; text-align:center; padding: 20px; color:#777;"><p>No vendors found.</p><a href="vendors/index.html" class="chat-btn" style="background:#2d8eff; display:inline-block; margin-top:10px; width:auto; padding: 8px 20px;">See All Vendors</a></div>`;
             return;
         }
-
-        // Limit to first 15 if it's the default shuffle, otherwise show all filtered results
         const displayData = data.length > 15 ? data.slice(0, 15) : data;
-
         displayData.forEach(v => {
             const vName = v.business_name || v.Business_Name;
             const vDesc = v.description || v.Description;
             const vImage = v.image || v.Image;
             const vID = v.vendor_id || v.Vendor_ID;
             const vVerified = String(v.verified || v.Verified || "").toLowerCase().trim();
-
             const vImg = vImage.startsWith('http') ? vImage : `img/${vImage}`;
             let badgeHtml = "";
-            
             if (vVerified === "gold") badgeHtml = '<i class="fas fa-check-circle tick-gold"></i>';
             else if (vVerified === "blue") badgeHtml = '<i class="fas fa-check-circle tick-blue"></i>';
-
             vendorGrid.innerHTML += `
             <div class="vendor-card">
                 <img src="${vImg}" class="vendor-logo" alt="${vName}" onerror="this.src='img/person.png'">
@@ -457,5 +503,6 @@
         });
     }
 </script>
+
 </body>
 </html>
