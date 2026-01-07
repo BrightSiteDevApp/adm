@@ -140,7 +140,7 @@
     import { getFirestore, doc, setDoc, deleteDoc, collection, getDocs, query, where } 
     from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-    // ✅ YOUR FIREBASE CONFIG
+    // FIREBASE CONFIG
     const firebaseConfig = {
         apiKey: "AIzaSyA1eQbrJpH9OtDNDN7z9oTFTRSAE7vCFbg",
         authDomain: "afit-market-auth.firebaseapp.com",
@@ -156,25 +156,35 @@
 
     // Global Variables
     let savedItemIds = new Set();
-    let currentUserEmail = null; // Store logged in email
+    let currentUserEmail = null; 
+    let pageVendorEmail = null; // Store the profile's email
     const sheetID = "1SvVUbEnDgqgw2Z_M1ShQkzyFTsnnS6n8mTs7UMXVvF4";
     const apiRoot = `https://opensheet.elk.sh/${sheetID}`;
 
     // -- AUTH CHECK --
     onAuthStateChanged(auth, async (user) => {
         if (user) {
-            currentUserEmail = user.email.toLowerCase().trim(); // Save email for later comparison
+            currentUserEmail = user.email.toLowerCase().trim();
+            
+            // TRY SHOW BUTTON (In case profile data loaded first)
+            checkOwner();
+
             try {
                 const querySnapshot = await getDocs(collection(db, "users", user.uid, "saved_items"));
                 savedItemIds.clear();
                 querySnapshot.forEach((doc) => { savedItemIds.add(doc.id); });
                 updateHeartIcons(); 
             } catch (e) { console.error("Error loading wishlist:", e); }
-        } else {
-            savedItemIds.clear();
-            updateHeartIcons();
         }
     });
+
+    // -- HELPER: CHECK OWNER --
+    function checkOwner() {
+        if (currentUserEmail && pageVendorEmail && currentUserEmail === pageVendorEmail) {
+            const manageBtn = document.getElementById('btn-manage');
+            if(manageBtn) manageBtn.style.display = 'block';
+        }
+    }
 
     // -- SAVE ITEM FUNCTION --
     window.toggleSave = async function(id, name, price, image, vendor) {
@@ -238,10 +248,10 @@
             } else {
                 renderVendor(v, id);
                 
-                // ✅ OWNER CHECK: Is this MY profile?
-                if (currentUserEmail && v.Email && v.Email.toLowerCase().trim() === currentUserEmail) {
-                    const manageBtn = document.getElementById('btn-manage');
-                    if(manageBtn) manageBtn.style.display = 'block';
+                // STORE EMAIL & TRY CHECK (In case Auth loaded first)
+                if (v.Email) {
+                    pageVendorEmail = v.Email.toLowerCase().trim();
+                    checkOwner();
                 }
 
                 const rawPhone = v.whatsapp || v.Whatsapp || "";
@@ -293,8 +303,7 @@
 
         if (is247) {
             hoursText.innerText = "Digital Service (24/7)";
-            statusBadge.innerText = "🟢 Online 24/7";
-            statusBadge.className = "status-open";
+            statusBadge.innerText = "🟢 Online 24/7"; statusBadge.className = "status-open";
         } else {
             const openTime = parseInt(v.open_time || v.Open_Time || 9);
             const closeTime = parseInt(v.close_time || v.Close_Time || 21);
@@ -320,7 +329,8 @@
         }
     }
 
-    function loadProducts(id, vendorPhone) {
+    // UPDATED PRODUCT LOADER (Mixes Sheets + Firestore)
+    async function loadProducts(id, vendorPhone) {
         // 1. Fetch Sheet Products
         fetch(`${apiRoot}/Products`)
         .then(res => res.json())
@@ -328,7 +338,7 @@
             const grid = document.getElementById('vendor-grid');
             grid.innerHTML = ""; 
 
-            // 2. Fetch Firestore Products
+            // 2. Fetch Firestore Products for this Vendor
             const firestoreProducts = await loadVendorFirestoreItems(id);
 
             // 3. Combine
@@ -347,6 +357,7 @@
                 const pPrice = p.price || p.Price;
                 const pCategory = p.category || p.Category;
                 const pImage = p.image || p.Image;
+
                 let pImg = pImage || "logo-blue.png";
                 if (!pImg.startsWith('http')) pImg = `img/${pImg}`;
                 

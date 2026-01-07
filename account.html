@@ -3,150 +3,172 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Profile - AFIT Market</title>
+    <title>My Account - AFIT Market</title>
     <link rel="stylesheet" href="asset/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="icon" href="img/app-logo.png">
+    
+    <style>
+        .profile-card {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            text-align: center;
+            margin-top: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+        .profile-img-large {
+            width: 80px; height: 80px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 3px solid #f0f0f0;
+            margin-bottom: 10px;
+        }
+        .account-option {
+            display: flex;
+            align-items: center;
+            background: white;
+            padding: 15px;
+            border-radius: 12px;
+            margin-bottom: 10px;
+            text-decoration: none;
+            color: #333;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.03);
+            transition: transform 0.2s;
+        }
+        .account-option:active { transform: scale(0.98); }
+        .option-icon {
+            width: 35px; height: 35px;
+            background: #f5f7fa;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 15px;
+            color: #555;
+        }
+        .option-text { flex: 1; font-size: 14px; font-weight: 500; }
+        
+        /* Dark Mode */
+        body.dark-mode .profile-card, body.dark-mode .account-option { background: #222; color: white; }
+        body.dark-mode .option-icon { background: #333; color: #ccc; }
+    </style>
 </head>
 <body data-page="account">
 
     <script>
-        if (localStorage.getItem('theme') === 'dark') {
-            document.body.classList.add('dark-mode');
-        }
+        if (localStorage.getItem('theme') === 'dark') document.body.classList.add('dark-mode');
     </script>
 
     <div class="app-container">
-        
         <div class="header">
             <a href="index.html" class="back-btn"><i class="fas fa-arrow-left"></i></a>
             <span style="font-weight:bold;">My Account</span>
-             <div class="notification-icon-box" id="theme-toggle" style="margin-left:auto;">
-                <i class="fas fa-moon"></i>
-            </div>
+            <div style="width:30px;"></div>
         </div>
 
-        <div id="loading-state" style="text-align:center; padding:50px;">
-            <p>Loading profile...</p>
+        <div id="account-loader" style="text-align:center; padding:50px;">
+            <i class="fas fa-spinner fa-spin" style="font-size:30px; color:#2d8eff;"></i>
+            <p style="color:#777; font-size:12px; margin-top:10px;">Loading profile...</p>
         </div>
 
-        <div id="logged-out-state" style="display:none; text-align:center; padding:50px;">
-            <img src="img/logo-blue.png" style="width:60px; margin-bottom:20px;">
-            <h3>You are not logged in</h3>
-            <p style="color:#777; margin-bottom:20px;">Sign in to view your profile.</p>
-            <a href="login.html" class="chat-btn" style="background:#2d8eff;">Go to Login</a>
-        </div>
-
-        <a href="dashboard.html" class="account-option" id="btn-dashboard" style="display: none; background: #e3f2fd; border: 1px solid #2d8eff;">
-    <div class="option-icon" style="color: #2d8eff;"><i class="fas fa-store"></i></div>
-    <div class="option-text" style="color: #2d8eff; font-weight: bold;">Open Vendor Dashboard</div>
-    <i class="fas fa-chevron-right"></i>
-</a>
-
-        <div id="profile-view" style="display:none;">
-            <div class="profile-header-card">
-                <img id="user-img" src="" class="profile-pic-large" alt="User">
-                <div class="profile-name" id="user-name">...</div>
-                <div class="profile-email" id="user-email">...</div>
-                <button onclick="toggleEdit()" style="background:rgba(255,255,255,0.2); color:white; border:none; padding:5px 15px; border-radius:15px; font-size:11px; cursor:pointer;">
-                    <i class="fas fa-pen"></i> Edit Profile
-                </button>
+        <div id="account-content" style="padding: 15px; display: none;">
+            
+            <div class="profile-card">
+                <img src="img/person.png" id="user-img" class="profile-img-large" onerror="this.src='img/person.png'">
+                <h3 id="user-name" style="margin:0; font-size:18px;">Student</h3>
+                <p id="user-email" style="margin:5px 0 0; color:#777; font-size:12px;">...</p>
             </div>
 
-            <div class="action-grid">
-                <a href="saved.html" class="action-card">
-                    <i class="fas fa-heart" style="color:#ff4757;"></i>
-                    <span>Saved Items</span>
+            <div style="margin-top: 30px;">
+                
+                <a href="dashboard.html" id="btn-dashboard" class="account-option" style="display: none; border: 1px solid #2d8eff; background: #f4faff;">
+                    <div class="option-icon" style="background: #2d8eff; color: white;"><i class="fas fa-store"></i></div>
+                    <div class="option-text" style="color: #2d8eff; font-weight: bold;">Vendor Dashboard</div>
+                    <i class="fas fa-chevron-right" style="color: #2d8eff;"></i>
                 </a>
-                <div class="action-card" onclick="alert('Coming soon!')">
-                    <i class="fas fa-store"></i>
-                    <span>My Orders</span>
-                </div>
-            </div>
 
-            <div id="edit-form" class="edit-form">
-                <h4 style="margin-bottom:15px;">Edit Details</h4>
-                <label style="font-size:12px; color:#777;">Display Name</label>
-                <input type="text" id="new-name" class="form-input" placeholder="Enter Name">
-                
-                <label style="font-size:12px; color:#777;">Profile Picture URL (Optional)</label>
-                <input type="text" id="new-pic" class="form-input" placeholder="Paste image link here...">
-                
-                <button id="save-btn" class="chat-btn" style="width:100%; margin-top:5px;">Save Changes</button>
-            </div>
+                <a href="saved.html" class="account-option">
+                    <div class="option-icon"><i class="far fa-heart"></i></div>
+                    <div class="option-text">Saved Items</div>
+                    <i class="fas fa-chevron-right" style="color:#ccc;"></i>
+                </a>
 
-            <div style="padding: 20px;">
-                <button id="btn-logout" class="chat-btn" style="background:transparent; border:1px solid #ff4757; color:#ff4757;">
-                    Logout
-                </button>
+                <a href="#" onclick="handleLogout()" class="account-option" style="color: #ff4757;">
+                    <div class="option-icon" style="background: #fff0f1; color: #ff4757;"><i class="fas fa-sign-out-alt"></i></div>
+                    <div class="option-text">Log Out</div>
+                </a>
             </div>
         </div>
-
     </div>
 
+    <script src="asset/script.js"></script>
+
     <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-    import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
-    // FIREBASE CONFIG
-    const firebaseConfig = {
-        apiKey: "AIzaSyA1eQbrJpH9OtDNDN7z9oTFTRSAE7vCFbg",
-        authDomain: "afit-market-auth.firebaseapp.com",
-        projectId: "afit-market-auth",
-        storageBucket: "afit-market-auth.firebasestorage.app",
-        messagingSenderId: "894920886640",
-        appId: "1:894920886640:web:77d0a6b39bf89ff8f767b5"
-    };
+        // FIREBASE CONFIG
+        const firebaseConfig = {
+            apiKey: "AIzaSyA1eQbrJpH9OtDNDN7z9oTFTRSAE7vCFbg",
+            authDomain: "afit-market-auth.firebaseapp.com",
+            projectId: "afit-market-auth",
+            storageBucket: "afit-market-auth.firebasestorage.app",
+            messagingSenderId: "894920886640",
+            appId: "1:894920886640:web:77d0a6b39bf89ff8f767b5"
+        };
 
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-    const db = getFirestore(app);
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const sheetID = "1SvVUbEnDgqgw2Z_M1ShQkzyFTsnnS6n8mTs7UMXVvF4";
+        const apiRoot = `https://opensheet.elk.sh/${sheetID}`;
 
-    // VENDOR SHEET CONFIG
-    const sheetID = "1SvVUbEnDgqgw2Z_M1ShQkzyFTsnnS6n8mTs7UMXVvF4";
-    const apiRoot = `https://opensheet.elk.sh/${sheetID}`;
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                // 1. Populate Data
+                document.getElementById('user-name').innerText = user.displayName || "Student";
+                document.getElementById('user-email').innerText = user.email;
+                document.getElementById('user-img').src = user.photoURL || "img/person.png";
 
-    onAuthStateChanged(auth, async (user) => {
-        if (user) {
-            // 1. Load User Info
-            document.getElementById('user-name').innerText = user.displayName || "Student";
-            document.getElementById('user-email').innerText = user.email;
-            document.getElementById('user-img').src = user.photoURL || "img/person.png";
+                // 2. Check Vendor Status
+                await checkIfVendor(user.email);
 
-            // 2. CHECK IF VENDOR (To show Dashboard Button)
-            checkIfVendor(user.email);
-
-        } else {
-            window.location.href = "login.html";
-        }
-    });
-
-    async function checkIfVendor(email) {
-        try {
-            const res = await fetch(`${apiRoot}/Vendors`);
-            const vendors = await res.json();
-            
-            // Check if email exists in sheet (Case Insensitive)
-            const isVendor = vendors.some(v => 
-                v.Email && v.Email.toLowerCase().trim() === email.toLowerCase().trim()
-            );
-
-            if (isVendor) {
-                document.getElementById('btn-dashboard').style.display = "flex";
+                // 3. Show Content / Hide Loader
+                document.getElementById('account-loader').style.display = 'none';
+                document.getElementById('account-content').style.display = 'block';
+            } else {
+                window.location.href = "login.html";
             }
-        } catch (err) {
-            console.error("Error checking vendor status:", err);
-        }
-    }
+        });
 
-    window.handleLogout = () => {
-        if(confirm("Are you sure you want to log out?")) {
-            signOut(auth).then(() => {
-                window.location.href = "index.html";
-            });
+        async function checkIfVendor(email) {
+            try {
+                const res = await fetch(`${apiRoot}/Vendors`);
+                const vendors = await res.json();
+                
+                const isVendor = vendors.some(v => 
+                    v.Email && v.Email.toLowerCase().trim() === email.toLowerCase().trim()
+                );
+
+                if (isVendor) {
+                    const btn = document.getElementById('btn-dashboard');
+                    btn.style.display = "flex";
+                    // Only add Dark Mode override if needed
+                    if (document.body.classList.contains('dark-mode')) {
+                        btn.style.background = "#1a2a3a"; 
+                        btn.style.borderColor = "#2d8eff";
+                    }
+                }
+            } catch (err) {
+                console.error("Vendor check failed:", err);
+            }
         }
-    };
-</script>
+
+        window.handleLogout = () => {
+            if(confirm("Are you sure you want to log out?")) {
+                signOut(auth).then(() => window.location.href = "index.html");
+            }
+        };
+    </script>
 </body>
 </html>
