@@ -2153,3 +2153,16 @@ body.dark-mode .story-img {
     border-color: #222;
 }
 
+/* 🌙 DARK MODE FIXES FOR HOME POPUP & SAFETY BOX */
+      body.dark-mode .pm-content { background: #1e1e1e !important; color: #e0e0e0 !important; }
+      body.dark-mode .pm-title { color: #ffffff !important; }
+      body.dark-mode .pm-desc { color: #cccccc !important; }
+      body.dark-mode .sim-price { color: #ffffff !important; }
+      body.dark-mode .similar-header { color: #aaa !important; }
+      
+      body.dark-mode .safety-box { 
+          background: #4e342e !important; /* Dark brown/gold for visibility */
+          border-color: #8d6e63 !important; 
+          color: #ffecb3 !important; 
+      }
+      body.dark-mode .safety-box i { color: #ffb74d !important; }
