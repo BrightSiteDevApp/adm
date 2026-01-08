@@ -19,8 +19,6 @@
   <link rel="icon" href="img/app-logo.png" type="image/png" sizes="32x32">
   <link rel="icon" href="img/app-logo.png" type="image/png" sizes="192x192">
   <link rel="apple-touch-icon" href="img/app-logo.png">
-  <link rel="icon" href="favicon.ico" type="image/x-icon">
-
 
   <style>
       /* Hide content until loaded */
@@ -133,10 +131,12 @@
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+    import { getAuth, onAuthStateChanged, signInWithPopup, GoogleAuthProvider } 
+    from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
     import { getFirestore, doc, setDoc, deleteDoc, collection, getDocs, getDoc, query, where } 
     from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
+    // CONFIG
     const firebaseConfig = {
         apiKey: "AIzaSyA1eQbrJpH9OtDNDN7z9oTFTRSAE7vCFbg",
         authDomain: "afit-market-auth.firebaseapp.com",
@@ -177,6 +177,32 @@
         }
     }
 
+    window.toggleSave = async function(id, name, price, image, vendor) {
+        const user = auth.currentUser;
+        if (!user) { if(confirm("You need to sign in to save items. Go to login page?")) { window.location.href = "login.html"; } return; }
+        const userRef = doc(db, "users", user.uid, "saved_items", id);
+
+        if (savedItemIds.has(id)) {
+            savedItemIds.delete(id); await deleteDoc(userRef);
+        } else {
+            savedItemIds.add(id);
+            await setDoc(userRef, { product_id: id, name: name, price: price, image: image, vendor: vendor, saved_at: new Date() });
+        }
+        updateHeartIcons(); 
+    };
+
+    function updateHeartIcons() {
+        document.querySelectorAll('.save-btn').forEach(btn => {
+            const id = btn.id.replace('save-', '');
+            const icon = btn.querySelector('i');
+            if (savedItemIds.has(id)) {
+                icon.classList.replace('far', 'fas'); icon.style.color = '#ff4757';
+            } else {
+                icon.classList.replace('fas', 'far'); icon.style.color = '#777';
+            }
+        });
+    }
+
     document.addEventListener("DOMContentLoaded", () => {
         const params = new URLSearchParams(window.location.search);
         let vendorID = params.get('vendor');
@@ -193,6 +219,12 @@
             if (docSnap.exists() && docSnap.data().status === "suspended") {
                 document.getElementById('profile-content').style.display = 'none';
                 document.getElementById('preloader').style.display = 'none';
+                document.getElementById('error-message').innerHTML = `
+                    <i class="fas fa-ban" style="font-size:40px; color:#d63031;"></i>
+                    <h3 style="margin-top:10px; color:#d63031;">Account Suspended</h3>
+                    <p style="color:#555;">This vendor has been suspended for violating platform policies.</p>
+                    <a href="index.html" class="chat-btn" style="display:inline-block; margin-top:10px; background:#2d8eff;">Go Home</a>
+                `;
                 document.getElementById('error-message').style.display = 'block';
                 return;
             }
@@ -223,7 +255,7 @@
         document.getElementById('p-desc').innerText = v.description || v.Description || "No description available.";
         document.getElementById('p-location').innerText = v.location || v.Location || "AFIT Campus";
         document.getElementById('p-date').innerText = v.date_joined || v.Date_Joined || "Recent";
-        let imgSrc = v.image || v.Image || "img/person.png"; if (!imgSrc.startsWith('http')) imgSrc = `img/${imgSrc}`;
+        let imgSrc = v.image || v.Image || "person.png"; if (!imgSrc.startsWith('http')) imgSrc = `img/${imgSrc}`;
         document.getElementById('p-img').src = imgSrc;
         const phone = v.whatsapp || v.Whatsapp || "";
         document.getElementById('link-phone').href = `tel:${phone}`;
@@ -231,7 +263,6 @@
         const instaLink = v.instagram || v.Instagram;
         if(instaLink) { const insta = document.getElementById('link-insta'); insta.href = `https://instagram.com/${instaLink}`; insta.style.display = 'inline-block'; }
         
-        // Status Logic (Open/Closed)
         let status = String(v.verified || v.Verified || "").toLowerCase().trim();
         const badgeSpan = document.getElementById('p-badge');
         if (status === "gold") badgeSpan.innerHTML = '<i class="fas fa-check-circle tick-gold"></i>';
@@ -254,38 +285,28 @@
     }
 
     async function loadProducts(id, vendorPhone) {
-        try {
-            const sheetData = await fetch(`${apiRoot}/Products`).then(res => res.json());
-            const firestoreProducts = await loadVendorFirestoreItems(id);
-            const allProducts = [...sheetData, ...firestoreProducts];
-            
-            // Filter: Must match vendor ID
-            const myProducts = allProducts.filter(p => (p.vendor_id || p.Vendor_ID) === id);
-            
+        fetch(`${apiRoot}/Products`)
+        .then(res => res.json())
+        .then(async (sheetData) => {
             const grid = document.getElementById('vendor-grid');
             grid.innerHTML = ""; 
-
-            if(myProducts.length === 0) { 
-                grid.innerHTML = "<p style='width:100%; text-align:center; padding:20px; color:#777;'>No items listed yet.</p>"; 
-                return; 
-            }
+            const firestoreProducts = await loadVendorFirestoreItems(id);
+            const allProducts = [...sheetData, ...firestoreProducts];
+            const myProducts = allProducts.filter(p => (p.vendor_id || p.Vendor_ID) === id);
+            
+            if(myProducts.length === 0) { grid.innerHTML = "<p style='width:100%; text-align:center; padding:20px; color:#777;'>No items listed yet.</p>"; return; }
             
             myProducts.forEach(p => {
-                const pName = p.name || p.Name;
-                const pPrice = p.price || p.Price;
-                const pCategory = p.category || p.Category;
-                const pImage = p.image || p.Image;
+                const pName = p.name || p.Name; const pPrice = p.price || p.Price; const pCategory = p.category || p.Category; const pImage = p.image || p.Image;
                 const pDesc = p.description || p.Description || "No description.";
                 const pStatus = p.status || p.Status || "Active"; 
-                const isFeatured = p.is_featured === "true";
+                const isFeatured = p.is_featured === "true"; 
                 
                 // ✅ Use Firestore doc ID for uniqueness
                 const pID = p.id || (id + "-" + pName).replace(/\s+/g, '-').toLowerCase();
 
                 let pImg = pImage || "logo-blue.png"; if (!pImg.startsWith('http')) pImg = `img/${pImg}`;
-                const isSaved = savedItemIds.has(pID);
-                const heartClass = isSaved ? 'fas' : 'far';
-                const heartColor = isSaved ? '#ff4757' : '#777';
+                const isSaved = savedItemIds.has(pID); const heartClass = isSaved ? 'fas' : 'far'; const heartColor = isSaved ? '#ff4757' : '#777';
 
                 const safeName = pName.replace(/'/g, "\\'");
                 const safeDesc = pDesc.replace(/'/g, "\\'").replace(/\n/g, " ");
@@ -294,10 +315,12 @@
                 const opacity = isSold ? 'opacity:0.6;' : '';
                 
                 let badge = '';
-                if (isSold) badge = '<span style="background:red; color:white; font-size:9px; padding:2px 5px; position:absolute; top:10px; left:10px; border-radius:4px; z-index:10;">SOLD</span>';
-                else if (isFeatured) badge = '<span style="background:#f1c40f; color:white; font-size:9px; padding:2px 5px; position:absolute; top:10px; left:10px; border-radius:4px; z-index:10; font-weight:bold;">⭐ Sponsored</span>';
+                if (isSold) {
+                    badge = '<span style="background:red; color:white; font-size:9px; padding:2px 5px; position:absolute; top:10px; left:10px; border-radius:4px; z-index:10;">SOLD</span>';
+                } else if (isFeatured) {
+                    badge = '<span style="background:#f1c40f; color:white; font-size:9px; padding:2px 5px; position:absolute; top:10px; left:10px; border-radius:4px; z-index:10; font-weight:bold;">⭐ Sponsored</span>';
+                }
 
-                // ✅ FIX: Use 'vendorPhone' instead of 'p.phone'
                 const clickAction = isSold ? "" : `onclick="viewProduct('${safeName}', '${pPrice}', '${safeDesc}', '${pImg}', '${vendorPhone}', '${pID}', '${pCategory}')"`;
                 const btnText = isSold ? "Sold" : "Get Item";
                 const btnStyle = isSold ? "background:#777; pointer-events:none;" : "";
@@ -315,7 +338,7 @@
                     </div>
                 </div>`;
             });
-        } catch(e) { console.error("Load Products Error:", e); }
+        });
     }
 
     async function loadVendorFirestoreItems(vid) {
@@ -337,35 +360,8 @@
         errorBox.querySelector('p').innerText = msg;
     }
     
-    // EXPOSE FUNCTIONS GLOBALLY
     window.shareVendor = function() {
         if (navigator.share) { navigator.share({ title: document.title, url: window.location.href }); } else { alert("Link copied!"); }
-    }
-
-    window.toggleSave = async function(id, name, price, image, vendor) {
-        const user = auth.currentUser;
-        if (!user) { if(confirm("Sign in to save items?")) window.location.href = "login.html"; return; }
-        const userRef = doc(db, "users", user.uid, "saved_items", id);
-
-        if (savedItemIds.has(id)) {
-            savedItemIds.delete(id); await deleteDoc(userRef);
-        } else {
-            savedItemIds.add(id);
-            await setDoc(userRef, { product_id: id, name: name, price: price, image: image, vendor: vendor, saved_at: new Date() });
-        }
-        updateHeartIcons();
-    };
-
-    function updateHeartIcons() {
-        document.querySelectorAll('.save-btn').forEach(btn => {
-            const id = btn.id.replace('save-', '');
-            const icon = btn.querySelector('i');
-            if (savedItemIds.has(id)) {
-                icon.classList.replace('far', 'fas'); icon.style.color = '#ff4757';
-            } else {
-                icon.classList.replace('fas', 'far'); icon.style.color = '#777';
-            }
-        });
     }
 
     window.viewProduct = function(name, price, desc, img, phone, id, category) {
@@ -376,6 +372,7 @@
         document.getElementById('pm-btn').href = `https://wa.me/${phone}?text=${encodeURIComponent(`Hi, I saw "${name}" on AFIT Market. Is it available?`)}`;
         
         addToHistory(id, name, price, img, id); 
+
         document.getElementById('product-modal').style.display = 'flex';
     };
 
@@ -386,7 +383,10 @@
     window.addToHistory = function(id, name, price, image, vendor) {
         let history = JSON.parse(localStorage.getItem('adm_history')) || [];
         history = history.filter(item => item.id !== id);
-        history.unshift({ id, name, price, image, vendor, seenAt: Date.now() });
+        history.unshift({ 
+            id, name, price, image, vendor,
+            seenAt: Date.now() 
+        });
         if(history.length > 6) history.pop();
         localStorage.setItem('adm_history', JSON.stringify(history));
     };
