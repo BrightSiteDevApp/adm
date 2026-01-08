@@ -16,6 +16,8 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link rel="stylesheet" href="asset/style.css">
   <link rel="icon" href="img/app-logo.png">
+  <link rel="icon" href="favicon.ico" type="image/x-icon">
+
 
   <style>
       /* Hide content until loaded */
@@ -62,12 +64,10 @@
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import { getAuth, onAuthStateChanged, signInWithPopup, GoogleAuthProvider } 
-    from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
     import { getFirestore, doc, setDoc, deleteDoc, collection, getDocs, query, where } 
     from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-    // CONFIG
     const firebaseConfig = {
         apiKey: "AIzaSyA1eQbrJpH9OtDNDN7z9oTFTRSAE7vCFbg",
         authDomain: "afit-market-auth.firebaseapp.com",
@@ -101,11 +101,7 @@
         try {
             const q = query(collection(db, "products")); 
             const snapshot = await getDocs(q);
-            // ✅ FIX: Capture the actual Firestore document ID for uniqueness
-            return snapshot.docs.map(doc => ({
-                id: doc.id,
-                ...doc.data()
-            }));
+            return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         } catch(e) { return []; }
     }
 
@@ -161,7 +157,6 @@
                     const pStatus = p.status || p.Status || "Active";
                     const pCond = p.condition || "Used";
                     
-                    // ✅ UNIQUE ID FIX: Use Firestore ID or generated fallback for Google Sheets items
                     const pID = p.id || (pVendor + "-" + pName).replace(/\s+/g, '-').toLowerCase();
 
                     const img = pImage.startsWith('http') ? pImage : `img/${pImage}`;
@@ -170,32 +165,35 @@
                     const heartClass = isSaved ? 'fas' : 'far';
                     const heartColor = isSaved ? '#ff4757' : '#777';
 
-                    const safeName = pName.replace(/'/g, "\\'");
-                    const safeDesc = pDesc.replace(/'/g, "\\'").replace(/\n/g, " ");
+                    const safeName = pName.replace(/'/g, "\\'").replace(/"/g, "&quot;");
+                    
+                    // ✅ DIRECT WHATSAPP LINK
+                    const waMsg = encodeURIComponent(`Hi, I saw "${pName}" on AFIT Market. Is it available?`);
+                    const waLink = `https://wa.me/${vendorPhone}?text=${waMsg}`;
 
                     const isSold = pStatus === "Sold";
                     const opacity = isSold ? 'opacity:0.6;' : '';
                     const badge = isSold ? '<span style="background:red; color:white; font-size:9px; padding:2px 5px; position:absolute; top:10px; left:10px; border-radius:4px; z-index:10;">SOLD</span>' : '';
-                    const clickAction = isSold ? "" : `onclick="viewProduct('${safeName}', '${pPrice}', '${safeDesc}', '${img}', '${vendorPhone}')"`;
+                    
                     const btnText = isSold ? "Sold" : "Get Item";
                     const btnStyle = isSold ? "background:#777; pointer-events:none;" : "";
+                    const btnHref = isSold ? "#" : waLink;
                     const condBadge = (!isSold && pCond === "New") ? `<span style="background:#00b894; color:white; font-size:9px; padding:2px 5px; border-radius:4px; position:absolute; top:10px; left:10px; z-index:10;">NEW</span>` : '';
 
                     grid.innerHTML += `
                     <div class="ad-card" style="position:relative; ${opacity}">
-                        ${badge}
-                        ${condBadge}
+                        ${badge} ${condBadge}
                         <button onclick="toggleSave('${pID}', '${safeName}', '${pPrice}', '${pImage}', '${pVendor}')" 
                                 class="save-btn" id="save-${pID}"
                                 style="position:absolute; top:10px; right:10px; background:white; border:none; border-radius:50%; width:30px; height:30px; display:flex; align-items:center; justify-content:center; cursor:pointer; box-shadow:0 2px 5px rgba(0,0,0,0.2); z-index:10;">
                             <i class="${heartClass} fa-heart" style="color:${heartColor}; font-size:16px;"></i>
                         </button>
-                        <img class="ad-img" src="${img}" alt="${pName}" onerror="this.src='img/logo-blue.png'" ${clickAction}>
+                        <img class="ad-img" src="${img}" alt="${pName}" onerror="this.src='img/logo-blue.png'">
                         <div class="ad-info">
                             <div class="ad-price">${pPrice}</div>
                             <div class="ad-title">${pName}</div>
                             <div class="ad-location">Vendor: ${pVendor}</div>
-                            <a href="#" ${clickAction} class="chat-btn" style="${btnStyle}">${btnText}</a>
+                            <a href="${btnHref}" target="_blank" class="chat-btn" style="${btnStyle}">${btnText}</a>
                         </div>
                     </div>`;
                 });
@@ -213,9 +211,9 @@
             savedItemIds.delete(id); await deleteDoc(userRef);
         } else {
             savedItemIds.add(id);
-            await setDoc(userRef, { product_id: id, name, price, image, vendor, saved_at: new Date() });
+            await setDoc(userRef, { product_id: id, name: name, price: price, image: image, vendor: vendor, saved_at: new Date() });
         }
-        updateHeartIcons(); // ✅ Update visuals immediately
+        updateHeartIcons();
     };
 
     function updateHeartIcons() {
@@ -229,17 +227,6 @@
             }
         });
     }
-
-    window.viewProduct = function(name, price, desc, img, phone) {
-        document.getElementById('pm-title').innerText = name;
-        document.getElementById('pm-price').innerText = price;
-        document.getElementById('pm-desc').innerText = desc;
-        document.getElementById('pm-img').src = img;
-        document.getElementById('pm-btn').href = `https://wa.me/${phone}?text=${encodeURIComponent(`Hi, I saw "${name}" on AFIT Market. Is it available?`)}`;
-        document.getElementById('product-modal').style.display = 'flex';
-    };
-
-    window.closeProductModal = () => document.getElementById('product-modal').style.display = 'none';
 </script>
 </body>
 </html>

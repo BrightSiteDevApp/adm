@@ -139,7 +139,7 @@
         <div style="padding: 0 15px 80px;">
             <h4 style="margin-bottom:15px; font-size: 16px;">Active Inventory</h4>
             <div id="my-items-grid" class="trending-grid">
-            </div>
+                </div>
         </div>
 
     </div>
@@ -173,20 +173,22 @@
                 <input type="text" id="p-desc" class="form-input" placeholder="Short description...">
             </div>
 
-            <div class="form-group">
-                <label class="form-label">Category</label>
-                <select id="p-cat" class="form-input">
-                    <option value="Phones">Phones</option>
-                    <option value="Laptops">Laptops</option>
-                    <option value="Fashion">Fashion</option>
-                    <option value="Fashion Accessories">Fashion Accessories</option>
-                    <option value="Phone Accessories">Phone Accessories</option>
-                    <option value="Gadgets">Gadgets</option>
-                    <option value="Food">Food</option>
-                    <option value="Appliances">Appliances</option>
-                    <option value="Services">Services</option>
-                </select>
-            </div>
+
+           <div class="form-group">
+    <label class="form-label">Category</label>
+    <select id="p-cat" class="form-input">
+        <option value="Phones">Phones</option>
+        <option value="Laptops">Laptops</option>
+        <option value="Fashion">Fashion</option>
+        <option value="Fashion Accessories">Fashion Accessories</option>
+        <option value="Phone Accessories">Phone Accessories</option>
+        <option value="Gadgets">Gadgets</option>
+        <option value="Food">Food</option>
+        <option value="Appliances">Appliances</option>
+        <option value="Services">Services</option>
+    </select>
+</div>
+
 
             <div class="form-group">
                 <label class="form-label">Condition</label>
@@ -219,7 +221,7 @@
 
     <script src="asset/script.js"></script>
 
-<script type="module">
+   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
     import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
     import { getFirestore, collection, addDoc, getDocs, query, where, deleteDoc, doc, updateDoc } 
