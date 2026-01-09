@@ -2,29 +2,53 @@
 <html lang="en">
 <head>
     <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
-<script>
-  window.OneSignalDeferred = window.OneSignalDeferred || [];
-  OneSignalDeferred.push(async function(OneSignal) {
-    await OneSignal.init({
-      appId: "f62f27b5-a5a3-4018-aade-0a44f357c7e0",
-    });
-  });
-</script>
+    <script>
+      window.OneSignalDeferred = window.OneSignalDeferred || [];
+      OneSignalDeferred.push(async function(OneSignal) {
+        await OneSignal.init({
+          appId: "f62f27b5-a5a3-4018-aade-0a44f357c7e0",
+        });
+      });
+    </script>
+
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
     
     <title>Campus Gist & News | AFIT Digital Market</title>
-    <meta name="description" content="Latest news, exam updates, and gist from AFIT Campus. Stay updated with AFIT Digital Market Blog.">
     
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="../asset/style.css">
     
     <link rel="icon" href="../img/app-logo.png" type="image/png" sizes="32x32">
     <link rel="icon" href="../img/app-logo.png" type="image/png" sizes="192x192">
-    <link rel="apple-touch-icon" href="../img/app-logo.png">
-    <link rel="shortcut icon" href="../favicon.ico">
+    
+    <style>
+        /* Format the blog content to respect new lines */
+        .modal-text {
+            white-space: pre-wrap; 
+            font-family: inherit;
+            line-height: 1.6;
+            color: #444;
+            margin-top: 15px;
+        }
+        
+        /* Ensure images in the grid fit well */
+        .blog-thumb {
+            object-fit: cover;
+            width: 80px;
+            height: 80px;
+            border-radius: 8px;
+        }
+
+        /* Fix for modal content scrolling */
+        .blog-modal-content {
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+    </style>
 </head>
 <body>
+
 <div id="preloader">
     <div class="loader-content">
         <img src="../img/logo-blue.png" alt="Loading..." class="loader-logo">
@@ -35,7 +59,7 @@
 <div class="app-container">
     
     <div class="header">
-        <a href="../" class="back-btn"><i class="fas fa-arrow-left"></i></a>
+        <a href="../index.html" class="back-btn"><i class="fas fa-arrow-left"></i></a>
         <span style="font-weight:bold;">Campus Gist</span>
         <div class="notification-icon-box" id="theme-toggle" style="margin-left:auto;">
             <i class="fas fa-moon"></i>
@@ -47,91 +71,127 @@
         <p style="font-size:12px; margin-top:5px; opacity:0.9;">Exams, Gossip, and Important Notices.</p>
     </div>
 
-    <div class="blog-list">
-
-
-
-       
-
-       <div class="blog-card" onclick="openBlog(this)">
-    <img src="../img/logo-blue.png" class="blog-thumb">
-    <div class="blog-info">
-        <span class="blog-date">Jan 15, 2026</span>
-        <div class="blog-title">Welcome to ADM: The Official AFIT Marketplace</div>
-        <div class="blog-snippet">Discover the safest way to buy, sell, and connect on campus. From gadgets to food, find it all on AFIT Digital Market...</div>
-        
-        <div class="full-content" style="display:none;">
-            <p>AFIT Digital Market (ADM) is the #1 digital platform designed exclusively for AFIT students to trade securely and conveniently. Say goodbye to spamming WhatsApp groups!</p>
-            <p><strong>Platform Features:</strong></p>
-            <ul>
-                <li><strong>Buy & Sell:</strong> Find phones, laptops, fashion, food, and services easily.</li>
-                <li><strong>Verified Vendors:</strong> Trade safely with vendors marked with Blue or Gold badges.</li>
-                <li><strong>Direct Chat:</strong> No middleman, click to chat with sellers directly on WhatsApp.</li>
-                <li><strong>Student Requests:</strong> Post what you need and let vendors find you.</li>
-            </ul>
-            <p>Start exploring today! Create an account to save items and join the digital revolution on campus.</p>
+    <div class="blog-list" id="blog-container">
         </div>
+
+    <div id="no-posts-msg" style="text-align: center; margin-top: 60px; color: #999; display:none;">
+        <i class="fas fa-newspaper" style="font-size: 50px; margin-bottom: 15px; opacity: 0.3;"></i>
+        <h3 style="font-size: 16px; color: #555;">No Updates Yet</h3>
+        <p style="font-size: 12px;">Check back later for news.</p>
     </div>
-</div>
-        
-
-        <div style="text-align: center; margin-top: 60px; color: #999;">
-            <i class="fas fa-newspaper" style="font-size: 50px; margin-bottom: 15px; opacity: 0.3;"></i>
-            <h3 style="font-size: 16px; color: #555;">No Updates Yet</h3>
-            <p style="font-size: 13px; max-width: 250px; margin: 0 auto; line-height: 1.5;">Check back later for the latest news on exams and campus events.</p>
-        </div>
-
-
-        </div>
 
 </div>
 
 <div id="blogModal" class="blog-modal" onclick="closeBlog(event)">
     <div class="blog-modal-content" onclick="event.stopPropagation()">
-        
-        <div class="close-blog-btn" onclick="closeBlogForce()">
-            <i class="fas fa-times"></i>
-        </div>
-
-        <img id="modalImg" src="" class="modal-hero-img">
-
+        <div class="close-blog-btn" onclick="closeBlogForce()"><i class="fas fa-times"></i></div>
+        <img id="modalImg" src="" class="modal-hero-img" onerror="this.src='../img/logo-blue.png'">
         <div class="modal-body">
-            <h3 id="modalTitle" class="modal-title">Title Here</h3>
-            <span id="modalDate" class="modal-date">Date Here</span>
+            <h3 id="modalTitle" class="modal-title"></h3>
+            <span id="modalDate" class="modal-date" style="font-size:12px; color:#888;"></span>
             <div id="modalText" class="modal-text"></div>
-            
             <br>
-            <button onclick="closeBlogForce()" class="chat-btn" style="width:100%;">Close News</button>
+            <button onclick="closeBlogForce()" class="chat-btn" style="width:100%; text-align:center;">Close News</button>
         </div>
     </div>
 </div>
 
 <script src="../asset/script.js"></script>
 <script>
-    // Blog Logic
-    function openBlog(card) {
-        const thumbSrc = card.querySelector('.blog-thumb').src;
-        const title = card.querySelector('.blog-title').innerText;
-        const date = card.querySelector('.blog-date').innerText;
-        const fullHTML = card.querySelector('.full-content').innerHTML;
+    // --- Configuration ---
+    const sheetID = "1SvVUbEnDgqgw2Z_M1ShQkzyFTsnnS6n8mTs7UMXVvF4"; 
+    const apiURL = `https://opensheet.elk.sh/${sheetID}/Blog`; 
 
-        document.getElementById('modalImg').src = thumbSrc;
+    document.addEventListener("DOMContentLoaded", () => {
+        fetch(apiURL)
+        .then(res => {
+            if(!res.ok) throw new Error("Failed to fetch");
+            return res.json();
+        })
+        .then(data => {
+            console.log("Data loaded:", data); // For debugging
+            
+            const container = document.getElementById('blog-container');
+            const noMsg = document.getElementById('no-posts-msg');
+            const preloader = document.getElementById('preloader');
+
+            // 1. Filter empty rows
+            // We check for Title OR title (case insensitive safety)
+            const validPosts = data.filter(p => (p.Title || p.title) && (p.Title || p.title) !== "");
+
+            if (validPosts.length > 0) {
+                container.innerHTML = ""; // Clear any placeholders
+
+                // 2. Reverse to show newest first
+                validPosts.reverse().forEach(post => {
+                    
+                    // Handle Case Sensitivity (Title vs title)
+                    const title = post.Title || post.title || "Untitled";
+                    const snippet = post.Snippet || post.snippet || "Click to read more...";
+                    const content = post.Content || post.content || "";
+                    
+                    // Handle Date (Google Forms uses 'Timestamp')
+                    let rawDate = post.Timestamp || post.timestamp || "Just Now";
+                    if(rawDate.includes(" ")) rawDate = rawDate.split(" ")[0]; // remove time
+
+                    // Handle Image
+                    let image = post.Image || post.image || "logo-blue.png";
+                    if (!image.startsWith('http')) { image = `../img/${image}`; }
+
+                    // Create Card
+                    const div = document.createElement('div');
+                    div.className = "blog-card";
+                    
+                    // Use a function to safely pass variables to the modal
+                    div.onclick = function() { 
+                        openBlogDirect(title, rawDate, image, content); 
+                    };
+                    
+                    div.innerHTML = `
+                        <img src="${image}" class="blog-thumb" onerror="this.src='../img/logo-blue.png'">
+                        <div class="blog-info">
+                            <span class="blog-date">${rawDate}</span>
+                            <div class="blog-title">${title}</div>
+                            <div class="blog-snippet">${snippet}</div>
+                        </div>
+                    `;
+                    container.appendChild(div);
+                });
+                
+                if(noMsg) noMsg.style.display = 'none';
+            } else {
+                if(noMsg) noMsg.style.display = 'block';
+            }
+            
+            if(preloader) preloader.style.display = 'none';
+        })
+        .catch(err => {
+            console.error("Blog Load Error:", err);
+            document.getElementById('preloader').style.display = 'none';
+            document.getElementById('no-posts-msg').style.display = 'block';
+        });
+    });
+
+    // --- Modal Functions ---
+
+    function openBlogDirect(title, date, img, content) {
+        document.getElementById('modalImg').src = img;
         document.getElementById('modalTitle').innerText = title;
         document.getElementById('modalDate').innerText = date;
-        document.getElementById('modalText').innerHTML = fullHTML;
-        document.getElementById('blogModal').style.display = 'flex';
-        document.body.style.overflow = 'hidden';
+        document.getElementById('modalText').innerText = content; // innerText respects \n
+        
+        const modal = document.getElementById('blogModal');
+        modal.style.display = 'flex';
+        document.body.style.overflow = 'hidden'; // Stop background scrolling
     }
 
     function closeBlogForce() {
         document.getElementById('blogModal').style.display = 'none';
-        document.body.style.overflow = 'auto';
+        document.body.style.overflow = 'auto'; // Restore scrolling
     }
 
     function closeBlog(event) {
-        if (event.target.id === 'blogModal') {
-            closeBlogForce();
-        }
+        if (event.target.id === 'blogModal') closeBlogForce();
     }
 </script>
 
