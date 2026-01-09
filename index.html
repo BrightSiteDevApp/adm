@@ -1,6 +1,20 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <script> 
+    (function() {
+        const isAdmin = localStorage.getItem('adm_dev_mode');
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('mode') === 'admin') {
+            localStorage.setItem('adm_dev_mode', 'true');
+            alert("✅ Developer Mode Unlocked!");
+            return;
+        }
+        if (!isAdmin) {
+            window.location.href = 'coming-soon.html'; 
+        }
+    })(); 
+</script> 
   <!-- ================= BASIC META ================= -->
   <meta charset="UTF-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
