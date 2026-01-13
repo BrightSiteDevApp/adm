@@ -419,9 +419,9 @@ if ('serviceWorker' in navigator) {
             });
 
 
-            // ✅ This now shuffles and shows only 15 vendors
+            // ✅ This now shuffles and shows only 20 vendors
             
-           const randomVendors = shuffle(allVendors).slice(0, 15); 
+           const randomVendors = shuffle(allVendors).slice(0, 20); 
             renderVendors(randomVendors);
             
             const productsRes = await fetch(`${apiRoot}/Products`);
@@ -444,10 +444,10 @@ if ('serviceWorker' in navigator) {
             });
 
 
-            // 👇👇👇 HERE IS THE NUMBER YOU ARE LOOKING FOR (15) 👇👇👇
+            // 👇👇👇 HERE IS THE NUMBER YOU ARE LOOKING FOR (20) 👇👇👇
 
             const shuffledNormal = shuffle(normal);
-            const displayList = [...featured, ...shuffledNormal].slice(0, 15);
+            const displayList = [...featured, ...shuffledNormal].slice(0, 20);
 
             renderItems(displayList); 
             loadRecentItems();
