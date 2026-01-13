@@ -34,7 +34,6 @@
             box-shadow: 0 10px 25px rgba(0,0,0,0.1);
             width: 90%;
             max-width: 400px;
-            position: relative;
         }
         .logo {
             width: 80px;
@@ -107,9 +106,9 @@
             box-sizing: border-box;
         }
 
-        /* --- INSTALL APP BUTTON STYLES --- */
+        /* INSTALL APP BUTTON */
         #install-container {
-            display: none; /* Hidden by default, shown by JS */
+            display: none; /* Hidden by default */
             margin-top: 20px;
             padding-top: 15px;
             border-top: 1px dashed #ccc;
@@ -133,6 +132,21 @@
         }
         .install-btn:active {
             transform: scale(0.95);
+        }
+
+        /* IOS INSTRUCTIONS */
+        #ios-install-message {
+            display: none;
+            background: #f1f1f1;
+            padding: 10px;
+            border-radius: 10px;
+            margin-top: 15px;
+            border: 1px solid #ccc;
+        }
+        .ios-instructions {
+            font-size: 12px;
+            color: #555;
+            line-height: 1.5;
         }
     </style>
 </head>
@@ -165,50 +179,58 @@
                 <i class="fas fa-download"></i> Install App
             </button>
         </div>
+
+        <div id="ios-install-message">
+            <p class="ios-instructions">
+                <strong>For iPhone Users:</strong><br>
+                1. Tap the <strong>Share</strong> button <i class="fas fa-share-square"></i> below.<br>
+                2. Scroll down and select <strong>"Add to Home Screen"</strong> <i class="far fa-plus-square"></i>.
+            </p>
+        </div>
     </div>
 
     <script>
-        // 1. Register Service Worker
+        // 1. Check if user is on iPhone/iPad to show instructions
+        const isIos = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+        if (isIos) {
+            document.getElementById('ios-install-message').style.display = 'block';
+        }
+
+        // 2. Register Service Worker
         if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('sw.js') // Ensure sw.js is in your root folder
+            navigator.serviceWorker.register('./sw.js')
                 .then(reg => console.log('✅ Service Worker Registered'))
                 .catch(err => console.log('❌ SW Failed:', err));
         }
 
-        // 2. Handle Install Prompt
+        // 3. Handle Install Prompt (Android/Desktop)
         let deferredPrompt;
         const installContainer = document.getElementById('install-container');
         const installBtn = document.getElementById('install-btn');
 
         window.addEventListener('beforeinstallprompt', (e) => {
-            // Prevent Chrome 67 and earlier from automatically showing the prompt
+            // Prevent Chrome from showing the mini-infobar
             e.preventDefault();
-            // Stash the event so it can be triggered later.
             deferredPrompt = e;
-            // Show the install button
-            installContainer.style.display = 'block';
+            // Only show button if NOT on iOS (since iOS uses instructions)
+            if (!isIos) {
+                installContainer.style.display = 'block';
+            }
         });
 
         installBtn.addEventListener('click', async () => {
             if (deferredPrompt) {
-                // Show the install prompt
                 deferredPrompt.prompt();
-                // Wait for the user to respond to the prompt
                 const { outcome } = await deferredPrompt.userChoice;
-                // We've used the prompt, and can't use it again, discard it
                 deferredPrompt = null;
-                // Hide the button
                 installContainer.style.display = 'none';
             }
         });
 
-        // 3. Hide button if already installed
         window.addEventListener('appinstalled', () => {
             installContainer.style.display = 'none';
             console.log('App Installed Successfully');
         });
     </script>
-
-    
 </body>
 </html>
