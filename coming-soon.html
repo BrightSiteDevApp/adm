@@ -167,74 +167,46 @@
         </div>
     </div>
 
-<div id="debug-console" style="background: #000; color: #0f0; padding: 10px; margin-top: 20px; font-family: monospace; font-size: 10px; text-align: left; border-radius: 8px; display: block;">
-        Debug Log:<br>
-    </div>
-
     <script>
-        // 1. Redirect Console Logs to the Screen
-        const debugBox = document.getElementById('debug-console');
-        function logToScreen(msg) {
-            debugBox.innerHTML += `> ${msg}<br>`;
-            console.log(msg);
-        }
-
-        logToScreen("Initializing PWA Check...");
-
-        // 2. Check if Manifest exists
-        fetch('manifest.json')
-            .then(res => {
-                if(res.status === 200) logToScreen("✅ Manifest found!");
-                else logToScreen("❌ Manifest file NOT found (404). Check file name/location.");
-            })
-            .catch(err => logToScreen("❌ Manifest Error: " + err));
-
-        // 3. Register Service Worker
+        // 1. Register Service Worker
         if ('serviceWorker' in navigator) {
-            // Using './sw.js' forces it to look in the CURRENT folder
-            navigator.serviceWorker.register('./sw.js') 
-                .then(reg => {
-                    logToScreen("✅ Service Worker Registered. Scope: " + reg.scope);
-                })
-                .catch(err => {
-                    logToScreen("❌ SW Failed: " + err.message);
-                    logToScreen("⚠️ Is sw.js in the same folder as this HTML file?");
-                });
-        } else {
-            logToScreen("❌ Service Worker not supported in this browser.");
+            navigator.serviceWorker.register('sw.js') // Ensure sw.js is in your root folder
+                .then(reg => console.log('✅ Service Worker Registered'))
+                .catch(err => console.log('❌ SW Failed:', err));
         }
 
-        // 4. Handle Install Prompt
+        // 2. Handle Install Prompt
         let deferredPrompt;
         const installContainer = document.getElementById('install-container');
         const installBtn = document.getElementById('install-btn');
 
         window.addEventListener('beforeinstallprompt', (e) => {
-            logToScreen("✅ beforeinstallprompt Event FIRED! (Button should show)");
+            // Prevent Chrome 67 and earlier from automatically showing the prompt
             e.preventDefault();
+            // Stash the event so it can be triggered later.
             deferredPrompt = e;
+            // Show the install button
             installContainer.style.display = 'block';
         });
 
         installBtn.addEventListener('click', async () => {
             if (deferredPrompt) {
+                // Show the install prompt
                 deferredPrompt.prompt();
+                // Wait for the user to respond to the prompt
                 const { outcome } = await deferredPrompt.userChoice;
-                logToScreen(`User choice: ${outcome}`);
+                // We've used the prompt, and can't use it again, discard it
                 deferredPrompt = null;
+                // Hide the button
                 installContainer.style.display = 'none';
             }
         });
 
+        // 3. Hide button if already installed
         window.addEventListener('appinstalled', () => {
-            logToScreen("✅ App Installed Successfully");
             installContainer.style.display = 'none';
+            console.log('App Installed Successfully');
         });
-
-        // 5. Check if already installed
-        if (window.matchMedia('(display-mode: standalone)').matches) {
-            logToScreen("ℹ️ App is already running in PWA mode.");
-        }
     </script>
 
     
