@@ -1,62 +1,141 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <!-- Google tag (gtag.js) -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-70VSGR5WBW"></script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-70VSGR5WBW"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-70VSGR5WBW');
+  </script>
 
-  gtag('config', 'G-70VSGR5WBW');
-</script>
-
-<script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
-<script>
-  window.OneSignalDeferred = window.OneSignalDeferred || [];
-  OneSignalDeferred.push(async function(OneSignal) {
-    await OneSignal.init({
-      appId: "f62f27b5-a5a3-4018-aade-0a44f357c7e0",
+  <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
+  <script>
+    window.OneSignalDeferred = window.OneSignalDeferred || [];
+    OneSignalDeferred.push(async function(OneSignal) {
+      await OneSignal.init({
+        appId: "f62f27b5-a5a3-4018-aade-0a44f357c7e0",
+      });
     });
-  });
-</script>
+  </script>
+  
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
   
   <title>FAQ | AFIT Digital Market (ADM) Help Center</title>
-  <meta name="description" content="Have questions about AFIT Digital Market? Learn how to buy, sell, and trade safely on campus. Find answers about payments, verification, and vendor rules.">
-  <meta name="keywords" content="AFIT market FAQ, ADM help, how to sell on AFIT, AFIT DGM support, buying guide AFIT, student market questions, AFIT Kaduna marketplace help">
-  <meta name="author" content="BrightSiteDev">
-  <meta name="robots" content="index, follow">
-
-  <meta property="og:type" content="website">
-  <meta property="og:title" content="AFIT Digital Market - Frequently Asked Questions">
-  <meta property="og:description" content="How do I buy? Is it safe? Find all your answers about AFIT's student marketplace here.">
-  <meta property="og:url" content="https://afitdgm.store/faq/">
-  <meta property="og:image" content="https://afitdgm.store/img/logo-blue.png">
-
-  <meta name="twitter:card" content="summary">
-  <meta name="twitter:title" content="FAQ - AFIT Digital Market (ADM)">
-  <meta name="twitter:description" content="Common questions about buying and selling on AFIT Campus. Get help here.">
-  <meta name="twitter:image" content="https://afitdgm.store/img/logo-blue.png">
-
-  <link rel="canonical" href="https://afitdgm.store/faq/">
+  
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link rel="stylesheet" href="../asset/style.css">
   
   <link rel="icon" href="../img/app-logo.png" type="image/png" sizes="32x32">
-<link rel="icon" href="../img/app-logo.png" type="image/png" sizes="192x192">
-<link rel="apple-touch-icon" href="../img/app-logo.png">
-<link rel="shortcut icon" href="../favicon.ico">
-<link rel="icon" href="../img/app-logo1.png">
+  <link rel="icon" href="../img/app-logo.png" type="image/png" sizes="192x192">
+  <link rel="apple-touch-icon" href="../img/app-logo.png">
+  <link rel="shortcut icon" href="../favicon.ico">
+  <link rel="icon" href="../img/app-logo1.png">
+
+  <style>
+      /* --- FAQ ACCORDION ANIMATIONS --- */
+      /* These work with your asset/script.js */
+      
+      .faq-answer {
+          display: none; 
+          padding: 15px;
+          color: #555;
+          font-size: 14px;
+          line-height: 1.5;
+          border-top: 1px solid #eee;
+      }
+
+      /* When script.js adds the 'active' class, this runs */
+      .faq-item.active .faq-answer {
+          display: block;
+          animation: slideDown 0.3s ease-out;
+      }
+
+      @keyframes slideDown {
+          from { opacity: 0; transform: translateY(-10px); }
+          to { opacity: 1; transform: translateY(0); }
+      }
+
+      .faq-question {
+          cursor: pointer;
+          padding: 15px;
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          font-weight: 500;
+          transition: background 0.2s;
+          user-select: none;
+      }
+
+      .faq-question:hover {
+          background-color: #f9f9f9;
+      }
+
+      .arrow {
+          transition: transform 0.3s ease;
+      }
+
+      .faq-item.active .arrow {
+          transform: rotate(90deg);
+      }
+
+      /* --- GENERAL INFORMATION LABEL --- */
+      .faq-header-label {
+          padding: 15px 15px 5px;
+          font-size: 12px;
+          color: #777;
+          font-weight: bold;
+          text-transform: uppercase;
+          background-color: transparent; 
+      }
+
+      /* --- DARK MODE COLOR FIXES --- */
+      
+      /* Fix the Label color */
+      body.dark-mode .faq-header-label {
+          color: #bbb; 
+          background-color: #1a1a1a; 
+      }
+
+      /* Fix the Question Background */
+      body.dark-mode .faq-item {
+          background-color: #2d2d2d;
+          border-bottom: 1px solid #444;
+      }
+
+      body.dark-mode .faq-question {
+          background-color: #2d2d2d;
+          color: #fff;
+      }
+      
+      /* Active/Hover state in Dark Mode */
+      body.dark-mode .faq-question:hover,
+      body.dark-mode .faq-item.active .faq-question {
+          background-color: #3d3d3d; 
+          color: #fff;
+      }
+
+      /* Answer text in Dark Mode */
+      body.dark-mode .faq-answer {
+          background-color: #222; 
+          color: #ddd; 
+          border-top: 1px solid #444;
+      }
+
+      /* Container Background */
+      body.dark-mode .faq-container {
+          background-color: #1a1a1a;
+      }
+  </style>
 </head>
 <body>
     <div id="preloader">
-    <div class="loader-content">
-        <img src="../img/logo-blue.png" alt="Loading..." class="loader-logo">
-        <div class="loading-bar"></div>
+        <div class="loader-content">
+            <img src="../img/logo-blue.png" alt="Loading..." class="loader-logo">
+            <div class="loading-bar"></div>
+        </div>
     </div>
-</div>
 
 
   <div class="app-container">
@@ -69,7 +148,8 @@
     </div>
 
     <div class="faq-container">
-        <div style="padding: 15px 15px 5px; font-size: 12px; color: #777; font-weight: bold; text-transform: uppercase;">
+        
+        <div class="faq-header-label">
             General Information
         </div>
 
@@ -260,7 +340,6 @@
     </div>
 
     <footer class="site-footer">
-    <footer class="site-footer">
         
         <div class="footer-newsletter" style="margin-bottom: 20px; padding-bottom: 20px; border-bottom: 1px solid #444;">
             <h4 style="color: white; margin-bottom: 8px; font-size: 14px;">Join our Community</h4>
@@ -290,7 +369,6 @@
 
 <script src="../asset/script.js"></script>
 
-<!-- Begin of Chaport Live Chat code -->
 <script type="text/javascript">
 (function(w,d,v3){
 w.chaportConfig = {
@@ -299,6 +377,5 @@ appId : '695935cd783cb76f48a392a4',
 
 if(w.chaport)return;v3=w.chaport={};v3._q=[];v3._l={};v3.q=function(){v3._q.push(arguments)};v3.on=function(e,fn){if(!v3._l[e])v3._l[e]=[];v3._l[e].push(fn)};var s=d.createElement('script');s.type='text/javascript';s.async=true;s.src='https://app.chaport.com/javascripts/insert.js';var ss=d.getElementsByTagName('script')[0];ss.parentNode.insertBefore(s,ss)})(window, document);
 </script>
-<!-- End of Chaport Live Chat code -->
 </body>
 </html>

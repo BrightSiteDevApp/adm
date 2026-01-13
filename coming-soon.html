@@ -6,10 +6,10 @@
     <title>Coming Soon | AFIT Digital Market</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="icon" href="img/app-logo.png" type="image/png" sizes="32x32">
-<link rel="icon" href="img/app-logo.png" type="image/png" sizes="192x192">
-<link rel="apple-touch-icon" href="img/app-logo.png">
-<link rel="icon" href="favicon.ico" type="image/x-icon">
-  <link rel="apple-touch-icon" href="img/app-logo.png">
+    <link rel="icon" href="img/app-logo.png" type="image/png" sizes="192x192">
+    <link rel="apple-touch-icon" href="img/app-logo.png">
+    <link rel="icon" href="favicon.ico" type="image/x-icon">
+    
     <style>
         body {
             margin: 0;
@@ -47,6 +47,45 @@
             display: inline-block;
             margin-bottom: 15px;
         }
+        
+        /* --- NEW NOTIFY SECTION STYLES --- */
+        .notify-box {
+            margin-top: 25px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+        }
+        .notify-label {
+            font-size: 14px;
+            font-weight: 600;
+            color: #2d3436;
+            display: block;
+            margin-bottom: 10px;
+        }
+        .input-group {
+            display: flex;
+            gap: 5px;
+        }
+        .email-input {
+            flex: 1;
+            padding: 10px 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            outline: none;
+            font-size: 13px;
+        }
+        .email-input:focus {
+            border-color: #25D366;
+        }
+        .notify-btn {
+            background: #2d3436;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 13px;
+        }
         .social-btn {
             display: inline-block;
             margin-top: 20px;
@@ -56,6 +95,9 @@
             padding: 10px 20px;
             border-radius: 5px;
             font-weight: bold;
+            font-size: 14px;
+            width: 100%; /* Made full width for better look */
+            box-sizing: border-box;
         }
     </style>
 </head>
@@ -66,8 +108,20 @@
         <span class="badge">🚧 UNDER CONSTRUCTION</span>
         <h1>AFIT Digital Market</h1>
         <p>We are currently upgrading the platform to serve you better. The full marketplace will launch soon!</p>
-        <p style="font-size: 13px;">Vendors, get your ID ready.</p>
         
+        <div class="notify-box">
+            <span class="notify-label">🚀 Want to be the first to know when we launch?</span>
+            
+            <form action="https://formsubmit.co/afitdgm@gmail.com" method="POST" class="input-group">
+                <input type="email" name="email" class="email-input" placeholder="Enter your email address" required>
+                <input type="hidden" name="_next" value="https://afitdgm.store/coming-soon.html">
+                <input type="hidden" name="_captcha" value="false">
+                <button type="submit" class="notify-btn">Notify Me</button>
+            </form>
+            
+            <p style="font-size: 11px; color: #999; margin-top: 8px;">We promise not to spam you.</p>
+        </div>
+
         <a href="https://wa.me/2349153375488" class="social-btn">
             <i class="fab fa-whatsapp"></i> Contact Admin
         </a>

@@ -79,9 +79,32 @@
       .sk-text-short { width: 40%; height: 15px; background: #eee; border-radius: 4px; animation: skeleton-loading 1.5s infinite linear; }
       .sk-text-long { width: 90%; height: 15px; background: #eee; border-radius: 4px; animation: skeleton-loading 1.5s infinite linear; }
       .sk-btn { width: 100%; height: 30px; margin-top: auto; background: #eee; border-radius: 6px; animation: skeleton-loading 1.5s infinite linear; }
+
+      /* --- DARK MODE SKELETON FIXES --- */
+      body.dark-mode .sk-container,
+      body.dark-mode .skeleton-card {
+          background: #222; /* Dark Gray Background */
+          border: 1px solid #333; /* Subtle Border */
+          box-shadow: none;
+      }
+
+      body.dark-mode .skeleton-pulse,
+      body.dark-mode .sk-img-rect,
+      body.dark-mode .sk-text-short,
+      body.dark-mode .sk-text-long,
+      body.dark-mode .sk-btn {
+          background-color: #333; /* Darker Base */
+          background-image: linear-gradient(90deg, #333, #444, #333); /* Darker Pulse */
+      }
   </style>
 </head>
 <body data-page="vendor-profile">
+
+  <script>
+    if (localStorage.getItem('theme') === 'dark') {
+      document.body.classList.add('dark-mode');
+    }
+  </script>
 
   <div class="app-container">
     
