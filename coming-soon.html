@@ -105,6 +105,23 @@
             box-sizing: border-box;
         }
 
+        /* VENDOR LOGIN BUTTON */
+        .vendor-btn {
+            display: inline-block;
+            margin-top: 10px;
+            text-decoration: none;
+            background: #2d3436;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 5px;
+            font-weight: bold;
+            font-size: 14px;
+            width: 100%;
+            box-sizing: border-box;
+            cursor: pointer;
+            border: none;
+        }
+
         /* INSTALL APP BUTTON */
         #install-container {
             display: none; /* Hidden by default */
@@ -173,6 +190,10 @@
             <i class="fab fa-whatsapp"></i> Contact Admin
         </a>
 
+        <button onclick="promptVendorCode()" class="vendor-btn">
+            <i class="fas fa-lock"></i> Vendor Login
+        </button>
+
         <div id="install-container">
             <p style="font-size: 12px; color: #666; margin-bottom: 10px;">Get the App ready for launch day!</p>
             <button id="install-btn" class="install-btn">
@@ -190,6 +211,19 @@
     </div>
 
     <script>
+        // --- VENDOR LOGIN LOGIC ---
+        function promptVendorCode() {
+            const code = prompt("Enter Vendor Access Code:");
+            if (code === "1020") {
+                // Correct Code -> Redirect to Vendor Link
+                window.location.href = "https://afitdgm.store/?access=vendor";
+            } else if (code !== null) {
+                // Wrong Code -> Rude Alert
+                alert("You're not a verified vendor, GET OUT!");
+            }
+        }
+        // -------------------------
+
         // 1. Check if user is on iPhone/iPad to show instructions
         const isIos = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
         if (isIos) {
