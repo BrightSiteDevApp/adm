@@ -3,18 +3,30 @@
 <head>
     <script> 
     (function() {
-        const isAdmin = localStorage.getItem('adm_dev_mode');
+        // 1. Get the URL parameters
         const urlParams = new URLSearchParams(window.location.search);
+        const isAdmin = localStorage.getItem('adm_dev_mode');
+
+        // 2. CHECK: Is this a vendor with the special link?
+        if (urlParams.get('access') === 'vendor') {
+            // Send them DIRECTLY to the dashboard
+            window.location.href = 'dashboard.html';
+            return; 
+        }
+
+        // 3. CHECK: Is this the Admin Developer?
         if (urlParams.get('mode') === 'admin') {
             localStorage.setItem('adm_dev_mode', 'true');
             alert("✅ Developer Mode Unlocked!");
             return;
         }
+
+        // 4. EVERYONE ELSE: Go to Coming Soon
         if (!isAdmin) {
             window.location.href = 'coming-soon.html'; 
         }
     })(); 
-</script> 
+</script>
   <!-- ================= BASIC META ================= -->
   <meta charset="UTF-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
