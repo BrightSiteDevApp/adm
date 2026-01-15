@@ -12,6 +12,16 @@
     <link rel="icon" href="favicon.ico" type="image/x-icon">
 
   <style>
+      /* LOAD MORE BUTTON */
+      #load-more-container { text-align: center; margin: 20px 0 40px; display: none; }
+      #load-more-btn {
+          background: #333; color: white; border: none; padding: 10px 25px;
+          border-radius: 30px; font-weight: bold; cursor: pointer;
+          box-shadow: 0 4px 10px rgba(0,0,0,0.1); transition: transform 0.2s;
+      }
+      #load-more-btn:active { transform: scale(0.95); }
+      body.dark-mode #load-more-btn { background: #444; }
+
       /* --- SKELETON LOADING STYLES --- */
       @keyframes skeleton-loading {
           0% { background-position: -200px 0; }
@@ -57,11 +67,13 @@
         <div id="saved-skeleton" class="trending-grid" style="padding: 15px;">
             <div class="skeleton-card"><div class="sk-img-rect"></div><div class="sk-text-short"></div><div class="sk-text-long"></div><div class="sk-btn"></div></div>
             <div class="skeleton-card"><div class="sk-img-rect"></div><div class="sk-text-short"></div><div class="sk-text-long"></div><div class="sk-btn"></div></div>
-            <div class="skeleton-card"><div class="sk-img-rect"></div><div class="sk-text-short"></div><div class="sk-text-long"></div><div class="sk-btn"></div></div>
-            <div class="skeleton-card"><div class="sk-img-rect"></div><div class="sk-text-short"></div><div class="sk-text-long"></div><div class="sk-btn"></div></div>
         </div>
 
         <div id="saved-grid" class="trending-grid" style="padding: 15px; display:none;">
+        </div>
+
+        <div id="load-more-container">
+            <button id="load-more-btn">Load More</button>
         </div>
 
         <div id="empty-state" style="display:none; text-align:center; padding:50px; color:#888;">
@@ -77,7 +89,7 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getAuth, onAuthStateChanged } 
         from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-        import { getFirestore, collection, getDocs, doc, deleteDoc } 
+        import { getFirestore, collection, getDocs, doc, deleteDoc, query, limit, startAfter, orderBy } 
         from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
         // CONFIG
@@ -100,20 +112,28 @@
         const ADMIN_PHONE = "2348144516127";
         let globalPhoneBook = {};
 
+        // PAGINATION VARS
+        let lastVisibleDoc = null;
+        let isFetching = false;
+        const BATCH_SIZE = 10;
+
         // 1. Check Login
         onAuthStateChanged(auth, (user) => {
             if (user) {
-                // If logged in, fetch vendors first (for phone numbers), then fetch saved items
                 loadPhoneBook().then(() => {
-                    loadSavedItems(user.uid);
+                    loadNextBatch(user.uid);
+                });
+                
+                // Load More Listener
+                document.getElementById('load-more-btn').addEventListener('click', () => {
+                    loadNextBatch(user.uid);
                 });
             } else {
-                // If not logged in, go to login
                 window.location.href = "login.html";
             }
         });
 
-        // 2. Fetch Phonebook from Sheet (So buttons work)
+        // 2. Fetch Phonebook
         async function loadPhoneBook() {
             try {
                 const res = await fetch(`${apiRoot}/Vendors`);
@@ -123,51 +143,69 @@
                     const vPhone = v.whatsapp || v.Whatsapp;
                     if(vID) globalPhoneBook[vID] = String(vPhone).replace(/[^0-9]/g, '');
                 });
-            } catch (err) {
-                console.error("Error loading phonebook:", err);
-            }
+            } catch (err) { console.error("Error loading phonebook:", err); }
         }
 
-        // 3. Fetch Saved Items from Firestore
-        async function loadSavedItems(uid) {
+        // 3. Fetch Saved Items (Paginated)
+        async function loadNextBatch(uid) {
+            if (isFetching) return;
+            isFetching = true;
+
             const grid = document.getElementById('saved-grid');
             const skeleton = document.getElementById('saved-skeleton');
             const emptyState = document.getElementById('empty-state');
+            const loadBtnDiv = document.getElementById('load-more-container');
+            const loadBtn = document.getElementById('load-more-btn');
+
+            loadBtn.innerText = "Loading...";
 
             try {
-                const querySnapshot = await getDocs(collection(db, "users", uid, "saved_items"));
+                let q;
+                const colRef = collection(db, "users", uid, "saved_items");
+
+                if (lastVisibleDoc) {
+                    // Load next batch
+                    q = query(colRef, limit(BATCH_SIZE), startAfter(lastVisibleDoc));
+                } else {
+                    // First load
+                    q = query(colRef, limit(BATCH_SIZE));
+                }
+
+                const querySnapshot = await getDocs(q);
                 
+                // HIDE SKELETON ON FIRST LOAD
+                if(!lastVisibleDoc) skeleton.style.display = 'none';
+
                 if (querySnapshot.empty) {
-                    skeleton.style.display = 'none'; // Hide skeleton
-                    emptyState.style.display = 'block';
+                    loadBtnDiv.style.display = 'none'; // No more items
+                    if (!lastVisibleDoc) {
+                        emptyState.style.display = 'block'; // Truly empty
+                    }
+                    isFetching = false;
                     return;
                 }
 
-                grid.innerHTML = "";
+                lastVisibleDoc = querySnapshot.docs[querySnapshot.docs.length - 1];
+                grid.style.display = 'grid';
 
                 querySnapshot.forEach((docSnap) => {
                     const data = docSnap.data();
-                    const pID = docSnap.id; // The ID we used to save it
+                    const pID = docSnap.id;
                     const pName = data.name;
                     const pPrice = data.price;
                     const pVendor = data.vendor;
                     let pImage = data.image;
 
-                    // Fix Image URL
                     const img = pImage.startsWith('http') ? pImage : `img/${pImage}`;
-
-                    // Get Phone
                     const vendorPhone = globalPhoneBook[pVendor] || ADMIN_PHONE;
                     const waLink = `https://wa.me/${vendorPhone}?text=${encodeURIComponent(`Hi, I saw "${pName}" on AFIT Market. Is it available?`)}`;
 
                     grid.innerHTML += `
                     <div class="ad-card" id="card-${pID}" style="position:relative;">
-                        
                         <button onclick="removeSavedItem('${pID}')" 
                                 style="position:absolute; top:10px; right:10px; background:rgba(255,255,255,0.9); border:none; border-radius:50%; width:30px; height:30px; display:flex; align-items:center; justify-content:center; cursor:pointer; box-shadow:0 2px 5px rgba(0,0,0,0.1); z-index:10;">
                             <i class="fas fa-trash-alt" style="color:#ff4757; font-size:14px;"></i>
                         </button>
-
                         <img class="ad-img" src="${img}" alt="${pName}" onerror="this.src='img/logo-blue.png'">
                         <div class="ad-info">
                             <div class="ad-price">${pPrice}</div>
@@ -178,34 +216,32 @@
                     </div>`;
                 });
 
-                // HIDE SKELETON, SHOW GRID
-                skeleton.style.display = 'none';
-                grid.style.display = 'grid';
+                // Show button if we got a full batch (meaning there might be more)
+                if (querySnapshot.size < BATCH_SIZE) {
+                    loadBtnDiv.style.display = 'none';
+                } else {
+                    loadBtnDiv.style.display = 'block';
+                    loadBtn.innerText = "Load More";
+                }
 
             } catch (err) {
-                console.error("Error loading saved items:", err);
-                skeleton.style.display = 'none';
-                grid.innerHTML = "<p style='width:100%; text-align:center;'>Error loading items.</p>";
-                grid.style.display = 'block';
+                console.error("Error loading items:", err);
+                if(!lastVisibleDoc) grid.innerHTML = "<p style='width:100%; text-align:center;'>Error loading items.</p>";
             }
+            isFetching = false;
         }
 
         // 4. Global Function to Remove Item
         window.removeSavedItem = async function(docID) {
             if(!confirm("Remove this item?")) return;
-
             const user = auth.currentUser;
             if(!user) return;
 
-            // Remove from screen immediately
             const card = document.getElementById(`card-${docID}`);
             if(card) card.style.opacity = "0.5";
 
             try {
-                // Remove from Database
                 await deleteDoc(doc(db, "users", user.uid, "saved_items", docID));
-                
-                // Animate removal
                 if(card) {
                     card.style.transform = "scale(0)";
                     setTimeout(() => card.remove(), 300);
@@ -215,8 +251,6 @@
                 if(card) card.style.opacity = "1";
             }
         }
-
     </script>
-
 </body>
 </html>

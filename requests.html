@@ -21,7 +21,7 @@
             display: flex; justify-content: space-between; align-items: center;
             transition: background 0.3s;
         }
-        .req-list { max-width: 600px; margin: 20px auto; padding: 0 15px; padding-bottom: 80px; }
+        .req-list { max-width: 600px; margin: 20px auto; padding: 0 15px; padding-bottom: 20px; }
         
         .req-card {
             background: white;
@@ -43,7 +43,7 @@
             text-decoration: none; display: inline-flex; align-items: center; gap: 5px;
         }
 
-        /* FAB (Floating Add Button) */
+        /* FAB */
         .fab-add {
             position: fixed; bottom: 25px; right: 25px;
             background: #2d8eff; color: white;
@@ -78,20 +78,25 @@
             cursor: pointer; display: flex; justify-content: center; align-items: center;
         }
 
-        /* 🌙 DARK MODE STYLES (Added) */
+        /* LOAD MORE BUTTON */
+        #load-more-container { text-align: center; margin-bottom: 80px; display: none; }
+        #load-more-btn {
+            background: #333; color: white; border: none; padding: 10px 25px;
+            border-radius: 30px; font-weight: bold; cursor: pointer;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+
+        /* 🌙 DARK MODE */
         body.dark-mode { background-color: #121212; color: #fff; }
-        
         body.dark-mode .req-header { background-color: #1e1e1e; color: #fff; border-bottom: 1px solid #333; }
         body.dark-mode .req-header a { color: #fff !important; }
-        
         body.dark-mode .req-card { background-color: #1e1e1e; color: #fff; }
         body.dark-mode .req-title { color: #fff; }
         body.dark-mode .req-budget { background-color: #2d3436; }
-        
         body.dark-mode .modal-content { background-color: #1e1e1e; color: #fff; }
         body.dark-mode .form-input { background-color: #333; border-color: #444; color: #fff; }
-        
         body.dark-mode #role-badge { background-color: #222 !important; color: #aaa !important; }
+        body.dark-mode #load-more-btn { background: #444; }
     </style>
 </head>
 <body>
@@ -116,6 +121,10 @@
         </div>
     </div>
 
+    <div id="load-more-container">
+        <button id="load-more-btn">Load More</button>
+    </div>
+
     <div class="fab-add" onclick="openModal()">
         <i class="fas fa-plus"></i>
     </div>
@@ -137,10 +146,9 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-        import { getFirestore, collection, addDoc, getDocs, query, where, orderBy, deleteDoc, doc } 
+        import { getFirestore, collection, addDoc, getDocs, query, where, orderBy, deleteDoc, doc, limit, startAfter } 
         from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-        // FIREBASE CONFIG
         const firebaseConfig = {
             apiKey: "AIzaSyA1eQbrJpH9OtDNDN7z9oTFTRSAE7vCFbg",
             authDomain: "afit-market-auth.firebaseapp.com",
@@ -154,42 +162,50 @@
         const auth = getAuth(app);
         const db = getFirestore(app);
 
-        // CONFIG
         const ADMIN_EMAIL = "afitdgm@gmail.com";
         const SHEET_API = "https://opensheet.elk.sh/1SvVUbEnDgqgw2Z_M1ShQkzyFTsnnS6n8mTs7UMXVvF4/Vendors";
         
         let currentUser = null;
         let isSuperAdmin = false;
+        let currentMode = 'all'; // 'all' or 'mine'
+        
+        // Pagination
+        let lastVisibleDoc = null;
+        let isFetching = false;
+        const BATCH_SIZE = 10;
 
         onAuthStateChanged(auth, async (user) => {
             if (user) {
                 currentUser = user;
                 isSuperAdmin = user.email.toLowerCase() === ADMIN_EMAIL.toLowerCase();
                 
-                // 1. Check Role
                 const roleText = document.getElementById('role-badge');
                 
                 if (isSuperAdmin) {
                     roleText.innerHTML = "👑 Admin Mode: Viewing All Requests";
-                    loadRequests('all');
+                    resetAndLoad('all');
                 } else {
-                    // Check if Vendor
                     checkIfVendor(user.email).then(isVendor => {
                         if (isVendor) {
                             roleText.innerHTML = "🏪 Vendor Mode: Viewing Potential Customers";
-                            loadRequests('all'); // Vendors see EVERYTHING
+                            resetAndLoad('all');
                         } else {
                             roleText.innerHTML = "🎓 Student Mode: Viewing Your Requests Only";
-                            loadRequests('mine'); // Students see ONLY THEIRS
+                            resetAndLoad('mine');
                         }
                     });
                 }
+
+                // Setup Load More
+                document.getElementById('load-more-btn').addEventListener('click', () => {
+                    loadNextBatch();
+                });
+
             } else {
                 window.location.href = "login.html";
             }
         });
 
-        // CHECK VENDOR STATUS
         async function checkIfVendor(email) {
             try {
                 const res = await fetch(SHEET_API);
@@ -198,45 +214,71 @@
             } catch (e) { return false; }
         }
 
-        // LOAD REQUESTS
-        async function loadRequests(mode) {
-            const container = document.getElementById('requests-container');
-            container.innerHTML = "";
-            
-            try {
-                let q;
-                const reqRef = collection(db, "public_requests");
+        // Resets pagination and clears container
+        function resetAndLoad(mode) {
+            currentMode = mode;
+            lastVisibleDoc = null;
+            document.getElementById('requests-container').innerHTML = "";
+            loadNextBatch();
+        }
 
-                if (mode === 'all') {
-                    // Admin/Vendor: Get ALL, newest first
-                    q = query(reqRef, orderBy("timestamp", "desc"));
+        async function loadNextBatch() {
+            if(isFetching) return;
+            isFetching = true;
+
+            const container = document.getElementById('requests-container');
+            const loadBtnDiv = document.getElementById('load-more-container');
+            const loadBtn = document.getElementById('load-more-btn');
+            loadBtn.innerText = "Loading...";
+
+            try {
+                const reqRef = collection(db, "public_requests");
+                let q;
+
+                // Build Query
+                if (currentMode === 'all') {
+                    if (lastVisibleDoc) {
+                        q = query(reqRef, orderBy("timestamp", "desc"), startAfter(lastVisibleDoc), limit(BATCH_SIZE));
+                    } else {
+                        q = query(reqRef, orderBy("timestamp", "desc"), limit(BATCH_SIZE));
+                    }
                 } else {
-                    // Student: Get ONLY theirs
-                    q = query(reqRef, where("userId", "==", currentUser.uid));
+                    // 'mine' mode - needs composite index if filtering AND ordering
+                    // For now, simpler filtering for student mode without strict ordering to avoid index errors
+                    // Or ordering if index exists. Let's assume index exists or data is small.
+                    if (lastVisibleDoc) {
+                        q = query(reqRef, where("userId", "==", currentUser.uid), orderBy("timestamp", "desc"), startAfter(lastVisibleDoc), limit(BATCH_SIZE));
+                    } else {
+                        q = query(reqRef, where("userId", "==", currentUser.uid), orderBy("timestamp", "desc"), limit(BATCH_SIZE));
+                    }
                 }
 
                 const snapshot = await getDocs(q);
 
                 if (snapshot.empty) {
-                    container.innerHTML = `
-                        <div style="text-align:center; padding:50px; color:#aaa;">
-                            <i class="fas fa-inbox" style="font-size:40px; margin-bottom:10px;"></i>
-                            <p>${mode === 'all' ? "No active requests." : "You haven't posted any requests."}</p>
-                        </div>`;
+                    if (!lastVisibleDoc) {
+                        container.innerHTML = `
+                            <div style="text-align:center; padding:50px; color:#aaa;">
+                                <i class="fas fa-inbox" style="font-size:40px; margin-bottom:10px;"></i>
+                                <p>${currentMode === 'all' ? "No active requests." : "You haven't posted any requests."}</p>
+                            </div>`;
+                    }
+                    loadBtnDiv.style.display = 'none';
+                    isFetching = false;
                     return;
                 }
+
+                lastVisibleDoc = snapshot.docs[snapshot.docs.length - 1];
 
                 snapshot.forEach(docSnap => {
                     const d = docSnap.data();
                     const isOwner = d.userId === currentUser.uid;
                     
-                    // Format Date
                     let timeString = "Just now";
                     if(d.timestamp) {
                         timeString = new Date(d.timestamp.seconds * 1000).toLocaleDateString();
                     }
 
-                    // Delete Button Logic (Owner OR Admin can delete)
                     let deleteBtn = "";
                     if (isOwner || isSuperAdmin) {
                         deleteBtn = `<button class="btn-delete" onclick="deleteRequest('${docSnap.id}')"><i class="fas fa-trash"></i></button>`;
@@ -257,18 +299,25 @@
                     </div>`;
                 });
 
+                if (snapshot.size < BATCH_SIZE) {
+                    loadBtnDiv.style.display = 'none';
+                } else {
+                    loadBtnDiv.style.display = 'block';
+                    loadBtn.innerText = "Load More";
+                }
+
             } catch (err) {
                 console.error(err);
-                container.innerHTML = "<p style='text-align:center; color:red;'>Error loading requests.</p>";
+                if(!lastVisibleDoc) container.innerHTML = "<p style='text-align:center; color:red;'>Error loading requests.</p>";
             }
+            isFetching = false;
         }
 
-        // SUBMIT REQUEST
         window.submitRequest = async function() {
             const title = document.getElementById('req-title').value;
             const budget = document.getElementById('req-budget').value;
             const phone = document.getElementById('req-phone').value;
-            const btn = document.querySelector('.chat-btn'); // The submit button
+            const btn = document.querySelector('.chat-btn');
 
             if(!title || !budget || !phone) { alert("Please fill all fields"); return; }
 
@@ -296,7 +345,6 @@
             }
         };
 
-        // DELETE REQUEST
         window.deleteRequest = async function(docID) {
             if(!confirm("Delete this request?")) return;
             try {
@@ -305,7 +353,6 @@
             } catch(e) { alert("Error deleting."); }
         }
 
-        // UI HELPERS
         window.openModal = () => document.getElementById('request-modal').style.display = 'flex';
         window.closeModal = () => document.getElementById('request-modal').style.display = 'none';
 

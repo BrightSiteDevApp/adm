@@ -22,9 +22,25 @@
   <style>
       /* Hide content until loaded */
       #category-grid { min-height: 50vh; }
+
+      /* LOAD MORE BUTTON */
+      #load-more-container { text-align: center; margin: 30px 0 50px; display: none; }
+      #load-more-btn {
+          background: #333; color: white; border: none; padding: 12px 30px;
+          border-radius: 30px; font-weight: bold; cursor: pointer;
+          box-shadow: 0 4px 10px rgba(0,0,0,0.1); transition: transform 0.2s;
+      }
+      #load-more-btn:active { transform: scale(0.95); }
+
+      /* Dark Mode Fix for Button */
+      body.dark-mode #load-more-btn { background: #444; }
   </style>
 </head>
 <body>
+
+  <script>
+    if (localStorage.getItem('theme') === 'dark') document.body.classList.add('dark-mode');
+  </script>
 
   <div id="preloader">
     <div class="loader-content">
@@ -53,6 +69,10 @@
 
     <div class="trending-grid" id="category-grid">
         <p style="width:100%; text-align:center; padding:20px; color:#999;">Loading items...</p>
+    </div>
+
+    <div id="load-more-container">
+        <button id="load-more-btn">Load More</button>
     </div>
 
     <footer class="site-footer">
@@ -86,6 +106,33 @@
     const apiRoot = `https://opensheet.elk.sh/${sheetID}`;
     const ADMIN_PHONE = "2348144516127"; 
 
+    // --- PAGINATION VARS ---
+    let allCategoryItems = []; 
+    let filteredList = []; 
+    let currentCount = 0;
+    const INITIAL_LOAD = 30;
+    const LOAD_STEP = 20;
+
+    // --- UTILS ---
+    function escapeHTML(str) {
+        if (!str) return "";
+        return String(str)
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#039;");
+    }
+
+    // Fisher-Yates Shuffle Algorithm (True Randomness)
+    function shuffleArray(array) {
+        for (let i = array.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [array[i], array[j]] = [array[j], array[i]];
+        }
+        return array;
+    }
+
     onAuthStateChanged(auth, async (user) => {
         if (user) {
             try {
@@ -106,6 +153,25 @@
     }
 
     document.addEventListener("DOMContentLoaded", async () => {
+        // Setup Load More
+        document.getElementById('load-more-btn').addEventListener('click', renderNextBatch);
+        
+        // Setup Search Listener
+        document.getElementById('cat-search').addEventListener('input', (e) => {
+            const term = e.target.value.toLowerCase();
+            if(!term) {
+                filteredList = allCategoryItems; // Reset to random list
+            } else {
+                // If searching, we show matches (no random shuffle here needed)
+                filteredList = allCategoryItems.filter(p => (p.name || p.Name).toLowerCase().includes(term));
+            }
+            // Reset Rendering
+            currentCount = 0;
+            document.getElementById('category-grid').innerHTML = "";
+            document.getElementById('result-count').innerText = `${filteredList.length} items found`;
+            renderNextBatch();
+        });
+
         const params = new URLSearchParams(window.location.search);
         let category = params.get('cat');
 
@@ -133,75 +199,110 @@
                 const firestoreProducts = await loadFirestoreProducts();
 
                 let combined = [...sheetProducts, ...firestoreProducts];
-                const filteredItems = combined.filter(p => 
+                
+                // Filter by Category
+                let categoryItems = combined.filter(p => 
                     !suspendedVendors.has(p.vendor_id || p.Vendor_ID) &&
                     String(p.category || p.Category).toLowerCase().trim() === category.toLowerCase().trim()
-                );
+                ).map(p => ({
+                    ...p,
+                    phone: phoneBook[p.vendor_id || p.Vendor_ID] || ADMIN_PHONE
+                }));
+
+                // 🎲 SHUFFLE ITEMS HERE (This makes it random every refresh)
+                allCategoryItems = shuffleArray(categoryItems);
+
+                // Initial State
+                filteredList = allCategoryItems;
 
                 const grid = document.getElementById('category-grid');
                 grid.innerHTML = ""; 
-                document.getElementById('result-count').innerText = `${filteredItems.length} items found`;
+                document.getElementById('result-count').innerText = `${filteredList.length} items found`;
 
-                if(filteredItems.length === 0) {
+                if(filteredList.length === 0) {
                     grid.innerHTML = `<div style="grid-column: 1/-1; text-align:center; padding:40px; color:#888;"><p>No ${category} available.</p></div>`;
                     document.getElementById('preloader').style.display = 'none';
+                    document.getElementById('load-more-container').style.display = 'none';
                     return;
                 }
 
-                filteredItems.forEach(p => {
-                    const pName = p.name || p.Name;
-                    const pPrice = p.price || p.Price;
-                    const pDesc = p.description || p.Description || "No description."; 
-                    const pVendor = p.vendor_id || p.Vendor_ID;
-                    const pImage = p.image || p.Image;
-                    const pStatus = p.status || p.Status || "Active";
-                    const pCond = p.condition || "Used";
-                    
-                    const pID = p.id || (pVendor + "-" + pName).replace(/\s+/g, '-').toLowerCase();
-
-                    const img = pImage.startsWith('http') ? pImage : `img/${pImage}`;
-                    const vendorPhone = phoneBook[pVendor] || ADMIN_PHONE;
-                    const isSaved = savedItemIds.has(pID);
-                    const heartClass = isSaved ? 'fas' : 'far';
-                    const heartColor = isSaved ? '#ff4757' : '#777';
-
-                    const safeName = pName.replace(/'/g, "\\'").replace(/"/g, "&quot;");
-                    
-                    // ✅ DIRECT WHATSAPP LINK
-                    const waMsg = encodeURIComponent(`Hi, I saw "${pName}" on AFIT Market. Is it available?`);
-                    const waLink = `https://wa.me/${vendorPhone}?text=${waMsg}`;
-
-                    const isSold = pStatus === "Sold";
-                    const opacity = isSold ? 'opacity:0.6;' : '';
-                    const badge = isSold ? '<span style="background:red; color:white; font-size:9px; padding:2px 5px; position:absolute; top:10px; left:10px; border-radius:4px; z-index:10;">SOLD</span>' : '';
-                    
-                    const btnText = isSold ? "Sold" : "Get Item";
-                    const btnStyle = isSold ? "background:#777; pointer-events:none;" : "";
-                    const btnHref = isSold ? "#" : waLink;
-                    const condBadge = (!isSold && pCond === "New") ? `<span style="background:#00b894; color:white; font-size:9px; padding:2px 5px; border-radius:4px; position:absolute; top:10px; left:10px; z-index:10;">NEW</span>` : '';
-
-                    grid.innerHTML += `
-                    <div class="ad-card" style="position:relative; ${opacity}">
-                        ${badge} ${condBadge}
-                        <button onclick="toggleSave('${pID}', '${safeName}', '${pPrice}', '${pImage}', '${pVendor}')" 
-                                class="save-btn" id="save-${pID}"
-                                style="position:absolute; top:10px; right:10px; background:white; border:none; border-radius:50%; width:30px; height:30px; display:flex; align-items:center; justify-content:center; cursor:pointer; box-shadow:0 2px 5px rgba(0,0,0,0.2); z-index:10;">
-                            <i class="${heartClass} fa-heart" style="color:${heartColor}; font-size:16px;"></i>
-                        </button>
-                        <img class="ad-img" src="${img}" alt="${pName}" onerror="this.src='img/logo-blue.png'">
-                        <div class="ad-info">
-                            <div class="ad-price">${pPrice}</div>
-                            <div class="ad-title">${pName}</div>
-                            <div class="ad-location">Vendor: ${pVendor}</div>
-                            <a href="${btnHref}" target="_blank" class="chat-btn" style="${btnStyle}">${btnText}</a>
-                        </div>
-                    </div>`;
-                });
+                // Render First Batch
+                renderNextBatch();
 
                 document.getElementById('preloader').style.display = 'none';
             } catch (err) { console.error(err); }
         }
     });
+
+    function renderNextBatch() {
+        const grid = document.getElementById('category-grid');
+        const loadMoreContainer = document.getElementById('load-more-container');
+        const loadMoreBtn = document.getElementById('load-more-btn');
+
+        // Determine batch size (30 for first, 20 for rest)
+        const batchSize = (currentCount === 0) ? INITIAL_LOAD : LOAD_STEP;
+        const nextItems = filteredList.slice(currentCount, currentCount + batchSize);
+
+        nextItems.forEach(p => {
+            const pName = p.name || p.Name;
+            const pPrice = p.price || p.Price;
+            const pDesc = p.description || p.Description || "No description."; 
+            const pVendor = p.vendor_id || p.Vendor_ID;
+            const pImage = p.image || p.Image;
+            const pStatus = p.status || p.Status || "Active";
+            const pCond = p.condition || "Used";
+            
+            const pID = p.id || (pVendor + "-" + pName).replace(/\s+/g, '-').toLowerCase();
+
+            const img = pImage.startsWith('http') ? pImage : `img/${pImage}`;
+            const isSaved = savedItemIds.has(pID);
+            const heartClass = isSaved ? 'fas' : 'far';
+            const heartColor = isSaved ? '#ff4757' : '#777';
+
+            // Safe Strings
+            const safeNameJS = pName.replace(/'/g, "\\'").replace(/"/g, "&quot;");
+            const safeNameHTML = escapeHTML(pName);
+            const safePrice = escapeHTML(pPrice);
+
+            const waMsg = encodeURIComponent(`Hi, I saw "${pName}" on AFIT Market. Is it available?`);
+            const waLink = `https://wa.me/${p.phone}?text=${waMsg}`;
+
+            const isSold = pStatus === "Sold";
+            const opacity = isSold ? 'opacity:0.6;' : '';
+            const badge = isSold ? '<span style="background:red; color:white; font-size:9px; padding:2px 5px; position:absolute; top:10px; left:10px; border-radius:4px; z-index:10;">SOLD</span>' : '';
+            
+            const btnText = isSold ? "Sold" : "Get Item";
+            const btnStyle = isSold ? "background:#777; pointer-events:none;" : "";
+            const btnHref = isSold ? "#" : waLink;
+            const condBadge = (!isSold && pCond === "New") ? `<span style="background:#00b894; color:white; font-size:9px; padding:2px 5px; border-radius:4px; position:absolute; top:10px; left:10px; z-index:10;">NEW</span>` : '';
+
+            grid.innerHTML += `
+            <div class="ad-card" style="position:relative; ${opacity}">
+                ${badge} ${condBadge}
+                <button onclick="toggleSave('${pID}', '${safeNameJS}', '${safePrice}', '${pImage}', '${pVendor}')" 
+                        class="save-btn" id="save-${pID}"
+                        style="position:absolute; top:10px; right:10px; background:white; border:none; border-radius:50%; width:30px; height:30px; display:flex; align-items:center; justify-content:center; cursor:pointer; box-shadow:0 2px 5px rgba(0,0,0,0.2); z-index:10;">
+                    <i class="${heartClass} fa-heart" style="color:${heartColor}; font-size:16px;"></i>
+                </button>
+                <img class="ad-img" src="${img}" alt="${safeNameHTML}" onerror="this.src='img/logo-blue.png'">
+                <div class="ad-info">
+                    <div class="ad-price">${safePrice}</div>
+                    <div class="ad-title">${safeNameHTML}</div>
+                    <div class="ad-location">Vendor: ${pVendor}</div>
+                    <a href="${btnHref}" target="_blank" class="chat-btn" style="${btnStyle}">${btnText}</a>
+                </div>
+            </div>`;
+        });
+
+        currentCount += nextItems.length;
+
+        if (currentCount >= filteredList.length) {
+            loadMoreContainer.style.display = 'none';
+        } else {
+            loadMoreContainer.style.display = 'block';
+            loadMoreBtn.innerText = "Load More";
+        }
+    }
 
     window.toggleSave = async function(id, name, price, image, vendor) {
         const user = auth.currentUser;

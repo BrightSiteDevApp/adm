@@ -29,6 +29,23 @@
       .status-open { background: #e6fffa !important; color: #00b894 !important; border: 1px solid #00b894; }
       .status-closed { background: #fff5f5 !important; color: #d63031 !important; border: 1px solid #d63031; }
 
+      /* LOAD MORE BUTTON STYLE */
+      #load-more-btn {
+          display: block;
+          margin: 30px auto;
+          background: #333;
+          color: white;
+          border: none;
+          padding: 12px 30px;
+          border-radius: 30px;
+          font-weight: bold;
+          cursor: pointer;
+          transition: transform 0.2s, background 0.2s;
+          box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+      }
+      #load-more-btn:active { transform: scale(0.95); }
+      #load-more-container { text-align: center; width: 100%; margin-bottom: 40px; }
+
       /* --- SKELETON LOADING STYLES --- */
       .skeleton-pulse {
           animation: skeleton-loading 1.5s infinite ease-in-out;
@@ -91,7 +108,8 @@
       body.dark-mode .sk-img-rect,
       body.dark-mode .sk-text-short,
       body.dark-mode .sk-text-long,
-      body.dark-mode .sk-btn {
+      body.dark-mode .sk-btn,
+      body.dark-mode #load-more-btn {
           background-color: #333; /* Darker Base */
           background-image: linear-gradient(90deg, #333, #444, #333); /* Darker Pulse */
       }
@@ -204,10 +222,10 @@
         <h2 class="products-title">Items from this Store</h2>
         
         <div class="trending-grid" id="vendor-grid">
-            <div class="skeleton-card"><div class="sk-img-rect"></div><div class="sk-text-short"></div><div class="sk-text-long"></div><div class="sk-btn"></div></div>
-            <div class="skeleton-card"><div class="sk-img-rect"></div><div class="sk-text-short"></div><div class="sk-text-long"></div><div class="sk-btn"></div></div>
-            <div class="skeleton-card"><div class="sk-img-rect"></div><div class="sk-text-short"></div><div class="sk-text-long"></div><div class="sk-btn"></div></div>
-            <div class="skeleton-card"><div class="sk-img-rect"></div><div class="sk-text-short"></div><div class="sk-text-long"></div><div class="sk-btn"></div></div>
+            </div>
+
+        <div id="load-more-container" style="display: none;">
+            <button id="load-more-btn" onclick="renderBatch()">Load More</button>
         </div>
     </div>
 
@@ -248,9 +266,27 @@
     let savedItemIds = new Set();
     let currentUserEmail = null; 
     let pageVendorEmail = null; 
+    let currentVendorPhone = "";
+    
+    // --- PAGINATION VARIABLES ---
+    let allVendorProducts = []; // Stores ALL fetched products
+    let currentProductIndex = 0; // Tracks how many are shown
+    const BATCH_SIZE = 16; // Load 16 items at a time
+
     const sheetID = "1SvVUbEnDgqgw2Z_M1ShQkzyFTsnnS6n8mTs7UMXVvF4";
     const apiRoot = `https://opensheet.elk.sh/${sheetID}`;
     const ADMIN_PHONE = "2348144516127"; 
+
+    // --- SECURITY: XSS Sanitizer ---
+    function escapeHTML(str) {
+        if (!str) return "";
+        return String(str)
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#039;");
+    }
 
     onAuthStateChanged(auth, async (user) => {
         if (user) {
@@ -273,6 +309,9 @@
     }
 
     document.addEventListener("DOMContentLoaded", () => {
+        // Expose renderBatch to global window scope so HTML button can call it
+        window.renderBatch = renderBatch;
+
         const params = new URLSearchParams(window.location.search);
         let vendorID = params.get('vendor');
         if(vendorID) {
@@ -307,11 +346,9 @@
                     document.getElementById('profile-content').style.display = 'block';
 
                     const rawPhone = v.whatsapp || v.Whatsapp || "";
-                    const cleanPhone = String(rawPhone).replace(/[^0-9]/g, '');
+                    currentVendorPhone = String(rawPhone).replace(/[^0-9]/g, '');
                     
-                    // Load products (The skeleton for products is inside #profile-content now, 
-                    // but since we revealed profile-content, the hardcoded skeletons in grid are visible)
-                    loadProducts(id, cleanPhone); 
+                    loadProducts(id); 
                 }
             })
             .catch(err => { 
@@ -358,58 +395,101 @@
         }
     }
 
-    async function loadProducts(id, vendorPhone) {
+    async function loadProducts(id) {
         fetch(`${apiRoot}/Products`)
         .then(res => res.json())
         .then(async (sheetData) => {
-            const grid = document.getElementById('vendor-grid');
-            
             const firestoreProducts = await loadVendorFirestoreItems(id);
             const allProducts = [...sheetData, ...firestoreProducts];
-            const myProducts = allProducts.filter(p => (p.vendor_id || p.Vendor_ID) === id);
             
-            grid.innerHTML = ""; // This clears the skeleton cards
+            // Store ONLY this vendor's products in the global array
+            allVendorProducts = allProducts.filter(p => (p.vendor_id || p.Vendor_ID) === id);
             
-            if(myProducts.length === 0) { grid.innerHTML = "<p style='width:100%; text-align:center; padding:20px; color:#777;'>No items listed yet.</p>"; return; }
+            const grid = document.getElementById('vendor-grid');
+            grid.innerHTML = ""; // Clear any placeholders
             
-            myProducts.forEach(p => {
-                const pName = p.name || p.Name; const pPrice = p.price || p.Price; const pCategory = p.category || p.Category; const pImage = p.image || p.Image;
-                const pDesc = p.description || p.Description || "No description.";
-                const pStatus = p.status || p.Status || "Active"; 
-                const isFeatured = p.is_featured === "true"; 
-                
-                const pID = p.id || (id + "-" + pName).replace(/\s+/g, '-').toLowerCase();
-                let pImg = pImage || "logo-blue.png"; if (!pImg.startsWith('http')) pImg = `img/${pImg}`;
-                const isSaved = savedItemIds.has(pID); const heartClass = isSaved ? 'fas' : 'far'; const heartColor = isSaved ? '#ff4757' : '#777';
-
-                const isSold = pStatus === "Sold";
-                const opacity = isSold ? 'opacity:0.6;' : '';
-                let badge = '';
-                if (isSold) badge = '<span style="background:red; color:white; font-size:9px; padding:2px 5px; position:absolute; top:10px; left:10px; border-radius:4px; z-index:10;">SOLD</span>';
-                else if (isFeatured) badge = '<span style="background:#f1c40f; color:white; font-size:9px; padding:2px 5px; position:absolute; top:10px; left:10px; border-radius:4px; z-index:10; font-weight:bold;">⭐ Sponsored</span>';
-
-                const safeName = pName.replace(/'/g, "\\'").replace(/"/g, "&quot;");
-                const waMsg = encodeURIComponent(`Hi, I saw "${pName}" on AFIT Market. Is it available?`);
-                const waLink = `https://wa.me/${vendorPhone}?text=${waMsg}`;
-                
-                const btnText = isSold ? "Sold" : "Get Item";
-                const btnStyle = isSold ? "background:#777; pointer-events:none;" : "";
-                const btnHref = isSold ? "#" : waLink;
-
-                grid.innerHTML += `
-                <div class="ad-card" style="position:relative; ${opacity}">
-                    ${badge}
-                    <button onclick="toggleSave('${pID}', '${safeName}', '${pPrice}', '${pImage}', '${id}')" class="save-btn" id="save-${pID}" style="position:absolute; top:10px; right:10px; background:white; border:none; border-radius:50%; width:30px; height:30px; display:flex; align-items:center; justify-content:center; cursor:pointer; box-shadow:0 2px 5px rgba(0,0,0,0.2); z-index:10;"><i class="${heartClass} fa-heart" style="color:${heartColor}; font-size:16px;"></i></button>
-                    
-                    <img class="ad-img" src="${pImg}" alt="${pName}" onerror="this.src='img/logo-blue.png'">
-                    
-                    <div class="ad-info">
-                        <div class="ad-price">${pPrice}</div><div class="ad-title">${pName}</div><div class="ad-location">Category: ${pCategory}</div>
-                        <a href="${btnHref}" target="_blank" class="chat-btn" style="${btnStyle}">${btnText}</a>
-                    </div>
-                </div>`;
-            });
+            if(allVendorProducts.length === 0) { 
+                grid.innerHTML = "<p style='width:100%; text-align:center; padding:20px; color:#777;'>No items listed yet.</p>"; 
+                document.getElementById('load-more-container').style.display = 'none';
+                return; 
+            }
+            
+            // START RENDERING THE FIRST BATCH
+            renderBatch();
         });
+    }
+
+    function renderBatch() {
+        const grid = document.getElementById('vendor-grid');
+        const loadMoreBtn = document.getElementById('load-more-btn');
+        const loadMoreContainer = document.getElementById('load-more-container');
+
+        // Calculate end index for this batch
+        const nextIndex = currentProductIndex + BATCH_SIZE;
+        const productsToShow = allVendorProducts.slice(currentProductIndex, nextIndex);
+
+        // Loop through and append items
+        productsToShow.forEach(p => {
+            const pName = p.name || p.Name; 
+            const pPrice = p.price || p.Price; 
+            const pCategory = p.category || p.Category; 
+            const pImage = p.image || p.Image;
+            const pStatus = p.status || p.Status || "Active"; 
+            const isFeatured = p.is_featured === "true"; 
+            
+            // Generate a safe ID for saving
+            const pID = p.id || (p.vendor_id + "-" + pName).replace(/\s+/g, '-').toLowerCase();
+            let pImg = pImage || "logo-blue.png"; 
+            if (!pImg.startsWith('http')) pImg = `img/${pImg}`;
+            
+            const isSaved = savedItemIds.has(pID); 
+            const heartClass = isSaved ? 'fas' : 'far'; 
+            const heartColor = isSaved ? '#ff4757' : '#777';
+
+            const isSold = pStatus === "Sold";
+            const opacity = isSold ? 'opacity:0.6;' : '';
+            let badge = '';
+            if (isSold) badge = '<span style="background:red; color:white; font-size:9px; padding:2px 5px; position:absolute; top:10px; left:10px; border-radius:4px; z-index:10;">SOLD</span>';
+            else if (isFeatured) badge = '<span style="background:#f1c40f; color:white; font-size:9px; padding:2px 5px; position:absolute; top:10px; left:10px; border-radius:4px; z-index:10; font-weight:bold;">⭐ Sponsored</span>';
+
+            // Sanitize Strings for JS function calls (onclick)
+            const safeNameJS = pName.replace(/'/g, "\\'").replace(/"/g, "&quot;");
+            
+            // Encode for WhatsApp
+            const waMsg = encodeURIComponent(`Hi, I saw "${pName}" on AFIT Market. Is it available?`);
+            const waLink = `https://wa.me/${currentVendorPhone}?text=${waMsg}`;
+            
+            const btnText = isSold ? "Sold" : "Get Item";
+            const btnStyle = isSold ? "background:#777; pointer-events:none;" : "";
+            const btnHref = isSold ? "#" : waLink;
+
+            // USE ESCAPEHTML FOR DISPLAY TO PREVENT XSS
+            grid.innerHTML += `
+            <div class="ad-card" style="position:relative; ${opacity}">
+                ${badge}
+                <button onclick="toggleSave('${pID}', '${safeNameJS}', '${pPrice}', '${pImage}', '${p.vendor_id || p.Vendor_ID}')" class="save-btn" id="save-${pID}" style="position:absolute; top:10px; right:10px; background:white; border:none; border-radius:50%; width:30px; height:30px; display:flex; align-items:center; justify-content:center; cursor:pointer; box-shadow:0 2px 5px rgba(0,0,0,0.2); z-index:10;"><i class="${heartClass} fa-heart" style="color:${heartColor}; font-size:16px;"></i></button>
+                
+                <img class="ad-img" src="${pImg}" alt="${escapeHTML(pName)}" onerror="this.src='img/logo-blue.png'">
+                
+                <div class="ad-info">
+                    <div class="ad-price">${escapeHTML(pPrice)}</div>
+                    <div class="ad-title">${escapeHTML(pName)}</div>
+                    <div class="ad-location">Category: ${escapeHTML(pCategory)}</div>
+                    <a href="${btnHref}" target="_blank" class="chat-btn" style="${btnStyle}">${btnText}</a>
+                </div>
+            </div>`;
+        });
+
+        // Update current index
+        currentProductIndex = nextIndex;
+
+        // Handle "Load More" visibility
+        if (currentProductIndex >= allVendorProducts.length) {
+            loadMoreContainer.style.display = 'none'; // No more items
+        } else {
+            loadMoreContainer.style.display = 'block'; // Still items left
+            loadMoreBtn.innerText = "Load More"; // Reset button text
+        }
     }
 
     async function loadVendorFirestoreItems(vid) {
