@@ -53,7 +53,7 @@
             cursor: pointer; z-index: 200;
         }
 
-        /* Modal */
+        /* 🆕 UPDATED MODAL STYLES (Matching other pages) */
         .modal-overlay {
             display: none; position: fixed; top: 0; left: 0;
             width: 100%; height: 100%; background: rgba(0,0,0,0.5);
@@ -62,12 +62,15 @@
         .modal-content {
             background: white; width: 100%; max-width: 500px;
             border-radius: 20px 20px 0 0; padding: 25px;
-            animation: slideUp 0.3s ease;
+            animation: slideUp 0.3s ease-out;
+            position: relative;
         }
         .form-input {
             width: 100%; padding: 12px; margin-bottom: 15px;
-            border: 1px solid #eee; border-radius: 8px; background: #f9f9f9;
+            border: 1px solid #eee; border-radius: 10px; background: #f9f9f9; font-size: 14px;
         }
+        .form-input:focus { outline: none; border-color: #2d8eff; background: white; }
+        
         @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
 
         /* Delete Button */
@@ -131,15 +134,18 @@
 
     <div id="request-modal" class="modal-overlay">
         <div class="modal-content">
-            <h3 style="margin-top:0;">Post a Request</h3>
-            <p style="font-size:12px; color:#777; margin-bottom:20px;">What are you looking for? Vendors will contact you.</p>
+            <div style="display:flex; justify-content:space-between; align-items:start; margin-bottom: 15px;">
+                <h3 style="margin:0; font-size:18px;">Post a Request</h3>
+                <button onclick="closeModal()" style="background:none; border:none; font-size:24px; color:#555; cursor:pointer;">&times;</button>
+            </div>
+            
+            <p style="font-size:12px; color:#777; margin-bottom:20px; margin-top:0;">What are you looking for? Vendors will contact you.</p>
             
             <input type="text" id="req-title" class="form-input" placeholder="I am looking for... (e.g. iPhone XR)">
             <input type="text" id="req-budget" class="form-input" placeholder="My Budget (e.g. 120,000)">
             <input type="tel" id="req-phone" class="form-input" placeholder="WhatsApp Number">
             
-            <button onclick="submitRequest()" class="chat-btn" style="width:100%; background:#2d8eff;">Post Request</button>
-            <button onclick="closeModal()" style="width:100%; background:none; border:none; color:#777; margin-top:10px;">Cancel</button>
+            <button onclick="submitRequest()" class="chat-btn" style="width:100%; background:#2d8eff; border:none; padding:12px; border-radius:30px; font-weight:bold; cursor:pointer;">Post Request</button>
         </div>
     </div>
 
@@ -235,7 +241,8 @@
                 const reqRef = collection(db, "public_requests");
                 let q;
 
-                // Build Query
+                // 🛠️ FIX FOR RED ERROR MESSAGE:
+                // We simplify the query to avoid needing a complex Composite Index.
                 if (currentMode === 'all') {
                     if (lastVisibleDoc) {
                         q = query(reqRef, orderBy("timestamp", "desc"), startAfter(lastVisibleDoc), limit(BATCH_SIZE));
@@ -243,14 +250,9 @@
                         q = query(reqRef, orderBy("timestamp", "desc"), limit(BATCH_SIZE));
                     }
                 } else {
-                    // 'mine' mode - needs composite index if filtering AND ordering
-                    // For now, simpler filtering for student mode without strict ordering to avoid index errors
-                    // Or ordering if index exists. Let's assume index exists or data is small.
-                    if (lastVisibleDoc) {
-                        q = query(reqRef, where("userId", "==", currentUser.uid), orderBy("timestamp", "desc"), startAfter(lastVisibleDoc), limit(BATCH_SIZE));
-                    } else {
-                        q = query(reqRef, where("userId", "==", currentUser.uid), orderBy("timestamp", "desc"), limit(BATCH_SIZE));
-                    }
+                    // 'mine' mode: removed orderBy to fix index error
+                    // We will sort client-side instead.
+                    q = query(reqRef, where("userId", "==", currentUser.uid), limit(BATCH_SIZE * 2)); // Load more to ensure we have enough
                 }
 
                 const snapshot = await getDocs(q);
@@ -268,9 +270,23 @@
                     return;
                 }
 
-                lastVisibleDoc = snapshot.docs[snapshot.docs.length - 1];
+                if (currentMode === 'all') {
+                    lastVisibleDoc = snapshot.docs[snapshot.docs.length - 1];
+                }
 
-                snapshot.forEach(docSnap => {
+                // Process docs
+                let docs = snapshot.docs;
+
+                // Client-side Sort for 'mine' mode to fix order without index
+                if (currentMode === 'mine') {
+                    docs.sort((a, b) => {
+                        const tA = a.data().timestamp ? a.data().timestamp.seconds : 0;
+                        const tB = b.data().timestamp ? b.data().timestamp.seconds : 0;
+                        return tB - tA; // Descending
+                    });
+                }
+
+                docs.forEach(docSnap => {
                     const d = docSnap.data();
                     const isOwner = d.userId === currentUser.uid;
                     
@@ -308,7 +324,7 @@
 
             } catch (err) {
                 console.error(err);
-                if(!lastVisibleDoc) container.innerHTML = "<p style='text-align:center; color:red;'>Error loading requests.</p>";
+                if(!lastVisibleDoc) container.innerHTML = "<p style='text-align:center; color:red;'>Error loading requests. Check console.</p>";
             }
             isFetching = false;
         }
