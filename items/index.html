@@ -26,6 +26,8 @@
         .filters-row {
             display: flex; gap: 10px; overflow-x: auto; padding-bottom: 5px;
         }
+        .filters-row::-webkit-scrollbar { display: none; }
+        
         .filter-select {
             padding: 8px 12px; border-radius: 20px; border: 1px solid #ddd; 
             background: white; font-size: 13px; color: #555; white-space: nowrap;
@@ -67,7 +69,6 @@
 <body>
 
     <script>
-        // Apply theme immediately to prevent white flash
         if (localStorage.getItem('theme') === 'dark') document.body.classList.add('dark-mode');
     </script>
 
@@ -98,12 +99,6 @@
                     <option value="New">New</option>
                     <option value="Used">Used</option>
                 </select>
-
-                <select id="filter-sort" class="filter-select">
-                    <option value="newest">Newest First</option>
-                    <option value="low-high">Price: Low to High</option>
-                    <option value="high-low">Price: High to Low</option>
-                </select>
             </div>
             <div id="result-count" style="font-size:11px; color:#888; margin-top:5px; text-align:center;">Loading items...</div>
         </div>
@@ -131,7 +126,6 @@
    <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
     import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-    // ADDED 'documentId' to imports 👇
     import { getFirestore, doc, setDoc, deleteDoc, collection, getDocs, query, orderBy, limit, startAfter, documentId } 
     from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
@@ -150,22 +144,20 @@
 
     let savedItemIds = new Set();
     
-    // --- DATA LISTS ---
-    let sheetList = [];      // Stores all Google Sheet items (Free)
-    let firestoreList = [];  // Stores currently loaded Firestore items (Paid)
-    let lastVisibleDoc = null; // Tracks pagination
-    
-    // --- CONFIG UPDATE ---
-    const INITIAL_LOAD = 50; // Load 50 Random first
-    const LOAD_STEP = 10;    // Load 10 Random after
-    
-    let isSearching = false;
+    // --- GLOBAL VARIABLES (Accessible everywhere) ---
+    let sheetList = [];      
+    let firestoreList = [];  
+    let lastVisibleDoc = null; 
+    let phoneBook = {}; // 📖 GLOBAL PHONEBOOK
+
+    const INITIAL_LOAD = 50; 
+    const LOAD_STEP = 10;    
+    let isFiltering = false;
 
     const sheetID = "1SvVUbEnDgqgw2Z_M1ShQkzyFTsnnS6n8mTs7UMXVvF4";
     const apiRoot = `https://opensheet.elk.sh/${sheetID}`;
     const ADMIN_PHONE = "2348144516127"; 
 
-    // --- XSS PROTECTION ---
     function escapeHTML(str) {
         if (!str) return "";
         return String(str).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
@@ -183,38 +175,43 @@
     });
 
     document.addEventListener("DOMContentLoaded", async () => {
-        // Setup Search & Load More
         document.getElementById('load-more-btn').addEventListener('click', loadMoreFirestore);
-        document.getElementById('item-search').addEventListener('input', handleSearch);
+        document.getElementById('item-search').addEventListener('input', applyFilters);
+        document.getElementById('filter-price').addEventListener('change', applyFilters);
+        document.getElementById('filter-condition').addEventListener('change', applyFilters);
 
-        // 1. Fetch Google Sheet Data (FREE - Load ALL)
         try {
+            // 1. FETCH VENDORS (Strictly like category.html)
             const vendorRes = await fetch(`${apiRoot}/Vendors`);
             const vendors = await vendorRes.json();
-            const phoneBook = {};
+            
+            // Build the Phonebook
             vendors.forEach(v => {
-                const vID = v.vendor_id || v.Vendor_ID;
+                const vID = v.vendor_id || v.Vendor_ID; // Match category.html logic
                 const vPhone = v.whatsapp || v.Whatsapp;
                 if(vID) phoneBook[vID] = String(vPhone).replace(/[^0-9]/g, '');
             });
 
+            // 2. FETCH PRODUCTS FROM SHEET
             const sheetRes = await fetch(`${apiRoot}/Products`);
             const sheetRaw = await sheetRes.json();
             
-            // Process Sheet Items
-            sheetList = sheetRaw.map(p => ({
-                ...p,
-                numericPrice: parseInt(String(p.price||p.Price).replace(/[^0-9]/g, '')) || 0,
-                phone: phoneBook[p.vendor_id || p.Vendor_ID] || ADMIN_PHONE
-            }));
+            // Map Sheet items using Phonebook
+            sheetList = sheetRaw.map(p => {
+                const vID = p.vendor_id || p.Vendor_ID;
+                return {
+                    ...p,
+                    numericPrice: parseInt(String(p.price||p.Price).replace(/[^0-9]/g, '')) || 0,
+                    phone: phoneBook[vID] || ADMIN_PHONE // Use the book!
+                };
+            });
 
-            // 2. Load Initial Firestore Batch
+            // 3. LOAD FIRESTORE (Now it has access to phoneBook!)
             await loadMoreFirestore();
 
         } catch (err) { console.error(err); }
     });
 
-    // --- ECONOMICAL RANDOM FETCH ---
     async function loadMoreFirestore() {
         const loadBtn = document.getElementById('load-more-btn');
         loadBtn.innerText = "Loading...";
@@ -222,72 +219,82 @@
         try {
             let q;
             const productsRef = collection(db, "products");
-            
-            // Determine Batch Size
             const batchSize = (!lastVisibleDoc) ? INITIAL_LOAD : LOAD_STEP;
 
-            // RANDOM SORT LOGIC:
-            // We order by 'documentId()'. Since IDs are random strings (e.g. '7Ab2...', 'z9X...'),
-            // sorting by them shuffles the Date order efficiently without extra cost.
             if (lastVisibleDoc) {
                 q = query(productsRef, orderBy(documentId()), startAfter(lastVisibleDoc), limit(batchSize));
             } else {
                 q = query(productsRef, orderBy(documentId()), limit(batchSize));
             }
 
-            if(isSearching) { loadBtn.style.display = 'none'; return; }
+            if(isFiltering) { loadBtn.style.display = 'none'; return; }
 
             const snapshot = await getDocs(q);
             
             if (snapshot.empty) {
-                loadBtn.style.display = 'none'; // No more items
+                loadBtn.style.display = 'none'; 
             } else {
                 lastVisibleDoc = snapshot.docs[snapshot.docs.length - 1];
                 
-                const newItems = snapshot.docs.map(doc => ({ 
-                    id: doc.id, 
-                    ...doc.data(),
-                    numericPrice: parseInt(String(doc.data().price).replace(/[^0-9]/g, '')) || 0,
-                    phone: ADMIN_PHONE 
-                }));
+                const newItems = snapshot.docs.map(doc => {
+                    const data = doc.data();
+                    // Get Vendor ID from Firestore doc
+                    const vID = data.vendor_id || data.Vendor_ID;
+                    
+                    return { 
+                        id: doc.id, 
+                        ...data,
+                        numericPrice: parseInt(String(data.price).replace(/[^0-9]/g, '')) || 0,
+                        // 👇 CRITICAL FIX: Look up phonebook for Firestore items too!
+                        phone: data.phone || phoneBook[vID] || ADMIN_PHONE 
+                    };
+                });
 
                 firestoreList = [...firestoreList, ...newItems];
-                renderCombinedGrid();
+                applyFilters();
                 loadBtn.innerText = "Load More";
             }
         } catch (e) { console.error("Firestore Error:", e); }
     }
 
-    // --- HYBRID SEARCH ---
-    async function handleSearch(e) {
-        const term = e.target.value.toLowerCase().trim();
+    function applyFilters() {
+        const term = document.getElementById('item-search').value.toLowerCase().trim();
+        const priceFilter = document.getElementById('filter-price').value;
+        const condFilter = document.getElementById('filter-condition').value;
         const loadBtn = document.getElementById('load-more-btn');
 
-        if (!term) {
-            isSearching = false;
+        isFiltering = (term !== "" || priceFilter !== "all" || condFilter !== "all");
+
+        if (isFiltering) {
+            loadBtn.style.display = 'none';
+        } else {
             loadBtn.style.display = 'block';
-            renderCombinedGrid();
-            return;
         }
 
-        isSearching = true;
-        loadBtn.style.display = 'none';
+        let allItems = [...sheetList, ...firestoreList];
 
-        // 1. Search Google Sheet (Local - Free)
-        const sheetMatches = sheetList.filter(p => (p.name || p.Name).toLowerCase().includes(term));
+        if (term) {
+            allItems = allItems.filter(p => (p.name || p.Name).toLowerCase().includes(term));
+        }
 
-        // 2. Search Loaded Firestore Items (Local - Free)
-        const firestoreLocalMatches = firestoreList.filter(p => (p.name).toLowerCase().includes(term));
+        if (condFilter !== 'all') {
+            allItems = allItems.filter(p => {
+                const pCond = p.condition || p.Condition || "Used";
+                return pCond.toLowerCase() === condFilter.toLowerCase();
+            });
+        }
 
-        // Combine and Render
-        const totalMatches = [...sheetMatches, ...firestoreLocalMatches];
-        renderCustomGrid(totalMatches);
-    }
+        if (priceFilter !== 'all') {
+            allItems = allItems.filter(p => {
+                const price = p.numericPrice;
+                if (priceFilter === 'under-5k') return price < 5000;
+                if (priceFilter === '5k-20k') return price >= 5000 && price <= 20000;
+                if (priceFilter === '20k-50k') return price > 20000 && price <= 50000;
+                if (priceFilter === 'above-50k') return price > 50000;
+                return true;
+            });
+        }
 
-    function renderCombinedGrid() {
-        // Randomize the Sheet items too so they don't always appear at the top
-        // (Optional, but makes it feel more integrated)
-        const allItems = [...sheetList, ...firestoreList];
         renderCustomGrid(allItems);
     }
 
@@ -297,7 +304,7 @@
         container.innerHTML = "";
 
         if(items.length === 0) {
-            container.innerHTML = "<p style='text-align:center; width:100%; color:#888; margin-top:20px;'>No items found.</p>";
+            container.innerHTML = "<p style='text-align:center; width:100%; color:#888; margin-top:20px;'>No items found matching your filters.</p>";
             return;
         }
 
@@ -306,7 +313,7 @@
             const pPrice = p.price || p.Price;
             const pVendor = p.vendor_id || p.Vendor_ID;
             const pImage = p.image || p.Image;
-            const pCond = p.condition || "Used";
+            const pCond = p.condition || p.Condition || "Used";
             const pStatus = p.status || p.Status || "Active";
             const pID = p.id || (pVendor + "-" + pName).replace(/\s+/g, '-').toLowerCase();
 
@@ -320,13 +327,15 @@
             const soldBadge = isSold ? '<span style="background:red; color:white; font-size:9px; padding:2px 5px; position:absolute; top:10px; left:10px; border-radius:4px; z-index:10;">SOLD</span>' : '';
             const condBadge = (!isSold && pCond === "New") ? `<span style="background:#00b894; color:white; font-size:9px; padding:2px 5px; position:absolute; top:10px; left:10px; z-index:10;">NEW</span>` : '';
 
-            // Safe Strings
             const safeNameJS = pName.replace(/'/g, "\\'").replace(/"/g, "&quot;");
             const safeNameHTML = escapeHTML(pName);
             const safePrice = escapeHTML(pPrice);
 
+            // Use the mapped phone
+            const pPhone = p.phone || ADMIN_PHONE;
+            
             const waMsg = encodeURIComponent(`Hi, I saw "${pName}" on AFIT Market. Is it available?`);
-            const waLink = `https://wa.me/${p.phone}?text=${waMsg}`;
+            const waLink = `https://wa.me/${pPhone}?text=${waMsg}`;
             const btnHref = isSold ? "#" : waLink;
             const btnText = isSold ? "Sold" : "Get Item";
             const btnStyle = isSold ? "background:#777; pointer-events:none;" : "";
