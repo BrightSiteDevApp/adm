@@ -3,41 +3,33 @@
 <head>
     <script> 
     (function() {
-        // 1. Get the URL parameters
         const urlParams = new URLSearchParams(window.location.search);
         const isAdmin = localStorage.getItem('adm_dev_mode');
 
-        // 2. CHECK: Is this a vendor with the special link?
         if (urlParams.get('access') === 'vendor') {
-            // Send them DIRECTLY to the dashboard
             window.location.href = 'dashboard.html';
             return; 
         } 
 
-        // 3. CHECK: Is this the Admin Developer?
         if (urlParams.get('mode') === 'admin') {
             localStorage.setItem('adm_dev_mode', 'true');
             alert("✅ Developer Mode Unlocked!");
             return;
         }
 
-        // 4. EVERYONE ELSE: Go to Coming Soon
         if (!isAdmin) {
             window.location.href = 'coming-soon.html'; 
         }
     })(); 
-</script>
+    </script>
   <meta charset="UTF-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 
   <title>AFIT Digital Market (ADM) | Campus Buy & Sell Platform</title>
   <meta name="description" content="AFIT Digital Market (ADM) is a student-focused digital marketplace for AFIT. Discover campus vendors, browse products and services, and connect directly with sellers fast and safely.">
-
   <meta name="keywords" content="AFIT Digital Market, AFIT marketplace, campus marketplace Nigeria, student vendors AFIT, buy and sell on campus, AFIT services, AFIT online market">
-
   <meta name="author" content="Brightsitedev Team">
-
   <link rel="canonical" href="https://afitdgm.store/">
 
   <meta property="og:type" content="website">
@@ -59,8 +51,9 @@
   <meta name="apple-mobile-web-app-title" content="AFIT DGM">
 
   <link rel="icon" href="img/app-logo.png" type="image/png" sizes="192x192">
-    <link rel="apple-touch-icon" href="img/app-logo.png">
-    <link rel="icon" href="favicon.ico" type="image/x-icon">
+  <link rel="apple-touch-icon" href="img/app-logo.png">
+  <link rel="icon" href="favicon.ico" type="image/x-icon">
+  
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link rel="stylesheet" href="asset/style.css">
 
@@ -73,7 +66,7 @@
   </script>
 
   <style>
-      /* --- Text Wrapping Fix --- */
+      /* Text Wrapping Fix */
       .ad-title {
           white-space: normal !important;
           line-height: 1.3;
@@ -90,18 +83,18 @@
           margin-bottom: 8px;
       }
 
-      /* --- New Modal Animation --- */
+      /* New Modal Animation */
       @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
       .modal-sheet {
           background: white; width: 100%; max-width: 500px;
           border-radius: 20px 20px 0 0; padding: 25px;
           animation: slideUp 0.3s ease-out;
           position: relative;
-          max-height: 85vh; /* Prevent it from being too tall on small screens */
-          overflow-y: auto; /* Allow scrolling inside modal if content is long */
+          max-height: 85vh; 
+          overflow-y: auto;
       }
 
-      /* Similar Items Grid in Modal */
+      /* Similar Items Grid */
       .similar-grid {
           display: grid;
           grid-template-columns: repeat(3, 1fr);
@@ -112,11 +105,24 @@
       .sim-img { width: 100%; height: 80px; object-fit: cover; border-radius: 8px; background: #eee; }
       .sim-price { font-size: 10px; font-weight: bold; margin-top: 3px; color: #333; }
 
+      /* Description Box Style */
+      .desc-box {
+          max-height: 200px; 
+          overflow-y: auto; 
+          margin-bottom: 20px; 
+          background: #f9f9f9; 
+          padding: 10px; 
+          border-radius: 10px;
+      }
+
       /* Dark Mode Fixes */
       body.dark-mode .modal-sheet { background: #1e1e1e !important; color: white; }
       body.dark-mode .ad-desc-preview { color: #aaa; }
-      body.dark-mode #m-desc { color: #ccc !important; }
       body.dark-mode .sim-price { color: #ccc; }
+      
+      /* Dark Mode for Description Box */
+      body.dark-mode .desc-box { background: #333 !important; color: #ddd; }
+      body.dark-mode #m-desc { color: #ddd !important; }
   </style>
   
 </head>
@@ -282,7 +288,7 @@
             </div>
             <p id="m-price" style="color:#2d8eff; font-weight:bold; font-size:20px; margin:10px 0;">...</p>
             
-            <div style="max-height:200px; overflow-y:auto; margin-bottom:20px; background:#f9f9f9; padding:10px; border-radius:10px;">
+            <div class="desc-box">
                  <p id="m-desc" style="color:#555; font-size:14px; line-height:1.5; margin:0;">...</p>
             </div>
 
@@ -587,14 +593,16 @@ if ('serviceWorker' in navigator) {
         document.getElementById('detail-modal').style.display = 'none';
     };
 
-    window.addToHistory = function(id, name, price, image, vendor) {
+    window.addToHistory = function(id, name, price, image, vendor, desc) {
         let history = JSON.parse(localStorage.getItem('adm_history')) || [];
         history = history.filter(item => item.id !== id);
-        history.unshift({ id, name, price, image, vendor, seenAt: Date.now() });
+        // Added 'desc' to object
+        history.unshift({ id, name, price, image, vendor, desc, seenAt: Date.now() });
         if(history.length > 6) history.pop();
         localStorage.setItem('adm_history', JSON.stringify(history));
     };
 
+    // 🆕 UPDATED: Recently Viewed now attempts to fetch live description
     function loadRecentItems() {
         let history = JSON.parse(localStorage.getItem('adm_history')) || [];
         const container = document.getElementById('recent-grid');
@@ -612,12 +620,15 @@ if ('serviceWorker' in navigator) {
             section.style.display = 'block';
             container.innerHTML = "";
             history.forEach(p => {
+                // 🆕 Try to find live item to get description, else fall back to history desc
+                const liveItem = allProducts.find(prod => prod.id === p.id);
+                const liveDesc = liveItem ? (liveItem.description || liveItem.Description) : p.desc;
+                
                 const vendorPhone = globalPhoneBook[p.vendor] || ADMIN_PHONE;
                 const img = p.image.startsWith('http') ? p.image : `img/${p.image}`;
                 const category = "General"; 
                 const safeName = p.name.replace(/'/g, "\\'");
-                // Safe Description for history items
-                const safeDesc = "Check details..."; 
+                const safeDesc = (liveDesc || "No description.").replace(/'/g, "\\'").replace(/\n/g, " ");
 
                 container.innerHTML += `
                 <div class="ad-card" style="min-width: 140px;"> 
@@ -626,7 +637,7 @@ if ('serviceWorker' in navigator) {
                     <div class="ad-info">
                         <div class="ad-price" style="font-size:12px;">${p.price}</div>
                         <div class="ad-title" style="font-size:11px;">${p.name}</div>
-                        <a href="#" onclick="viewProduct('${safeName}', '${p.price}', '${safeDesc}', '${img}', '${vendorPhone}', '${category}')" class="chat-btn" style="padding:4px 10px; font-size:10px;">Get</a>
+                        <button onclick="viewProduct('${safeName}', '${p.price}', '${safeDesc}', '${img}', '${vendorPhone}', '${category}')" class="chat-btn" style="width:100%; border:none; margin-top:5px; padding:4px 10px; font-size:10px; cursor:pointer;">Get</button>
                     </div>
                 </div>`;
             });
@@ -678,7 +689,10 @@ if ('serviceWorker' in navigator) {
                 const pImage = p.image || p.Image;
                 const pPrice = p.price || p.Price;
                 const pVendor = p.vendor_id || p.Vendor_ID;
-                const pDesc = p.description || p.Description || "Flash Sale Item";
+                
+                // 🆕 FIXED: Removed "Flash Sale Item" placeholder
+                const pDesc = p.description || p.Description || ""; 
+                
                 const pCat = p.category || p.Category || "General";
                 const img = pImage.startsWith('http') ? pImage : `img/${pImage}`;
                 const vendorPhone = phoneBook[pVendor] || ADMIN_PHONE;
@@ -688,9 +702,11 @@ if ('serviceWorker' in navigator) {
                 storyDiv.className = 'story-item';
                 storyDiv.innerHTML = `<div class="story-ring"><img src="${img}" class="story-img" alt="${pName}" onerror="this.src='img/logo-blue.png'"></div><div class="story-name">${pName}</div>`;
                 
+                const safeDesc = pDesc.replace(/'/g, "\\'").replace(/\n/g, " ");
+                
                 storyDiv.addEventListener('click', () => {
                    viewProduct(pName, pPrice, pDesc, img, vendorPhone, pCat);
-                   addToHistory(pID, pName, pPrice, pImage, pVendor);
+                   addToHistory(pID, pName, pPrice, pImage, pVendor, safeDesc);
                 });
                 container.appendChild(storyDiv);
             });
@@ -766,7 +782,7 @@ if ('serviceWorker' in navigator) {
             let badge = isSold ? '<span style="background:red; color:white; font-size:9px; padding:2px 5px; position:absolute; top:10px; left:10px; border-radius:4px; z-index:10;">SOLD</span>' : 
                         isFeatured ? '<span style="background:#f1c40f; color:white; font-size:9px; padding:2px 5px; position:absolute; top:10px; left:10px; border-radius:4px; z-index:10; font-weight:bold;">⭐ Sponsored</span>' : '';
 
-            const clickAction = isSold ? "" : `onclick="viewProduct('${safeName}', '${pPrice}', '${safeDesc}', '${img}', '${vendorPhone}', '${pCat}')"`;
+            const clickAction = isSold ? "" : `onclick="viewProduct('${safeName}', '${pPrice}', '${safeDesc}', '${img}', '${vendorPhone}', '${pCat}'); addToHistory('${pID}', '${safeName}', '${pPrice}', '${pImage}', '${pVendor}', '${safeDesc}')"`;
             const btnText = isSold ? "Sold" : "Get";
             const btnStyle = isSold ? "background:#777; pointer-events:none;" : "";
 
@@ -784,7 +800,7 @@ if ('serviceWorker' in navigator) {
                     <div class="ad-title">${pName}</div>
                     <div class="ad-desc-preview">${pDesc}</div>
                     <div class="ad-location">Vendor: ${pVendor}</div>
-                    <a href="#" ${clickAction} class="chat-btn" style="${btnStyle}">${btnText}</a>
+                    <button ${clickAction} class="chat-btn" style="width:100%; border:none; margin-top:5px; cursor:pointer; padding: 10px; ${btnStyle}">${btnText}</button>
                 </div>
             </div>`;
         });
