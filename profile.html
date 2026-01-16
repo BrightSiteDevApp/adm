@@ -46,6 +46,31 @@
       #load-more-btn:active { transform: scale(0.95); }
       #load-more-container { text-align: center; width: 100%; margin-bottom: 40px; }
 
+      /* --- 🆕 TEXT & MODAL STYLES --- */
+      .ad-title {
+          white-space: normal !important;
+          line-height: 1.3;
+          height: auto !important;
+          display: -webkit-box;
+          -webkit-line-clamp: 2;
+          -webkit-box-orient: vertical;
+          overflow: hidden;
+          margin-bottom: 5px;
+      }
+      .ad-desc-preview {
+          font-size: 11px; color: #888;
+          white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+          margin-bottom: 8px;
+      }
+
+      @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+      .modal-sheet {
+          background: white; width: 100%; max-width: 500px;
+          border-radius: 20px 20px 0 0; padding: 25px;
+          animation: slideUp 0.3s ease-out;
+          position: relative;
+      }
+
       /* --- SKELETON LOADING STYLES --- */
       .skeleton-pulse {
           animation: skeleton-loading 1.5s infinite ease-in-out;
@@ -80,7 +105,7 @@
       .sk-btn-lg { width: 80%; max-width: 240px; height: 45px; margin: 25px auto 10px; border-radius: 30px; }
       .sk-btn-sm { width: 135px; height: 40px; margin: 10px auto; border-radius: 30px; }
       
-      /* Product Card Skeleton (re-using your existing class names logic) */
+      /* Product Card Skeleton */
       .skeleton-card {
           background: #fff;
           border-radius: 10px;
@@ -96,23 +121,23 @@
       .sk-text-long { width: 90%; height: 15px; background: #eee; border-radius: 4px; animation: skeleton-loading 1.5s infinite linear; }
       .sk-btn { width: 100%; height: 30px; margin-top: auto; background: #eee; border-radius: 6px; animation: skeleton-loading 1.5s infinite linear; }
 
-      /* --- DARK MODE SKELETON FIXES --- */
+      /* --- DARK MODE FIXES --- */
       body.dark-mode .sk-container,
       body.dark-mode .skeleton-card {
-          background: #222; /* Dark Gray Background */
-          border: 1px solid #333; /* Subtle Border */
-          box-shadow: none;
+          background: #222; border: 1px solid #333; box-shadow: none;
       }
-
       body.dark-mode .skeleton-pulse,
       body.dark-mode .sk-img-rect,
       body.dark-mode .sk-text-short,
       body.dark-mode .sk-text-long,
       body.dark-mode .sk-btn,
       body.dark-mode #load-more-btn {
-          background-color: #333; /* Darker Base */
-          background-image: linear-gradient(90deg, #333, #444, #333); /* Darker Pulse */
+          background-color: #333;
+          background-image: linear-gradient(90deg, #333, #444, #333);
       }
+      body.dark-mode .modal-sheet { background: #1e1e1e !important; color: white; }
+      body.dark-mode .ad-desc-preview { color: #aaa; }
+      body.dark-mode #m-desc { color: #ccc !important; }
   </style>
 </head>
 <body data-page="vendor-profile">
@@ -226,6 +251,28 @@
 
         <div id="load-more-container" style="display: none;">
             <button id="load-more-btn" onclick="renderBatch()">Load More</button>
+        </div>
+    </div>
+
+    <div id="detail-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:3000; justify-content:center; align-items:end;">
+        <div class="modal-sheet">
+            <div style="display:flex; justify-content:space-between; align-items:start;">
+                <h3 id="m-title" style="margin:0; font-size:18px; width:90%; line-height:1.3;">...</h3>
+                <button onclick="document.getElementById('detail-modal').style.display='none'" style="background:none; border:none; font-size:24px; color:#555; cursor:pointer;">&times;</button>
+            </div>
+            <p id="m-price" style="color:#2d8eff; font-weight:bold; font-size:20px; margin:10px 0;">...</p>
+            
+            <div style="max-height:200px; overflow-y:auto; margin-bottom:20px; background:#f9f9f9; padding:10px; border-radius:10px;">
+                 <p id="m-desc" style="color:#555; font-size:14px; line-height:1.5; margin:0;">...</p>
+            </div>
+
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+                 <span id="m-category" style="font-size:12px; color:#888; font-weight:bold;"></span>
+            </div>
+
+            <a id="m-btn" href="#" target="_blank" class="chat-btn" style="width:100%; text-align:center; display:block; padding:15px; border-radius:10px;">
+                <i class="fab fa-whatsapp"></i> Chat with Vendor
+            </a>
         </div>
     </div>
 
@@ -436,6 +483,8 @@
             const pImage = p.image || p.Image;
             const pStatus = p.status || p.Status || "Active"; 
             const isFeatured = p.is_featured === "true"; 
+            // 🆕 GET DESCRIPTION
+            const pDesc = p.description || p.Description || "No additional details.";
             
             // Generate a safe ID for saving
             const pID = p.id || (p.vendor_id + "-" + pName).replace(/\s+/g, '-').toLowerCase();
@@ -454,16 +503,14 @@
 
             // Sanitize Strings for JS function calls (onclick)
             const safeNameJS = pName.replace(/'/g, "\\'").replace(/"/g, "&quot;");
-            
-            // Encode for WhatsApp
-            const waMsg = encodeURIComponent(`Hi, I saw "${pName}" on AFIT Market. Is it available?`);
-            const waLink = `https://wa.me/${currentVendorPhone}?text=${waMsg}`;
-            
-            const btnText = isSold ? "Sold" : "Get Item";
-            const btnStyle = isSold ? "background:#777; pointer-events:none;" : "";
-            const btnHref = isSold ? "#" : waLink;
+            const safeDescJS = pDesc.replace(/'/g, "\\'").replace(/"/g, "&quot;").replace(/\n/g, " ");
 
             // USE ESCAPEHTML FOR DISPLAY TO PREVENT XSS
+            const btnText = isSold ? "Sold" : "Get Item";
+            const btnStyle = isSold ? "background:#777; pointer-events:none;" : "";
+            // 🆕 BUTTON now opens Modal
+            const btnAction = isSold ? "" : `openDetailModal('${safeNameJS}', '${escapeHTML(pPrice)}', '${safeDescJS}', '${escapeHTML(pCategory)}')`;
+
             grid.innerHTML += `
             <div class="ad-card" style="position:relative; ${opacity}">
                 ${badge}
@@ -474,8 +521,9 @@
                 <div class="ad-info">
                     <div class="ad-price">${escapeHTML(pPrice)}</div>
                     <div class="ad-title">${escapeHTML(pName)}</div>
+                    <div class="ad-desc-preview">${escapeHTML(pDesc)}</div>
                     <div class="ad-location">Category: ${escapeHTML(pCategory)}</div>
-                    <a href="${btnHref}" target="_blank" class="chat-btn" style="${btnStyle}">${btnText}</a>
+                    <button onclick="${btnAction}" class="chat-btn" style="width:100%; margin-top:5px; border:none; cursor:pointer; ${btnStyle}">${btnText}</button>
                 </div>
             </div>`;
         });
@@ -491,6 +539,20 @@
             loadMoreBtn.innerText = "Load More"; // Reset button text
         }
     }
+
+    // 🆕 FUNCTION TO OPEN MODAL
+    window.openDetailModal = function(title, price, desc, category) {
+        document.getElementById('m-title').innerText = title;
+        document.getElementById('m-price').innerText = price;
+        document.getElementById('m-desc').innerText = desc;
+        document.getElementById('m-category').innerText = "Category: " + category;
+        
+        const waMsg = encodeURIComponent(`Hi, I saw "${title}" on AFIT Market (Price: ${price}). Is it available?`);
+        // Uses global currentVendorPhone
+        document.getElementById('m-btn').href = `https://wa.me/${currentVendorPhone}?text=${waMsg}`;
+        
+        document.getElementById('detail-modal').style.display = 'flex';
+    };
 
     async function loadVendorFirestoreItems(vid) {
         try {

@@ -34,6 +34,24 @@
         }
         .filter-select:focus { border-color: #2d8eff; outline: none; }
 
+        /* --- CARD TEXT FIXES --- */
+        .ad-title {
+            white-space: normal !important; 
+            line-height: 1.3;
+            height: auto !important;
+            display: -webkit-box;
+            -webkit-line-clamp: 2; 
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            margin-bottom: 5px;
+            margin-top: 5px; /* Added spacing from price */
+        }
+        .ad-desc-preview {
+            font-size: 11px; color: #888;
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+            margin-bottom: 8px;
+        }
+
         /* LOAD MORE BUTTON */
         #load-more-container { text-align: center; margin: 30px 0 50px; display: none; }
         #load-more-btn {
@@ -43,27 +61,31 @@
         }
         #load-more-btn:active { transform: scale(0.95); }
 
+        /* --- MODAL STYLES --- */
+        @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+        .modal-sheet {
+            background: white; width: 100%; max-width: 500px;
+            border-radius: 20px 20px 0 0; padding: 25px;
+            animation: slideUp 0.3s ease-out;
+            position: relative;
+        }
+
         /* 🌙 DARK MODE FIXES */
-        body.dark-mode .filter-container {
+        body.dark-mode .filter-container, body.dark-mode .modal-sheet {
             background: #1e1e1e !important;
             box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+            color: white;
         }
         body.dark-mode .search-input {
-            background: #333 !important;
-            border-color: #444 !important;
-            color: white !important;
+            background: #333 !important; border-color: #444 !important; color: white !important;
         }
         body.dark-mode .filter-select {
-            background: #333 !important;
-            border-color: #444 !important;
-            color: #ccc !important;
+            background: #333 !important; border-color: #444 !important; color: #ccc !important;
         }
-        body.dark-mode #result-count {
-            color: #aaa !important;
-        }
-        body.dark-mode #load-more-btn {
-            background: #444;
-        }
+        body.dark-mode #result-count { color: #aaa !important; }
+        body.dark-mode #load-more-btn { background: #444; }
+        body.dark-mode .ad-desc-preview { color: #aaa; }
+        body.dark-mode #m-desc { color: #ccc !important; }
     </style>
 </head>
 <body>
@@ -112,6 +134,29 @@
 
     </div>
 
+    <div id="detail-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:3000; justify-content:center; align-items:end;">
+        <div class="modal-sheet">
+            <div style="display:flex; justify-content:space-between; align-items:start;">
+                <h3 id="m-title" style="margin:0; font-size:18px; width:90%; line-height:1.3;">...</h3>
+                <button onclick="document.getElementById('detail-modal').style.display='none'" style="background:none; border:none; font-size:24px; color:#555; cursor:pointer;">&times;</button>
+            </div>
+            <p id="m-price" style="color:#2d8eff; font-weight:bold; font-size:20px; margin:10px 0;">...</p>
+            
+            <div style="max-height:200px; overflow-y:auto; margin-bottom:20px; background:#f9f9f9; padding:10px; border-radius:10px;">
+                 <p id="m-desc" style="color:#555; font-size:14px; line-height:1.5; margin:0;">...</p>
+            </div>
+
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+                 <span id="m-vendor" style="font-size:12px; color:#888; font-weight:bold;"></span>
+                 <span id="m-condition" style="font-size:12px; padding:4px 10px; background:#eee; border-radius:10px; color:#555;"></span>
+            </div>
+
+            <a id="m-btn" href="#" target="_blank" class="chat-btn" style="width:100%; text-align:center; display:block; padding:15px; border-radius:10px;">
+                <i class="fab fa-whatsapp"></i> Chat with Vendor
+            </a>
+        </div>
+    </div>
+
     <div id="login-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:2000; justify-content:center; align-items:center;">
         <div style="background:white; padding:30px; border-radius:15px; text-align:center; width:80%;">
             <h3>Sign In Required</h3>
@@ -144,11 +189,11 @@
 
     let savedItemIds = new Set();
     
-    // --- GLOBAL VARIABLES (Accessible everywhere) ---
+    // --- GLOBAL VARIABLES ---
     let sheetList = [];      
     let firestoreList = [];  
     let lastVisibleDoc = null; 
-    let phoneBook = {}; // 📖 GLOBAL PHONEBOOK
+    let phoneBook = {}; 
 
     const INITIAL_LOAD = 50; 
     const LOAD_STEP = 10;    
@@ -181,13 +226,13 @@
         document.getElementById('filter-condition').addEventListener('change', applyFilters);
 
         try {
-            // 1. FETCH VENDORS (Strictly like category.html)
+            // 1. FETCH VENDORS
             const vendorRes = await fetch(`${apiRoot}/Vendors`);
             const vendors = await vendorRes.json();
             
             // Build the Phonebook
             vendors.forEach(v => {
-                const vID = v.vendor_id || v.Vendor_ID; // Match category.html logic
+                const vID = v.vendor_id || v.Vendor_ID; 
                 const vPhone = v.whatsapp || v.Whatsapp;
                 if(vID) phoneBook[vID] = String(vPhone).replace(/[^0-9]/g, '');
             });
@@ -196,17 +241,16 @@
             const sheetRes = await fetch(`${apiRoot}/Products`);
             const sheetRaw = await sheetRes.json();
             
-            // Map Sheet items using Phonebook
             sheetList = sheetRaw.map(p => {
                 const vID = p.vendor_id || p.Vendor_ID;
                 return {
                     ...p,
                     numericPrice: parseInt(String(p.price||p.Price).replace(/[^0-9]/g, '')) || 0,
-                    phone: phoneBook[vID] || ADMIN_PHONE // Use the book!
+                    phone: phoneBook[vID] || ADMIN_PHONE 
                 };
             });
 
-            // 3. LOAD FIRESTORE (Now it has access to phoneBook!)
+            // 3. LOAD FIRESTORE
             await loadMoreFirestore();
 
         } catch (err) { console.error(err); }
@@ -238,14 +282,12 @@
                 
                 const newItems = snapshot.docs.map(doc => {
                     const data = doc.data();
-                    // Get Vendor ID from Firestore doc
                     const vID = data.vendor_id || data.Vendor_ID;
                     
                     return { 
                         id: doc.id, 
                         ...data,
                         numericPrice: parseInt(String(data.price).replace(/[^0-9]/g, '')) || 0,
-                        // 👇 CRITICAL FIX: Look up phonebook for Firestore items too!
                         phone: data.phone || phoneBook[vID] || ADMIN_PHONE 
                     };
                 });
@@ -315,6 +357,10 @@
             const pImage = p.image || p.Image;
             const pCond = p.condition || p.Condition || "Used";
             const pStatus = p.status || p.Status || "Active";
+            
+            // GET DESCRIPTION 
+            const pDesc = p.description || p.Description || "No additional details.";
+            
             const pID = p.id || (pVendor + "-" + pName).replace(/\s+/g, '-').toLowerCase();
 
             const img = pImage.startsWith('http') ? pImage : `../img/${pImage}`;
@@ -330,16 +376,15 @@
             const safeNameJS = pName.replace(/'/g, "\\'").replace(/"/g, "&quot;");
             const safeNameHTML = escapeHTML(pName);
             const safePrice = escapeHTML(pPrice);
+            const safeDescJS = pDesc.replace(/'/g, "\\'").replace(/"/g, "&quot;").replace(/\n/g, " ");
 
-            // Use the mapped phone
             const pPhone = p.phone || ADMIN_PHONE;
             
-            const waMsg = encodeURIComponent(`Hi, I saw "${pName}" on AFIT Market. Is it available?`);
-            const waLink = `https://wa.me/${pPhone}?text=${waMsg}`;
-            const btnHref = isSold ? "#" : waLink;
+            const btnAction = isSold ? "" : `openDetailModal('${safeNameJS}', '${safePrice}', '${safeDescJS}', '${pVendor}', '${pCond}', '${pPhone}')`;
             const btnText = isSold ? "Sold" : "Get Item";
             const btnStyle = isSold ? "background:#777; pointer-events:none;" : "";
 
+            // 👇 ORDER SWAPPED HERE: Price, then Title, then Description
             container.innerHTML += `
             <div class="ad-card" style="position:relative; ${opacity}">
                 ${soldBadge} ${condBadge}
@@ -352,12 +397,27 @@
                 <div class="ad-info">
                     <div class="ad-price">${safePrice}</div>
                     <div class="ad-title">${safeNameHTML}</div>
+                    <div class="ad-desc-preview">${escapeHTML(pDesc)}</div>
                     <div class="ad-location" style="font-size:11px; color:#888;">${pCond} • ${pVendor}</div>
-                    <a href="${btnHref}" target="_blank" class="chat-btn" style="${btnStyle}">${btnText}</a>
+                    <button onclick="${btnAction}" class="chat-btn" style="width:100%; margin-top:5px; border:none; cursor:pointer; ${btnStyle}">${btnText}</button>
                 </div>
             </div>`;
         });
     }
+
+    // FUNCTION TO OPEN MODAL
+    window.openDetailModal = function(title, price, desc, vendor, cond, phone) {
+        document.getElementById('m-title').innerText = title;
+        document.getElementById('m-price').innerText = price;
+        document.getElementById('m-desc').innerText = desc;
+        document.getElementById('m-vendor').innerText = "Vendor: " + vendor;
+        document.getElementById('m-condition').innerText = cond;
+        
+        const waMsg = encodeURIComponent(`Hi, I saw "${title}" on AFIT Market (Price: ${price}). Is it available?`);
+        document.getElementById('m-btn').href = `https://wa.me/${phone}?text=${waMsg}`;
+        
+        document.getElementById('detail-modal').style.display = 'flex';
+    };
 
     window.toggleSave = async function(id, name, price, image, vendor) {
         const user = auth.currentUser;

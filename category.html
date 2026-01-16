@@ -32,8 +32,36 @@
       }
       #load-more-btn:active { transform: scale(0.95); }
 
-      /* Dark Mode Fix for Button */
+      /* --- 🆕 TEXT & MODAL STYLES --- */
+      .ad-title {
+          white-space: normal !important;
+          line-height: 1.3;
+          height: auto !important;
+          display: -webkit-box;
+          -webkit-line-clamp: 2;
+          -webkit-box-orient: vertical;
+          overflow: hidden;
+          margin-bottom: 5px;
+      }
+      .ad-desc-preview {
+          font-size: 11px; color: #888;
+          white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+          margin-bottom: 8px;
+      }
+
+      @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+      .modal-sheet {
+          background: white; width: 100%; max-width: 500px;
+          border-radius: 20px 20px 0 0; padding: 25px;
+          animation: slideUp 0.3s ease-out;
+          position: relative;
+      }
+
+      /* Dark Mode Fixes */
       body.dark-mode #load-more-btn { background: #444; }
+      body.dark-mode .modal-sheet { background: #1e1e1e !important; color: white; }
+      body.dark-mode .ad-desc-preview { color: #aaa; }
+      body.dark-mode #m-desc { color: #ccc !important; }
   </style>
 </head>
 <body>
@@ -73,6 +101,29 @@
 
     <div id="load-more-container">
         <button id="load-more-btn">Load More</button>
+    </div>
+
+    <div id="detail-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:3000; justify-content:center; align-items:end;">
+        <div class="modal-sheet">
+            <div style="display:flex; justify-content:space-between; align-items:start;">
+                <h3 id="m-title" style="margin:0; font-size:18px; width:90%; line-height:1.3;">...</h3>
+                <button onclick="document.getElementById('detail-modal').style.display='none'" style="background:none; border:none; font-size:24px; color:#555; cursor:pointer;">&times;</button>
+            </div>
+            <p id="m-price" style="color:#2d8eff; font-weight:bold; font-size:20px; margin:10px 0;">...</p>
+            
+            <div style="max-height:200px; overflow-y:auto; margin-bottom:20px; background:#f9f9f9; padding:10px; border-radius:10px;">
+                 <p id="m-desc" style="color:#555; font-size:14px; line-height:1.5; margin:0;">...</p>
+            </div>
+
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+                 <span id="m-vendor" style="font-size:12px; color:#888; font-weight:bold;"></span>
+                 <span id="m-condition" style="font-size:12px; padding:4px 10px; background:#eee; border-radius:10px; color:#555;"></span>
+            </div>
+
+            <a id="m-btn" href="#" target="_blank" class="chat-btn" style="width:100%; text-align:center; display:block; padding:15px; border-radius:10px;">
+                <i class="fab fa-whatsapp"></i> Chat with Vendor
+            </a>
+        </div>
     </div>
 
     <footer class="site-footer">
@@ -246,7 +297,8 @@
         nextItems.forEach(p => {
             const pName = p.name || p.Name;
             const pPrice = p.price || p.Price;
-            const pDesc = p.description || p.Description || "No description."; 
+            // 🆕 GET DESCRIPTION
+            const pDesc = p.description || p.Description || "No additional details."; 
             const pVendor = p.vendor_id || p.Vendor_ID;
             const pImage = p.image || p.Image;
             const pStatus = p.status || p.Status || "Active";
@@ -261,11 +313,9 @@
 
             // Safe Strings
             const safeNameJS = pName.replace(/'/g, "\\'").replace(/"/g, "&quot;");
+            const safeDescJS = pDesc.replace(/'/g, "\\'").replace(/"/g, "&quot;").replace(/\n/g, " ");
             const safeNameHTML = escapeHTML(pName);
             const safePrice = escapeHTML(pPrice);
-
-            const waMsg = encodeURIComponent(`Hi, I saw "${pName}" on AFIT Market. Is it available?`);
-            const waLink = `https://wa.me/${p.phone}?text=${waMsg}`;
 
             const isSold = pStatus === "Sold";
             const opacity = isSold ? 'opacity:0.6;' : '';
@@ -273,7 +323,9 @@
             
             const btnText = isSold ? "Sold" : "Get Item";
             const btnStyle = isSold ? "background:#777; pointer-events:none;" : "";
-            const btnHref = isSold ? "#" : waLink;
+            // 🆕 BUTTON now opens Modal
+            const btnAction = isSold ? "" : `openDetailModal('${safeNameJS}', '${safePrice}', '${safeDescJS}', '${pVendor}', '${pCond}', '${p.phone}')`;
+
             const condBadge = (!isSold && pCond === "New") ? `<span style="background:#00b894; color:white; font-size:9px; padding:2px 5px; border-radius:4px; position:absolute; top:10px; left:10px; z-index:10;">NEW</span>` : '';
 
             grid.innerHTML += `
@@ -288,8 +340,9 @@
                 <div class="ad-info">
                     <div class="ad-price">${safePrice}</div>
                     <div class="ad-title">${safeNameHTML}</div>
+                    <div class="ad-desc-preview">${escapeHTML(pDesc)}</div>
                     <div class="ad-location">Vendor: ${pVendor}</div>
-                    <a href="${btnHref}" target="_blank" class="chat-btn" style="${btnStyle}">${btnText}</a>
+                    <button onclick="${btnAction}" class="chat-btn" style="width:100%; margin-top:5px; border:none; cursor:pointer; ${btnStyle}">${btnText}</button>
                 </div>
             </div>`;
         });
@@ -303,6 +356,20 @@
             loadMoreBtn.innerText = "Load More";
         }
     }
+
+    // 🆕 FUNCTION TO OPEN MODAL
+    window.openDetailModal = function(title, price, desc, vendor, cond, phone) {
+        document.getElementById('m-title').innerText = title;
+        document.getElementById('m-price').innerText = price;
+        document.getElementById('m-desc').innerText = desc;
+        document.getElementById('m-vendor').innerText = "Vendor: " + vendor;
+        document.getElementById('m-condition').innerText = cond;
+        
+        const waMsg = encodeURIComponent(`Hi, I saw "${title}" on AFIT Market (Price: ${price}). Is it available?`);
+        document.getElementById('m-btn').href = `https://wa.me/${phone}?text=${waMsg}`;
+        
+        document.getElementById('detail-modal').style.display = 'flex';
+    };
 
     window.toggleSave = async function(id, name, price, image, vendor) {
         const user = auth.currentUser;
