@@ -70,7 +70,6 @@
           position: relative;
       }
 
-      /* Skeleton Shapes */
       .sk-img-rect { width: 100%; height: 120px; border-radius: 8px; background: #eee; background-image: linear-gradient(90deg, #eee, #f5f5f5, #eee); background-size: 200px 100%; animation: skeleton-loading 1.5s infinite linear; }
       .sk-text-short { width: 40%; height: 15px; background: #eee; background-image: linear-gradient(90deg, #eee, #f5f5f5, #eee); background-size: 200px 100%; border-radius: 4px; animation: skeleton-loading 1.5s infinite linear; }
       .sk-text-long { width: 90%; height: 15px; background: #eee; background-image: linear-gradient(90deg, #eee, #f5f5f5, #eee); background-size: 200px 100%; border-radius: 4px; animation: skeleton-loading 1.5s infinite linear; }
@@ -158,25 +157,25 @@
         const auth = getAuth(app);
         const db = getFirestore(app);
 
-        // Sheet Data for Phones
         const sheetID = "1SvVUbEnDgqgw2Z_M1ShQkzyFTsnnS6n8mTs7UMXVvF4";
         const apiRoot = `https://opensheet.elk.sh/${sheetID}`;
         const ADMIN_PHONE = "2348144516127";
+        
         let globalPhoneBook = {};
+        let masterProductList = []; // 🆕 Stores ALL products to find descriptions
 
         // PAGINATION VARS
         let lastVisibleDoc = null;
         let isFetching = false;
         const BATCH_SIZE = 10;
 
-        // 1. Check Login
         onAuthStateChanged(auth, (user) => {
             if (user) {
-                loadPhoneBook().then(() => {
+                // Load Master Data First
+                loadMasterData().then(() => {
                     loadNextBatch(user.uid);
                 });
                 
-                // Load More Listener
                 document.getElementById('load-more-btn').addEventListener('click', () => {
                     loadNextBatch(user.uid);
                 });
@@ -185,17 +184,31 @@
             }
         });
 
-        // 2. Fetch Phonebook
-        async function loadPhoneBook() {
+        // 🆕 2. FETCH EVERYTHING (Vendors + Products) to enable "Smart" Saved Page
+        async function loadMasterData() {
             try {
-                const res = await fetch(`${apiRoot}/Vendors`);
-                const vendors = await res.json();
+                // Fetch Vendors
+                const vRes = await fetch(`${apiRoot}/Vendors`);
+                const vendors = await vRes.json();
                 vendors.forEach(v => {
                     const vID = v.vendor_id || v.Vendor_ID;
                     const vPhone = v.whatsapp || v.Whatsapp;
                     if(vID) globalPhoneBook[vID] = String(vPhone).replace(/[^0-9]/g, '');
                 });
-            } catch (err) { console.error("Error loading phonebook:", err); }
+
+                // Fetch Sheet Products
+                const pRes = await fetch(`${apiRoot}/Products`);
+                const sheetProds = await pRes.json();
+                
+                // Fetch Firestore Products
+                const q = query(collection(db, "products"));
+                const snap = await getDocs(q);
+                const fireProds = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+                // Combine them
+                masterProductList = [...sheetProds, ...fireProds];
+
+            } catch (err) { console.error("Error loading master data:", err); }
         }
 
         // 3. Fetch Saved Items (Paginated)
@@ -216,23 +229,18 @@
                 const colRef = collection(db, "users", uid, "saved_items");
 
                 if (lastVisibleDoc) {
-                    // Load next batch
                     q = query(colRef, limit(BATCH_SIZE), startAfter(lastVisibleDoc));
                 } else {
-                    // First load
                     q = query(colRef, limit(BATCH_SIZE));
                 }
 
                 const querySnapshot = await getDocs(q);
                 
-                // HIDE SKELETON ON FIRST LOAD
                 if(!lastVisibleDoc) skeleton.style.display = 'none';
 
                 if (querySnapshot.empty) {
-                    loadBtnDiv.style.display = 'none'; // No more items
-                    if (!lastVisibleDoc) {
-                        emptyState.style.display = 'block'; // Truly empty
-                    }
+                    loadBtnDiv.style.display = 'none'; 
+                    if (!lastVisibleDoc) emptyState.style.display = 'block'; 
                     isFetching = false;
                     return;
                 }
@@ -240,30 +248,36 @@
                 lastVisibleDoc = querySnapshot.docs[querySnapshot.docs.length - 1];
                 grid.style.display = 'grid';
 
-                // Use simple for...of loop to handle async nicely if needed
                 for (const docSnap of querySnapshot.docs) {
-                    const data = docSnap.data();
-                    const pID = docSnap.id;
-                    const pName = data.name;
-                    const pPrice = data.price;
-                    const pVendor = data.vendor;
-                    let pImage = data.image;
+                    const savedData = docSnap.data();
+                    const pID = docSnap.id; // The ID saved in Firestore
                     
-                    // 🆕 Attempt to get Description from the saved data first
-                    // If not there (older saves), use placeholder.
-                    // Note: If you want to fetch live description, we'd need to query the products collection
-                    // But for saved items, it's safer/faster to use what was saved or a default.
-                    let pDesc = data.description || "View details to see more.";
+                    // 🆕 MAGIC: Look for the real item in our Master List
+                    // We check if the ID matches OR if we can reconstruct the ID
+                    let liveItem = masterProductList.find(p => p.id === pID);
+                    
+                    // If not found by direct ID, try the ID generation logic used in other files
+                    if (!liveItem) {
+                        liveItem = masterProductList.find(p => {
+                            const genID = (p.id || ((p.vendor_id||p.Vendor_ID) + "-" + (p.name||p.Name)).replace(/\s+/g, '-').toLowerCase());
+                            return genID === pID;
+                        });
+                    }
 
-                    // OPTIONAL: If you want to fetch the FRESH description from Firestore products:
-                    // (This makes loading slower but more accurate. I've left it simple for speed).
-                    
+                    // Use Live Data if available, otherwise fallback to Saved Data
+                    const pName = liveItem ? (liveItem.name || liveItem.Name) : savedData.name;
+                    const pPrice = liveItem ? (liveItem.price || liveItem.Price) : savedData.price;
+                    const pVendor = liveItem ? (liveItem.vendor_id || liveItem.Vendor_ID) : savedData.vendor;
+                    let pImage = liveItem ? (liveItem.image || liveItem.Image) : savedData.image;
+                    // 🆕 GET DESCRIPTION (Live or Fallback)
+                    let pDesc = liveItem ? (liveItem.description || liveItem.Description) : savedData.description;
+                    if(!pDesc) pDesc = "No description available.";
+
                     const img = pImage.startsWith('http') ? pImage : `img/${pImage}`;
                     const vendorPhone = globalPhoneBook[pVendor] || ADMIN_PHONE;
                     
-                    // Safe strings
-                    const safeName = pName.replace(/'/g, "\\'").replace(/"/g, "&quot;");
-                    const safeDesc = pDesc.replace(/'/g, "\\'").replace(/"/g, "&quot;").replace(/\n/g, " ");
+                    const safeName = String(pName).replace(/'/g, "\\'").replace(/"/g, "&quot;");
+                    const safeDesc = String(pDesc).replace(/'/g, "\\'").replace(/"/g, "&quot;").replace(/\n/g, " ");
                     const safePrice = String(pPrice).replace(/'/g, "\\'");
 
                     const btnAction = `openDetailModal('${safeName}', '${safePrice}', '${safeDesc}', '${pVendor}', '${vendorPhone}')`;
@@ -285,7 +299,6 @@
                     </div>`;
                 }
 
-                // Show button if we got a full batch (meaning there might be more)
                 if (querySnapshot.size < BATCH_SIZE) {
                     loadBtnDiv.style.display = 'none';
                 } else {
@@ -313,7 +326,6 @@
             document.getElementById('detail-modal').style.display = 'flex';
         };
 
-        // 4. Global Function to Remove Item
         window.removeSavedItem = async function(docID) {
             if(!confirm("Remove this item?")) return;
             const user = auth.currentUser;
