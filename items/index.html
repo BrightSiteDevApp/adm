@@ -70,6 +70,16 @@
             position: relative;
         }
 
+        /* 🆕 NEW CLASS FOR DESCRIPTION BOX */
+        .modal-desc-box {
+            max-height: 200px;
+            overflow-y: auto;
+            margin-bottom: 20px;
+            background: #f9f9f9; /* Default Light Color */
+            padding: 10px;
+            border-radius: 10px;
+        }
+
         /* 🌙 DARK MODE FIXES */
         body.dark-mode .filter-container, body.dark-mode .modal-sheet {
             background: #1e1e1e !important;
@@ -85,6 +95,9 @@
         body.dark-mode #result-count { color: #aaa !important; }
         body.dark-mode #load-more-btn { background: #444; }
         body.dark-mode .ad-desc-preview { color: #aaa; }
+        
+        /* 🆕 DARK MODE FIX FOR DESCRIPTION BOX */
+        body.dark-mode .modal-desc-box { background: #2a2a2a !important; }
         body.dark-mode #m-desc { color: #ccc !important; }
     </style>
 </head>
@@ -142,7 +155,7 @@
             </div>
             <p id="m-price" style="color:#2d8eff; font-weight:bold; font-size:20px; margin:10px 0;">...</p>
             
-            <div style="max-height:200px; overflow-y:auto; margin-bottom:20px; background:#f9f9f9; padding:10px; border-radius:10px;">
+            <div class="modal-desc-box">
                  <p id="m-desc" style="color:#555; font-size:14px; line-height:1.5; margin:0;">...</p>
             </div>
 
