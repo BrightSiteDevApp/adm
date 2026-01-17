@@ -1,15 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
-    <script>
-      window.OneSignalDeferred = window.OneSignalDeferred || [];
-      OneSignalDeferred.push(async function(OneSignal) {
-        await OneSignal.init({
-          appId: "f62f27b5-a5a3-4018-aade-0a44f357c7e0",
-        });
-      });
-    </script>
 
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
@@ -39,12 +30,49 @@
             width: 80px;
             height: 80px;
             border-radius: 8px;
+            flex-shrink: 0; /* Prevent image squishing */
         }
 
         /* Fix for modal content scrolling */
         .blog-modal-content {
             max-height: 80vh;
             overflow-y: auto;
+        }
+
+        /* 🆕 CSS for Card Share Icon */
+        .blog-card {
+            display: flex;
+            align-items: center;
+            /* Ensure existing styles in style.css don't conflict */
+            justify-content: space-between;
+            gap: 15px;
+        }
+        .blog-info {
+            flex-grow: 1; /* Take up remaining space */
+        }
+        .card-share-btn {
+            padding: 10px;
+            color: var(--primary-blue, #2d8eff); /* Use theme color or default blue */
+            font-size: 18px;
+            cursor: pointer;
+            flex-shrink: 0; /* Don't shrink */
+            z-index: 5; /* Ensure it's clickable above the card */
+        }
+
+        /* 🆕 CSS for Modal Buttons Container */
+        .modal-btn-box {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+            justify-content: center;
+            flex-wrap: wrap; /* Wrap on very small screens */
+        }
+        /* Remove inline width:100% and let padding define size */
+        .modal-btn-box .chat-btn {
+            width: auto !important;
+            padding: 12px 25px;
+            flex-grow: 1; /* Allow them to grow evenly */
+            max-width: 200px; /* But don't get too wide */
         }
     </style>
 </head>
@@ -91,8 +119,14 @@
             <h3 id="modalTitle" class="modal-title"></h3>
             <span id="modalDate" class="modal-date" style="font-size:12px; color:#888;"></span>
             <div id="modalText" class="modal-text"></div>
-            <br>
-            <button onclick="closeBlogForce()" class="chat-btn" style="width:100%; text-align:center;">Close News</button>
+            
+            <div class="modal-btn-box">
+                <button id="shareBtn" class="chat-btn" style="background: #25D366;">
+                    Share <i class="fas fa-share-alt"></i>
+                </button>
+                <button onclick="closeBlogForce()" class="chat-btn" style="background: #333;">Close</button>
+            </div>
+
         </div>
     </div>
 </div>
@@ -110,32 +144,28 @@
             return res.json();
         })
         .then(data => {
-            console.log("Data loaded:", data); // For debugging
+            console.log("Data loaded:", data); 
             
             const container = document.getElementById('blog-container');
             const noMsg = document.getElementById('no-posts-msg');
             const preloader = document.getElementById('preloader');
 
             // 1. Filter empty rows
-            // We check for Title OR title (case insensitive safety)
             const validPosts = data.filter(p => (p.Title || p.title) && (p.Title || p.title) !== "");
 
             if (validPosts.length > 0) {
-                container.innerHTML = ""; // Clear any placeholders
+                container.innerHTML = ""; 
 
                 // 2. Reverse to show newest first
                 validPosts.reverse().forEach(post => {
                     
-                    // Handle Case Sensitivity (Title vs title)
                     const title = post.Title || post.title || "Untitled";
                     const snippet = post.Snippet || post.snippet || "Click to read more...";
                     const content = post.Content || post.content || "";
                     
-                    // Handle Date (Google Forms uses 'Timestamp')
                     let rawDate = post.Timestamp || post.timestamp || "Just Now";
-                    if(rawDate.includes(" ")) rawDate = rawDate.split(" ")[0]; // remove time
+                    if(rawDate.includes(" ")) rawDate = rawDate.split(" ")[0]; 
 
-                    // Handle Image
                     let image = post.Image || post.image || "logo-blue.png";
                     if (!image.startsWith('http')) { image = `../img/${image}`; }
 
@@ -143,11 +173,12 @@
                     const div = document.createElement('div');
                     div.className = "blog-card";
                     
-                    // Use a function to safely pass variables to the modal
+                    // Main card click opens modal
                     div.onclick = function() { 
                         openBlogDirect(title, rawDate, image, content); 
                     };
                     
+                    // 🆕 HTML structure updated to include share icon
                     div.innerHTML = `
                         <img src="${image}" class="blog-thumb" onerror="this.src='../img/logo-blue.png'">
                         <div class="blog-info">
@@ -155,7 +186,20 @@
                             <div class="blog-title">${title}</div>
                             <div class="blog-snippet">${snippet}</div>
                         </div>
+                        <div class="card-share-btn">
+                            <i class="fas fa-share-alt"></i>
+                        </div>
                     `;
+
+                    // 🆕 Attach click listener to the share icon specifically
+                    const shareIconEl = div.querySelector('.card-share-btn');
+                    shareIconEl.addEventListener('click', (e) => {
+                        // STOP propagation so the modal doesn't open
+                        e.stopPropagation(); 
+                        // Trigger share logic directly
+                        performShare(title, content);
+                    });
+
                     container.appendChild(div);
                 });
                 
@@ -173,22 +217,45 @@
         });
     });
 
+    // 🆕 Reusable Share Function
+    function performShare(title, content) {
+        const shareText = `*${title}*\n\n${content.substring(0, 80)}...\n\nRead full gist on AFIT Market:\n${window.location.href}`;
+            
+        if (navigator.share) {
+            navigator.share({
+                title: "AFIT Campus Gist",
+                text: shareText,
+                url: window.location.href
+            }).catch(console.error);
+        } else {
+            // Fallback to WhatsApp
+            const waUrl = `https://wa.me/?text=${encodeURIComponent(shareText)}`;
+            window.open(waUrl, '_blank');
+        }
+    }
+
     // --- Modal Functions ---
 
     function openBlogDirect(title, date, img, content) {
         document.getElementById('modalImg').src = img;
         document.getElementById('modalTitle').innerText = title;
         document.getElementById('modalDate').innerText = date;
-        document.getElementById('modalText').innerText = content; // innerText respects \n
+        document.getElementById('modalText').innerText = content; 
         
+        // Setup Share Button Logic inside modal using reusable function
+        const shareBtn = document.getElementById('shareBtn');
+        shareBtn.onclick = function() {
+            performShare(title, content);
+        };
+
         const modal = document.getElementById('blogModal');
         modal.style.display = 'flex';
-        document.body.style.overflow = 'hidden'; // Stop background scrolling
+        document.body.style.overflow = 'hidden'; 
     }
 
     function closeBlogForce() {
         document.getElementById('blogModal').style.display = 'none';
-        document.body.style.overflow = 'auto'; // Restore scrolling
+        document.body.style.overflow = 'auto'; 
     }
 
     function closeBlog(event) {
