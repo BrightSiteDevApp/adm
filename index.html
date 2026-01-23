@@ -115,6 +115,32 @@
           border-radius: 10px;
       }
 
+      /* See All Button Style */
+      .see-all-container {
+        text-align: center;
+        margin-top: 15px;
+        margin-bottom: 10px;
+      }
+
+      .see-all-btn-large {
+        display: inline-block;
+        background: white;
+        color: #2d8eff;
+        border: 1px solid #2d8eff;
+        padding: 12px 30px;
+        border-radius: 30px;
+        font-weight: bold;
+        text-decoration: none;
+        font-size: 13px;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        transition: all 0.2s;
+      }
+
+      .see-all-btn-large:active {
+        background: #2d8eff;
+        color: white;
+      }
+
       /* Dark Mode Fixes */
       body.dark-mode .modal-sheet { background: #1e1e1e !important; color: white; }
       body.dark-mode .ad-desc-preview { color: #aaa; }
@@ -123,6 +149,12 @@
       /* Dark Mode for Description Box */
       body.dark-mode .desc-box { background: #333 !important; color: #ddd; }
       body.dark-mode #m-desc { color: #ddd !important; }
+
+      body.dark-mode .see-all-btn-large {
+        background: #2a2a2a;
+        border-color: #2d8eff;
+        color: #2d8eff;
+      }
   </style>
   
 </head>
@@ -157,14 +189,14 @@
     <section class="stories-container" id="stories-section" style="display:none;">
         <div style="font-size:12px; font-weight:bold; margin-bottom:8px; color:#555; padding-left:5px;">⚡ Flash Sales</div>
         <div class="stories-scroll" id="stories-list"></div>
-    </section>
+    </section> 
 
     <section class="info-cards">
       <a href="requests.html"><div class="info-card"><i class="fas fa-bullhorn"></i> Requests</div></a>
       <a href="ambassadors/"><div class="info-card"><i class="fas fa-briefcase"></i> Ambassadors</div> </a>
       <a href="safety/"><div class="info-card"><i class="fas fa-shield-alt"></i> Safety</div></a>
       <a href="blogs/"><div class="info-card"><i class="fas fa-newspaper"></i> Blog</div></a>
-     <a href="category.html?cat=Valentine"><div class="info-card"><i class="fas fa-heart"></i> Val Packages</div></a>
+      <a href="category.html?cat=Valentine"><div class="info-card"><i class="fas fa-heart"></i> Val Packages</div></a>
     </section>
 
     <section class="categories">
@@ -175,11 +207,11 @@
       <a href="category.html?cat=Phone Accessories" class="cat" style="text-decoration:none;"><div class="cat-icon"><i class="fas fa-headphones"></i></div> Phone Accessories</a>
       <a href="category.html?cat=Gadgets" class="cat" style="text-decoration:none;"><div class="cat-icon"><i class="fas fa-gamepad"></i></div> Gadgets</a>
       <a href="category.html?cat=Food" class="cat" style="text-decoration:none;"><div class="cat-icon"><i class="fas fa-utensils"></i></div> Food</a>
-     <a href="category.html?cat=Footwear" class="cat" style="text-decoration:none;"><div class="cat-icon"><i class="fas fa-shoe-prints"></i></div> Footwear</a>
+      <a href="category.html?cat=Footwear" class="cat" style="text-decoration:none;"><div class="cat-icon"><i class="fas fa-shoe-prints"></i></div> Footwear</a>
       <a href="category.html?cat=Services" class="cat" style="text-decoration:none;"><div class="cat-icon"><i class="fas fa-briefcase"></i></div>Services</a>
       <a href="category.html?cat=Fragrance" class="cat" style="text-decoration:none;"><div class="cat-icon"><i class="fas fa-air-freshener"></i></div>Fragrance</a>
       <a href="category.html?cat=Hair Service" class="cat" style="text-decoration:none;"><div class="cat-icon"><i class="fas fa-cut"></i></div>Hair Service</a>
-      <a href="category.html?cat=Graphics Design" class="cat" style="text-decoration:none;"><div class="cat-icon"><i class="fas fa-palette"></i></div>Graphics Design</a>
+    <a href="category.html?cat=Pastries" class="cat" style="text-decoration:none;"><div class="cat-icon"><i class="fas fa-bread-slice"></i></div>Pastries</a>
     </section>
 
     <section class="reviews-container">
@@ -192,7 +224,7 @@
         </div>
     </section>
 
-    <section class="trending-section">
+    <section class="trending-section" id="items-section-container">
       <div class="section-header">
         <div class="trending-title">Available Items</div>
         <a href="items/" style="font-size:12px; color:var(--primary-blue); font-weight:600; text-decoration:none;">See all</a>
@@ -200,6 +232,9 @@
       <div class="trending-grid" id="home-items-grid">
         <div class="skeleton-card"><div class="skeleton sk-img-rect"></div><div class="skeleton sk-text-short"></div><div class="skeleton sk-text-long"></div><div class="skeleton sk-btn"></div></div>
         <div class="skeleton-card"><div class="skeleton sk-img-rect"></div><div class="skeleton sk-text-short"></div><div class="skeleton sk-text-long"></div><div class="skeleton sk-btn"></div></div>
+      </div>
+      <div class="see-all-container">
+          <a href="items/" class="see-all-btn-large">Go to see all items page</a>
       </div>
     </section>
 
@@ -223,7 +258,7 @@
         </div>
     </section>
 
-    <section class="vendor-section-wrapper" style="padding: 0 14px 20px;">
+    <section class="vendor-section-wrapper" id="vendor-section-container" style="padding: 0 14px 20px;">
         <div class="section-header">
             <div class="trending-title">Verified Vendors</div>
             <a href="vendors/" style="font-size:12px; color:var(--primary-blue); font-weight:600; text-decoration:none;">See all</a>
@@ -232,6 +267,9 @@
            <div class="skeleton-card"><div class="skeleton sk-img"></div><div class="skeleton sk-text-short"></div></div>
            <div class="skeleton-card"><div class="skeleton sk-img"></div><div class="skeleton sk-text-short"></div></div>
        </div>
+       <div class="see-all-container">
+        <a href="vendors/" class="see-all-btn-large">Go to see all vendors</a>
+    </div>
     </section>
 
     <footer class="site-footer">
@@ -735,7 +773,9 @@ if ('serviceWorker' in navigator) {
     function setupMainSearch() {
         const searchInput = document.getElementById('main-search');
         const searchType = document.getElementById('search-type');
+        
         if(searchInput) {
+            // Existing real-time listener (keeping this as is for best mobile UX)
             searchInput.addEventListener('input', (e) => {
                 const query = e.target.value.toLowerCase().trim();
                 const type = searchType.value; 
@@ -747,6 +787,21 @@ if ('serviceWorker' in navigator) {
                     renderItems(allProducts.filter(p => (p.name || p.Name).toLowerCase().includes(query)));
                 } else if (type === 'vendor') {
                     renderVendors(allVendors.filter(v => (v.business_name || v.Business_Name).toLowerCase().includes(query)));
+                }
+            });
+
+            // 🆕 NEW: Listen for Enter Key to dismiss keyboard and jump to section
+            searchInput.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') {
+                    e.preventDefault(); // Prevent form submit if any
+                    searchInput.blur(); // Dismiss the keyboard
+                    
+                    const type = searchType.value;
+                    if(type === 'product') {
+                         document.getElementById('items-section-container').scrollIntoView({behavior: 'smooth'});
+                    } else {
+                         document.getElementById('vendor-section-container').scrollIntoView({behavior: 'smooth'});
+                    }
                 }
             });
         }

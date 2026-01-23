@@ -10,6 +10,46 @@
     <link rel="apple-touch-icon" href="../img/app-logo.png">
     <link rel="icon" href="../favicon.ico" type="image/x-icon">
     <style>
+        /* --- 1. ESSENTIAL GRID STYLES --- */
+        .trending-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr); /* 2 columns by default */
+            gap: 15px;
+            padding: 15px;
+            padding-bottom: 20px; 
+        }
+        @media (min-width: 768px) {
+            .trending-grid { grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); }
+        }
+
+        .ad-card {
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+            transition: transform 0.2s;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            border: 1px solid #f0f0f0;
+        }
+        .ad-card:active { transform: scale(0.98); }
+        
+        .ad-img {
+            width: 100%;
+            height: 160px;
+            object-fit: cover;
+            background: #f5f5f5;
+        }
+        
+        .ad-info { padding: 10px; flex: 1; display: flex; flex-direction: column; }
+        
+        /* Price Color: Blue */
+        .ad-price { 
+            font-weight: 800; color: #2d8eff; font-size: 16px; 
+            margin-bottom: 2px;
+        }
+
         /* Filter Bar Styles */
         .filter-container {
             background: white;
@@ -38,28 +78,69 @@
         .ad-title {
             white-space: normal !important; 
             line-height: 1.3;
-            height: auto !important;
+            font-size: 13px;
+            color: #555;
+            height: 34px;
             display: -webkit-box;
             -webkit-line-clamp: 2; 
             -webkit-box-orient: vertical;
             overflow: hidden;
             margin-bottom: 5px;
-            margin-top: 5px; /* Added spacing from price */
         }
         .ad-desc-preview {
-            font-size: 11px; color: #888;
+            font-size: 10px; color: #999;
             white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
             margin-bottom: 8px;
         }
 
-        /* LOAD MORE BUTTON */
-        #load-more-container { text-align: center; margin: 30px 0 50px; display: none; }
+        /* BUTTON: WhatsApp Green */
+        .chat-btn {
+            background: #25D366; 
+            color: white; padding: 10px; 
+            border-radius: 8px; text-align: center; text-decoration: none; 
+            font-size: 13px; font-weight: bold; margin-top: auto;
+            border: none; cursor: pointer;
+        }
+
+        /* LOAD MORE CONTAINER: Flex Center */
+        #load-more-container { 
+            display: flex; 
+            justify-content: center;
+            width: 100%;
+            margin: 0 0 80px 0; /* 80px bottom margin for nav bar */
+        }
+        
+        /* LOAD MORE BUTTON: Blue & Centered */
         #load-more-btn {
-            background: #333; color: white; border: none; padding: 12px 30px;
+            display: none; /* Hidden by default */
+            background: #2d8eff; 
+            color: white; border: none; padding: 12px 40px;
             border-radius: 30px; font-weight: bold; cursor: pointer;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.1); transition: transform 0.2s;
+            box-shadow: 0 4px 10px rgba(45, 142, 255, 0.3); 
+            transition: transform 0.2s;
         }
         #load-more-btn:active { transform: scale(0.95); }
+
+        /* --- SKELETON LOADING STYLES --- */
+        .skeleton {
+            background: #eee;
+            background: linear-gradient(110deg, #ececec 8%, #f5f5f5 18%, #ececec 33%);
+            border-radius: 5px;
+            background-size: 200% 100%;
+            animation: 1.5s shine linear infinite;
+        }
+        @keyframes shine {
+            to { background-position-x: -200%; }
+        }
+        .sk-card {
+            background: white; border-radius: 10px; overflow: hidden;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05); margin-bottom: 0;
+            height: 260px;
+        }
+        .sk-img { width: 100%; height: 160px; }
+        .sk-content { padding: 10px; }
+        .sk-line { height: 10px; margin-bottom: 8px; width: 100%; }
+        .sk-short { width: 60%; }
 
         /* --- MODAL STYLES --- */
         @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
@@ -70,35 +151,33 @@
             position: relative;
         }
 
-        /* 🆕 NEW CLASS FOR DESCRIPTION BOX */
         .modal-desc-box {
-            max-height: 200px;
-            overflow-y: auto;
-            margin-bottom: 20px;
-            background: #f9f9f9; /* Default Light Color */
-            padding: 10px;
-            border-radius: 10px;
+            max-height: 200px; overflow-y: auto; margin-bottom: 20px;
+            background: #f9f9f9; padding: 10px; border-radius: 10px;
         }
 
         /* 🌙 DARK MODE FIXES */
         body.dark-mode .filter-container, body.dark-mode .modal-sheet {
-            background: #1e1e1e !important;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
-            color: white;
+            background: #1e1e1e !important; box-shadow: 0 4px 10px rgba(0,0,0,0.3); color: white;
         }
-        body.dark-mode .search-input {
+        body.dark-mode .search-input, body.dark-mode .filter-select {
             background: #333 !important; border-color: #444 !important; color: white !important;
         }
-        body.dark-mode .filter-select {
-            background: #333 !important; border-color: #444 !important; color: #ccc !important;
-        }
         body.dark-mode #result-count { color: #aaa !important; }
-        body.dark-mode #load-more-btn { background: #444; }
-        body.dark-mode .ad-desc-preview { color: #aaa; }
         
-        /* 🆕 DARK MODE FIX FOR DESCRIPTION BOX */
+        body.dark-mode .ad-desc-preview { color: #aaa; }
         body.dark-mode .modal-desc-box { background: #2a2a2a !important; }
         body.dark-mode #m-desc { color: #ccc !important; }
+        
+        body.dark-mode .ad-card { background: #2a2a2a; border-color: #333; }
+        body.dark-mode .ad-price { color: #2d8eff; } 
+        body.dark-mode .ad-title { color: #ccc; }
+        
+        /* Dark Mode Skeleton */
+        body.dark-mode .sk-card { background: #2a2a2a; }
+        body.dark-mode .skeleton {
+            background: linear-gradient(110deg, #333 8%, #444 18%, #333 33%);
+        }
     </style>
 </head>
 <body>
@@ -138,8 +217,10 @@
             <div id="result-count" style="font-size:11px; color:#888; margin-top:5px; text-align:center;">Loading items...</div>
         </div>
 
-        <div class="trending-grid" id="all-items-container" style="padding-top: 10px;">
-        </div>
+        <div class="trending-grid" id="all-items-container">
+            </div>
+        
+        <div id="loading-more-skeletons" class="trending-grid" style="display:none; padding-top:0;"></div>
 
         <div id="load-more-container">
             <button id="load-more-btn">Load More</button>
@@ -184,7 +265,7 @@
    <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
     import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-    import { getFirestore, doc, setDoc, deleteDoc, collection, getDocs, query, orderBy, limit, startAfter, documentId } 
+    import { getFirestore, doc, setDoc, deleteDoc, collection, getDocs, query, orderBy, limit } 
     from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
     const firebaseConfig = {
@@ -203,15 +284,13 @@
     let savedItemIds = new Set();
     
     // --- GLOBAL VARIABLES ---
-    let sheetList = [];      
-    let firestoreList = [];  
-    let lastVisibleDoc = null; 
+    let masterItemList = []; // Stores ALL items shuffled
+    let currentDisplayCount = 0; 
     let phoneBook = {}; 
 
-    const INITIAL_LOAD = 50; 
-    const LOAD_STEP = 10;    
-    let isFiltering = false;
-
+    const INITIAL_DISPLAY = 50; 
+    const LOAD_STEP = 20;    
+    
     const sheetID = "1SvVUbEnDgqgw2Z_M1ShQkzyFTsnnS6n8mTs7UMXVvF4";
     const apiRoot = `https://opensheet.elk.sh/${sheetID}`;
     const ADMIN_PHONE = "2348144516127"; 
@@ -219,6 +298,38 @@
     function escapeHTML(str) {
         if (!str) return "";
         return String(str).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+    }
+
+    // --- SKELETON FUNCTIONS ---
+    function renderSkeletons(targetId, count) {
+        const container = document.getElementById(targetId);
+        let html = '';
+        for(let i=0; i<count; i++) {
+            html += `
+            <div class="sk-card">
+                <div class="skeleton sk-img"></div>
+                <div class="sk-content">
+                    <div class="skeleton sk-line"></div>
+                    <div class="skeleton sk-line sk-short"></div>
+                </div>
+            </div>`;
+        }
+        container.innerHTML = html;
+        container.style.display = 'grid'; // Ensure grid layout
+    }
+
+    function clearSkeletons(targetId) {
+        document.getElementById(targetId).innerHTML = '';
+        document.getElementById(targetId).style.display = 'none';
+    }
+
+    // --- FISHER-YATES SHUFFLE ---
+    function shuffleArray(array) {
+        for (let i = array.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [array[i], array[j]] = [array[j], array[i]];
+        }
+        return array;
     }
 
     onAuthStateChanged(auth, async (user) => {
@@ -233,135 +344,139 @@
     });
 
     document.addEventListener("DOMContentLoaded", async () => {
-        document.getElementById('load-more-btn').addEventListener('click', loadMoreFirestore);
-        document.getElementById('item-search').addEventListener('input', applyFilters);
-        document.getElementById('filter-price').addEventListener('change', applyFilters);
-        document.getElementById('filter-condition').addEventListener('change', applyFilters);
+        document.getElementById('load-more-btn').addEventListener('click', handleLoadMore);
+        
+        // Filter Listeners
+        document.getElementById('item-search').addEventListener('input', () => applyFilters(true));
+        document.getElementById('filter-price').addEventListener('change', () => applyFilters(true));
+        document.getElementById('filter-condition').addEventListener('change', () => applyFilters(true));
+
+        // Initial Skeleton
+        renderSkeletons('all-items-container', 8);
 
         try {
             // 1. FETCH VENDORS
             const vendorRes = await fetch(`${apiRoot}/Vendors`);
             const vendors = await vendorRes.json();
             
-            // Build the Phonebook
             vendors.forEach(v => {
                 const vID = v.vendor_id || v.Vendor_ID; 
                 const vPhone = v.whatsapp || v.Whatsapp;
                 if(vID) phoneBook[vID] = String(vPhone).replace(/[^0-9]/g, '');
             });
 
-            // 2. FETCH PRODUCTS FROM SHEET
+            // 2. FETCH SHEET PRODUCTS
             const sheetRes = await fetch(`${apiRoot}/Products`);
             const sheetRaw = await sheetRes.json();
             
-            sheetList = sheetRaw.map(p => {
+            const sheetItems = sheetRaw.map(p => {
                 const vID = p.vendor_id || p.Vendor_ID;
                 return {
                     ...p,
+                    source: 'sheet',
                     numericPrice: parseInt(String(p.price||p.Price).replace(/[^0-9]/g, '')) || 0,
                     phone: phoneBook[vID] || ADMIN_PHONE 
                 };
             });
 
-            // 3. LOAD FIRESTORE
-            await loadMoreFirestore();
-
-        } catch (err) { console.error(err); }
-    });
-
-    async function loadMoreFirestore() {
-        const loadBtn = document.getElementById('load-more-btn');
-        loadBtn.innerText = "Loading...";
-        
-        try {
-            let q;
-            const productsRef = collection(db, "products");
-            const batchSize = (!lastVisibleDoc) ? INITIAL_LOAD : LOAD_STEP;
-
-            if (lastVisibleDoc) {
-                q = query(productsRef, orderBy(documentId()), startAfter(lastVisibleDoc), limit(batchSize));
-            } else {
-                q = query(productsRef, orderBy(documentId()), limit(batchSize));
-            }
-
-            if(isFiltering) { loadBtn.style.display = 'none'; return; }
-
+            // 3. FETCH FIRESTORE PRODUCTS (Fetch up to 500)
+            const q = query(collection(db, "products"), limit(500)); 
             const snapshot = await getDocs(q);
             
-            if (snapshot.empty) {
-                loadBtn.style.display = 'none'; 
-            } else {
-                lastVisibleDoc = snapshot.docs[snapshot.docs.length - 1];
-                
-                const newItems = snapshot.docs.map(doc => {
-                    const data = doc.data();
-                    const vID = data.vendor_id || data.Vendor_ID;
-                    
-                    return { 
-                        id: doc.id, 
-                        ...data,
-                        numericPrice: parseInt(String(data.price).replace(/[^0-9]/g, '')) || 0,
-                        phone: data.phone || phoneBook[vID] || ADMIN_PHONE 
-                    };
-                });
+            const firestoreItems = snapshot.docs.map(doc => {
+                const data = doc.data();
+                const vID = data.vendor_id || data.Vendor_ID;
+                return { 
+                    id: doc.id, 
+                    ...data,
+                    source: 'firestore',
+                    numericPrice: parseInt(String(data.price).replace(/[^0-9]/g, '')) || 0,
+                    phone: data.phone || phoneBook[vID] || ADMIN_PHONE 
+                };
+            });
 
-                firestoreList = [...firestoreList, ...newItems];
-                applyFilters();
-                loadBtn.innerText = "Load More";
-            }
-        } catch (e) { console.error("Firestore Error:", e); }
+            // 4. COMBINE & SHUFFLE
+            masterItemList = [...sheetItems, ...firestoreItems];
+            shuffleArray(masterItemList);
+
+            // 5. RENDER INITIAL BATCH
+            clearSkeletons('all-items-container');
+            applyFilters(false); 
+
+        } catch (err) { 
+            console.error(err); 
+            document.getElementById('all-items-container').innerHTML = "<p style='text-align:center;'>Error loading items.</p>";
+        }
+    });
+
+    async function handleLoadMore() {
+        const loadBtn = document.getElementById('load-more-btn');
+        const skeletonContainer = document.getElementById('loading-more-skeletons');
+
+        // 1. Hide Button, Show Skeletons
+        loadBtn.style.display = 'none';
+        skeletonContainer.style.display = 'grid'; 
+        renderSkeletons('loading-more-skeletons', 4); 
+
+        // 2. Simulate Network Delay (1.5 seconds)
+        setTimeout(() => {
+            clearSkeletons('loading-more-skeletons');
+            currentDisplayCount += LOAD_STEP;
+            applyFilters(false);
+        }, 1500); 
     }
 
-    function applyFilters() {
+    function applyFilters(resetCount = false) {
+        if(resetCount) currentDisplayCount = INITIAL_DISPLAY;
+        if(currentDisplayCount === 0) currentDisplayCount = INITIAL_DISPLAY;
+
         const term = document.getElementById('item-search').value.toLowerCase().trim();
         const priceFilter = document.getElementById('filter-price').value;
         const condFilter = document.getElementById('filter-condition').value;
         const loadBtn = document.getElementById('load-more-btn');
 
-        isFiltering = (term !== "" || priceFilter !== "all" || condFilter !== "all");
+        let filteredItems = masterItemList.filter(p => {
+            const name = (p.name || p.Name).toLowerCase();
+            if(term && !name.includes(term)) return false;
 
-        if (isFiltering) {
-            loadBtn.style.display = 'none';
-        } else {
+            const pCond = p.condition || p.Condition || "Used";
+            if(condFilter !== 'all' && pCond.toLowerCase() !== condFilter.toLowerCase()) return false;
+
+            const price = p.numericPrice;
+            if (priceFilter === 'under-5k' && price >= 5000) return false;
+            if (priceFilter === '5k-20k' && (price < 5000 || price > 20000)) return false;
+            if (priceFilter === '20k-50k' && (price <= 20000 || price > 50000)) return false;
+            if (priceFilter === 'above-50k' && price <= 50000) return false;
+
+            return true;
+        });
+
+        const totalMatches = filteredItems.length;
+        const itemsToShow = filteredItems.slice(0, currentDisplayCount);
+        renderCustomGrid(itemsToShow);
+
+        document.getElementById('result-count').innerText = `${itemsToShow.length} of ${totalMatches} items`;
+
+        if (itemsToShow.length < totalMatches) {
             loadBtn.style.display = 'block';
+            loadBtn.innerText = `Load ${Math.min(LOAD_STEP, totalMatches - itemsToShow.length)} More`;
+        } else {
+            loadBtn.style.display = 'none';
         }
-
-        let allItems = [...sheetList, ...firestoreList];
-
-        if (term) {
-            allItems = allItems.filter(p => (p.name || p.Name).toLowerCase().includes(term));
-        }
-
-        if (condFilter !== 'all') {
-            allItems = allItems.filter(p => {
-                const pCond = p.condition || p.Condition || "Used";
-                return pCond.toLowerCase() === condFilter.toLowerCase();
-            });
-        }
-
-        if (priceFilter !== 'all') {
-            allItems = allItems.filter(p => {
-                const price = p.numericPrice;
-                if (priceFilter === 'under-5k') return price < 5000;
-                if (priceFilter === '5k-20k') return price >= 5000 && price <= 20000;
-                if (priceFilter === '20k-50k') return price > 20000 && price <= 50000;
-                if (priceFilter === 'above-50k') return price > 50000;
-                return true;
-            });
-        }
-
-        renderCustomGrid(allItems);
     }
 
     function renderCustomGrid(items) {
         const container = document.getElementById('all-items-container');
-        document.getElementById('result-count').innerText = `${items.length} items showing`;
-        container.innerHTML = "";
+        
+        // Ensure container is visible
+        container.style.display = 'grid'; 
 
         if(items.length === 0) {
-            container.innerHTML = "<p style='text-align:center; width:100%; color:#888; margin-top:20px;'>No items found matching your filters.</p>";
+            container.innerHTML = "<p style='text-align:center; width:100%; color:#888; margin-top:20px; grid-column:span 2;'>No items found.</p>";
             return;
         }
+
+        let fullHTML = ""; 
 
         items.forEach(p => {
             const pName = p.name || p.Name;
@@ -370,11 +485,10 @@
             const pImage = p.image || p.Image;
             const pCond = p.condition || p.Condition || "Used";
             const pStatus = p.status || p.Status || "Active";
-            
-            // GET DESCRIPTION 
             const pDesc = p.description || p.Description || "No additional details.";
             
-            const pID = p.id || (pVendor + "-" + pName).replace(/\s+/g, '-').toLowerCase();
+            const rawID = p.id || (pVendor + "-" + pName).replace(/\s+/g, '-').toLowerCase();
+            const pID = rawID.replace(/'/g, "").replace(/"/g, ""); 
 
             const img = pImage.startsWith('http') ? pImage : `../img/${pImage}`;
             const isSaved = savedItemIds.has(pID);
@@ -397,9 +511,8 @@
             const btnText = isSold ? "Sold" : "Get Item";
             const btnStyle = isSold ? "background:#777; pointer-events:none;" : "";
 
-            // 👇 ORDER SWAPPED HERE: Price, then Title, then Description
-            container.innerHTML += `
-            <div class="ad-card" style="position:relative; ${opacity}">
+            fullHTML += `
+            <div class="ad-card" style="${opacity}">
                 ${soldBadge} ${condBadge}
                 <button onclick="toggleSave('${pID}', '${safeNameJS}', '${safePrice}', '${pImage}', '${pVendor}')" 
                         class="save-btn" id="save-${pID}"
@@ -416,6 +529,8 @@
                 </div>
             </div>`;
         });
+        
+        container.innerHTML = fullHTML;
     }
 
     // FUNCTION TO OPEN MODAL
