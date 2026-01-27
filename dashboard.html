@@ -79,7 +79,7 @@
         .btn-del { background: rgba(255, 71, 87, 0.9); }
         .btn-sold { background: rgba(46, 204, 113, 0.9); } 
         .btn-sold.is-sold { background: rgba(50, 50, 50, 0.9); }
-        .btn-edit { background: rgba(52, 152, 219, 0.9); } /* Blue Edit Button */
+        .btn-edit { background: rgba(52, 152, 219, 0.9); } 
 
         /* LIMIT POPUP */
         .limit-alert {
@@ -260,7 +260,8 @@
     const db = getFirestore(app);
 
     const IMGBB_KEY = "2ac38bef2c73c5a65e7ddf94efe37962";
-    const SHEET_API = "https://opensheet.elk.sh/1SvVUbEnDgqgw2Z_M1ShQkzyFTsnnS6n8mTs7UMXVvF4/Vendors";
+    const SHEET_ID = "1SvVUbEnDgqgw2Z_M1ShQkzyFTsnnS6n8mTs7UMXVvF4";
+    const API_ROOT = `https://opensheet.elk.sh/${SHEET_ID}`;
 
     let currentVendorID = null;
     let maxItems = 5; 
@@ -271,12 +272,11 @@
     let currentImageURL = "";
 
     // --- PAGINATION VARS ---
-    let allFetchedItems = []; // Stores all items for this vendor
-    let renderedCount = 0; // How many currently shown
+    let allFetchedItems = []; 
+    let renderedCount = 0; 
     const INITIAL_LOAD = 20;
     const LOAD_STEP = 10;
 
-    // --- 🛡️ SECURITY FIX: XSS SANITIZER ---
     function escapeHTML(str) {
         if (!str) return "";
         return String(str)
@@ -292,18 +292,22 @@
         if (user) {
             document.getElementById('dash-name').innerText = user.displayName || "Vendor";
             try {
-                const res = await fetch(SHEET_API);
-                if (!res.ok) throw new Error("Failed to fetch vendor list");
-                const vendors = await res.json();
+                // ✅ DUAL FETCH: Check both sheets for vendor access
+                const [vendors1, vendors2] = await Promise.all([
+                    fetch(`${API_ROOT}/Vendors`).then(res => res.json()),
+                    fetch(`${API_ROOT}/Vendors_v2`).then(res => res.json().catch(() => []))
+                ]);
+
+                const allVendors = [...vendors1, ...vendors2];
                 
-                // ✅ ROBUST MATCHING
-                const myVendorProfile = vendors.find(v => {
+                // Find vendor by email
+                const myVendorProfile = allVendors.find(v => {
                     const emailVal = v.Email || v.email || v.EMAIL;
                     return emailVal && emailVal.toLowerCase().trim() === user.email.toLowerCase().trim();
                 });
 
                 if (myVendorProfile) {
-                    // --- VENDOR VERIFIED ---
+                    // --- VENDOR FOUND ---
                     currentVendorID = myVendorProfile.Vendor_ID || myVendorProfile.vendor_id;
                     maxItems = parseInt(myVendorProfile.Max_Items) || 5;
 
@@ -332,13 +336,11 @@
                 if(statusMsg) statusMsg.innerText = "Error connecting to vendor database. Please refresh."; 
             }
         } else { 
-            // Not logged in
             window.location.href = "login.html"; 
         }
     });
 
     async function loadMyItems(vid) {
-        // Setup Load More Listener
         document.getElementById('load-more-btn').addEventListener('click', renderBatch);
 
         const grid = document.getElementById('my-items-grid');
@@ -348,10 +350,8 @@
             const q = query(collection(db, "products"), where("vendor_id", "==", vid));
             const querySnapshot = await getDocs(q);
             
-            // Store all items
             allFetchedItems = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
             
-            // Update Limit Counter
             currentCount = allFetchedItems.length;
             document.getElementById('item-count').innerText = `${currentCount} / ${maxItems}`;
             if(currentCount >= maxItems) document.getElementById('item-count').style.color = "#ff4757";
@@ -362,7 +362,6 @@
                 return;
             }
 
-            // Render first batch
             renderedCount = 0;
             renderBatch();
 
@@ -374,7 +373,6 @@
         const loadMoreContainer = document.getElementById('load-more-container');
         const loadMoreBtn = document.getElementById('load-more-btn');
 
-        // Determine how many to load (20 first, then 10)
         const batchSize = (renderedCount === 0) ? INITIAL_LOAD : LOAD_STEP;
         const nextItems = allFetchedItems.slice(renderedCount, renderedCount + batchSize);
 
@@ -388,12 +386,10 @@
             const soldIcon = isSold ? 'fa-eye-slash' : 'fa-check';
             const soldText = isSold ? "Sold" : "Active";
 
-            // Safe Strings for JS onclick (prevent breaking functionality)
             const safeNameJS = (data.name || "").replace(/'/g, "\\'").replace(/"/g, "&quot;");
             const safeDescJS = (data.description || "").replace(/'/g, "\\'").replace(/"/g, "&quot;").replace(/\n/g, " ");
             const safePriceJS = (data.price || "").replace(/'/g, "\\'");
 
-            // Safe Strings for Display (XSS Protection)
             const safeNameHTML = escapeHTML(data.name);
             const safePriceHTML = escapeHTML(data.price);
             
@@ -422,7 +418,6 @@
 
         renderedCount += nextItems.length;
 
-        // Check Button Visibility
         if (renderedCount >= allFetchedItems.length) {
             loadMoreContainer.style.display = 'none';
         } else {

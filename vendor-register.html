@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Vendor Registration | AFIT Digital Market</title>
     <link rel="stylesheet" href="asset/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -13,21 +13,44 @@
             background: #f0f2f5; 
             padding-bottom: 50px; 
             font-family: 'Segoe UI', sans-serif;
+            margin: 0;
         }
         
         .header {
             background: white;
+            padding: 15px 20px;
             box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        /* Flyer Section Styles */
+        .flyer-section {
+            width: 100%;
+            margin: 15px 0 25px; 
+            border-radius: 12px;
+            overflow: hidden;
+            border: 1px solid #eee;
+        }
+        .flyer-img {
+            width: 100%;
+            height: auto;
+            display: block;
         }
 
         .reg-container { 
             max-width: 600px; 
-            margin: 0 auto 30px; 
+            width: 92%; 
+            margin: 20px auto 30px; 
             background: white; 
-            padding: 30px; 
+            padding: 25px; 
             border-radius: 16px; 
             box-shadow: 0 4px 20px rgba(0,0,0,0.08); 
+            box-sizing: border-box;
         }
 
         .form-section-title {
@@ -42,130 +65,197 @@
         }
 
         .form-group { margin-bottom: 20px; }
-        
-        .form-label { 
-            font-size: 13px; 
-            font-weight: 600; 
-            color: #333; 
-            display: block; 
-            margin-bottom: 8px; 
-        }
-        
+        .form-label { font-size: 13px; font-weight: 600; color: #333; display: block; margin-bottom: 8px; }
         .form-input { 
-            width: 100%; 
-            padding: 14px; 
-            border: 2px solid #eee; 
-            border-radius: 10px; 
-            font-size: 14px; 
-            transition: all 0.3s;
-            box-sizing: border-box;
-            background: #fafafa;
+            width: 100%; padding: 14px; border: 2px solid #eee; 
+            border-radius: 10px; font-size: 14px; transition: all 0.3s; 
+            box-sizing: border-box; background: #fafafa;
+            -webkit-appearance: none;
         }
-        
-        .form-input:focus { 
-            border-color: #2d8eff; 
-            background: white; 
-            outline: none; 
-        }
+        .form-input:focus { border-color: #2d8eff; background: white; outline: none; }
 
-        /* Modern Category Pills */
-        .category-grid {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-        }
-        
-        .cat-option {
-            display: none;
-        }
-        
-        .cat-label {
-            padding: 10px 18px;
-            background: #f0f2f5;
-            border-radius: 25px;
-            font-size: 12px;
-            font-weight: 600;
-            color: #555;
-            cursor: pointer;
-            transition: all 0.2s;
-            border: 1px solid transparent;
-        }
-        
-        .cat-option:checked + .cat-label {
-            background: #e7f3ff;
-            color: #2d8eff;
-            border-color: #2d8eff;
-        }
-
-        /* File Upload Box */
-        .file-upload-box {
-            border: 2px dashed #ccc;
+        /* Bank Card Styles */
+        .bank-card {
+            background: #fff; 
+            border: 1px solid #f39c12; 
+            padding: 15px;
             border-radius: 12px;
-            padding: 25px;
             text-align: center;
-            cursor: pointer;
-            transition: 0.3s;
+            margin-bottom: 20px;
             position: relative;
+            overflow: hidden;
+        }
+        .bank-card::before {
+            content: "";
+            position: absolute; top: 0; left: 0; width: 100%; height: 4px;
+            background: #f39c12;
+        }
+        .bank-title { 
+            font-weight: 700; color: #333; font-size: 14px; 
+            margin-bottom: 5px; text-transform: uppercase; letter-spacing: 0.5px;
+        }
+        .acct-box { 
+            background: #fafafa; 
+            padding: 10px; 
+            border-radius: 8px; 
+            margin: 10px 0; 
+            border: 1px dashed #ddd; 
+        }
+        .acct-num { 
+            font-size: 20px; 
+            font-weight: 800; 
+            letter-spacing: 1px; 
+            display: block; 
+            color: #2d3436; 
+        }
+        .bank-name { font-size: 11px; color: #777; font-weight: bold; text-transform: uppercase;}
+        .acct-name { font-size: 12px; font-weight: 600; margin-top: 4px; color: #555; }
+        
+        .warning-text { 
+            color: #d63031; 
+            font-size: 11px; 
+            font-weight: 600; 
+            margin-top: 8px; 
+            padding: 8px;
+            background: #fff5f5;
+            border-radius: 6px;
+        }
+
+        /* Category Grid */
+        .category-grid { display: flex; flex-wrap: wrap; gap: 8px; }
+        .cat-option { display: none; }
+        .cat-label {
+            padding: 10px 16px; background: #f0f2f5; border-radius: 25px;
+            font-size: 12px; font-weight: 600; color: #555; cursor: pointer;
+            transition: all 0.2s; border: 1px solid transparent; user-select: none;
+        }
+        .cat-option:checked + .cat-label { background: #e7f3ff; color: #2d8eff; border-color: #2d8eff; }
+
+        /* File Upload */
+        .file-upload-box {
+            border: 2px dashed #ccc; border-radius: 12px; padding: 25px;
+            text-align: center; cursor: pointer; transition: 0.3s; position: relative;
             background: #fafafa;
         }
-        .file-upload-box:hover { border-color: #2d8eff; background: #f0f8ff; }
-        .file-upload-box input { 
-            position: absolute; top:0; left:0; width:100%; height:100%; opacity:0; cursor:pointer; 
-        }
+        .file-upload-box:active { background: #f0f8ff; border-color: #2d8eff; }
+        .file-upload-box input { position: absolute; top:0; left:0; width:100%; height:100%; opacity:0; cursor:pointer; }
         .upload-icon { font-size: 28px; color: #aaa; margin-bottom: 8px; }
         .upload-text { font-size: 12px; color: #777; }
         .upload-status { font-size: 11px; color: #2d8eff; margin-top: 5px; font-weight: bold; display: none; }
 
-        /* Submit Button */
+        .time-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        
         .btn-submit { 
-            background: linear-gradient(135deg, #2d8eff, #0056b3); 
-            color: white; 
-            width: 100%; 
-            padding: 16px; 
-            border: none; 
-            border-radius: 12px; 
-            font-weight: 700; 
-            cursor: pointer; 
-            font-size: 16px; 
-            margin-top: 20px; 
-            box-shadow: 0 4px 15px rgba(45, 142, 255, 0.3);
-            transition: transform 0.2s;
+            background: linear-gradient(135deg, #2d8eff, #0056b3); color: white; 
+            width: 100%; padding: 16px; border: none; border-radius: 12px; 
+            font-weight: 700; cursor: pointer; font-size: 16px; margin-top: 20px; 
+            box-shadow: 0 4px 15px rgba(45, 142, 255, 0.3); transition: transform 0.2s;
         }
         .btn-submit:active { transform: scale(0.98); }
         .btn-submit:disabled { background: #ccc; box-shadow: none; cursor: not-allowed; }
 
-        /* Terms Box */
-        .terms-box {
-            background: #fff8e1;
-            padding: 15px;
-            border-radius: 8px;
-            font-size: 12px;
-            color: #555;
+        /* Support Section Styles */
+        .support-section {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+            text-align: center;
+        }
+        .support-title {
+            font-size: 13px;
+            color: #777;
+            font-weight: 600;
+            margin-bottom: 15px;
+        }
+        .support-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+        .support-btn {
             display: flex;
-            gap: 10px;
-            align-items: flex-start;
-            margin-top: 20px;
-            border: 1px solid #ffe082;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 10px;
+            border-radius: 30px;
+            background: #25D366;
+            color: white;
+            text-decoration: none;
+            font-size: 13px;
+            font-weight: bold;
+            box-shadow: 0 2px 8px rgba(37, 211, 102, 0.3);
+            transition: transform 0.2s;
+        }
+        .support-btn:active { transform: scale(0.95); }
+
+        @media (max-width: 480px) {
+            .reg-container { padding: 20px; width: 95%; }
+            .time-grid { grid-template-columns: 1fr; gap: 10px; }
+            .cat-label { font-size: 11px; padding: 8px 14px; }
         }
     </style>
 </head>
 <body>
 
     <div class="header">
-        <a href="index.html" class="back-btn"><i class="fas fa-arrow-left"></i></a>
+        <a href="index.html" class="back-btn" style="text-decoration: none; color: #333; display: flex; align-items: center; gap: 5px; font-size: 14px; font-weight: 600;">
+            <i class="fas fa-arrow-left"></i> Back
+        </a>
         <span style="font-weight:bold; color: #333;">Vendor Registration</span>
-        <div></div>
+        <div style="width: 40px;"></div>
     </div>
 
     <div class="reg-container">
         <div style="text-align: center; margin-bottom: 30px;">
-            <img src="img/logo-blue.png" style="width: 70px; margin-bottom: 10px;">
+            <img src="img/logo-blue.png" style="width: 60px; margin-bottom: 10px;">
             <h2 style="margin: 0; color: #333; font-size: 22px;">Join AFIT Digital Market</h2>
             <p style="color:#777; font-size:13px; margin-top: 5px;">Expand your business to thousands of students.</p>
         </div>
 
+        <div class="bank-card">
+            <div class="bank-title">Payment Required</div>
+            <p style="font-size: 12px; color: #555; margin-bottom: 10px;">Transfer the plan amount to:</p>
+            
+            <div class="acct-box">
+                <span class="acct-num">2070899768</span>
+                <span class="bank-name">KUDA MFB</span>
+                <div class="acct-name">IKHUORIA JOSEPH EROMOSELE</div>
+            </div>
+            
+            <div class="warning-text">
+                <i class="fas fa-info-circle"></i> Make transfer BEFORE filling form.
+            </div>
+        </div>
+
+        <div class="flyer-section">
+            <img src="https://i.ibb.co/FqH2cDnk/IMG-20260117-WA0008.jpg" alt="Vendor Plans Flyer" class="flyer-img" onerror="this.style.display='none'">
+        </div>
+
         <form id="vendorForm" onsubmit="submitApplication(event)">
             
+            <div class="form-section-title">Subscription</div>
+
+            <div class="form-group">
+                <label class="form-label">Select Your Plan</label>
+                <select id="v_plan" class="form-input" required>
+                    <option value="" disabled selected>-- Choose a Plan --</option>
+                    <option value="Essential Plan (N2,000)">Essential Plan - ₦2,000</option>
+                    <option value="Professional Plan (N3,500)">Professional Plan - ₦3,500</option>
+                    <option value="Executive Plan (N5,000)">Executive Plan - ₦5,000</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Upload Payment Screenshot</label>
+                <div class="file-upload-box">
+                    <i class="fas fa-file-invoice-dollar upload-icon" style="color: #00b894;"></i>
+                    <div class="upload-text" id="lbl-payment">Tap to upload Receipt</div>
+                    <input type="file" id="v_payment" accept="image/*" required onchange="previewFile(this, 'lbl-payment')">
+                </div>
+                <div id="uploadStatus3" class="upload-status">Uploading...</div>
+            </div>
+
             <div class="form-section-title">Personal Details</div>
             
             <div class="form-group">
@@ -186,7 +276,7 @@
             </div>
 
             <div class="form-group">
-                <label class="form-label">WhatsApp Number (For Customers)</label>
+                <label class="form-label">WhatsApp Number</label>
                 <input type="tel" id="v_whatsapp" class="form-input" placeholder="081..." required>
             </div>
             
@@ -202,8 +292,7 @@
 
             <div class="form-group">
                 <label class="form-label">Category (Select all that apply)</label>
-                <div class="category-grid" id="cat-container">
-                    </div>
+                <div class="category-grid" id="cat-container"></div>
             </div>
 
             <div class="form-section-title">Logistics & Availability</div>
@@ -213,7 +302,7 @@
                 <input type="text" id="v_location" class="form-input" placeholder="e.g. Ibrahim Alfa Hall / Off Campus" required>
             </div>
 
-            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:15px;">
+            <div class="time-grid">
                 <div class="form-group">
                     <label class="form-label">Open Time</label>
                     <input type="time" id="v_open" class="form-input">
@@ -252,25 +341,34 @@
                     <input type="file" id="v_idcard" accept="image/*" required onchange="previewFile(this, 'lbl-idcard')">
                 </div>
                 <div id="uploadStatus2" class="upload-status">Uploading...</div>
-                <p style="font-size:10px; color:#999; margin-top:5px;">This is for admin verification only. It will not be public.</p>
             </div>
 
             <div class="terms-box">
                 <input type="checkbox" id="terms_check" required style="margin-top:2px;">
                 <label for="terms_check">
-                    I agree to maintain my subscription to keep my profile active on ADM. I accept the <a href="t&c/" style="color:#2d8eff;">Terms & Conditions</a>.
+                    I confirm that I have made the payment for the selected plan and the details provided are accurate.
                 </label>
             </div>
 
             <button type="submit" id="submitBtn" class="btn-submit">Submit Application</button>
+
+            <div class="support-section">
+                <p class="support-title">Need help with registration?</p>
+                <div class="support-grid">
+                    <a href="https://wa.me/2348144516127?text=I%20need%20help%20registering%20as%20a%20vendor" class="support-btn">
+                        <i class="fab fa-whatsapp"></i> Support 1
+                    </a>
+                    <a href="https://wa.me/2349153375488?text=I%20need%20help%20registering%20as%20a%20vendor" class="support-btn">
+                        <i class="fab fa-whatsapp"></i> Support 2
+                    </a>
+                </div>
+            </div>
+
         </form>
     </div>
 
     <script>
-        // ✅ UPDATED SCRIPT URL
         const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwiNHU3Leo0nXG9r3nmg1ByPK_wB4kOeRxYQX03pKElrSl5-G3vbqtJfVewEWMh2NvCzw/exec"; 
-        
-        // ✅ YOUR IMGBB API KEY
         const IMGBB_KEY = "2ac38bef2c73c5a65e7ddf94efe37962";
 
         const categories = [
@@ -279,7 +377,6 @@
             "Lifestyle", "Nail Care", "Services", "Sport Kits"
         ];
 
-        // Populate Categories as Pills
         const catContainer = document.getElementById('cat-container');
         categories.forEach(cat => {
             catContainer.innerHTML += `
@@ -296,11 +393,10 @@
             }
         }
 
-        // Image Upload Helper
         async function uploadImage(file, statusId) {
             const status = document.getElementById(statusId);
             status.style.display = 'block';
-            status.innerText = "Uploading to server...";
+            status.innerText = "Uploading...";
             const formData = new FormData();
             formData.append("image", file);
 
@@ -321,12 +417,12 @@
             e.preventDefault();
             const btn = document.getElementById('submitBtn');
             btn.disabled = true;
-            btn.innerText = "Uploading Images (0/2)...";
+            btn.innerText = "Uploading Images (0/3)...";
 
             try {
-                // 1. Upload Images to ImgBB
                 const profileFile = document.getElementById('v_image').files[0];
                 const idCardFile = document.getElementById('v_idcard').files[0];
+                const paymentFile = document.getElementById('v_payment').files[0];
 
                 btn.innerText = "Uploading Logo...";
                 const profileUrl = await uploadImage(profileFile, 'uploadStatus1');
@@ -334,15 +430,14 @@
                 btn.innerText = "Uploading ID Card...";
                 const idCardUrl = await uploadImage(idCardFile, 'uploadStatus2');
 
+                btn.innerText = "Uploading Receipt...";
+                const paymentUrl = await uploadImage(paymentFile, 'uploadStatus3');
+
                 btn.innerText = "Submitting Data...";
 
-                // 2. Prepare Data for Google Sheet
                 const selectedCats = [];
                 document.querySelectorAll('input[name="category"]:checked').forEach(c => selectedCats.push(c.value));
                 
-                // Matches Sheet Columns exactly:
-                // name, business_name, email, whatsapp, instagram, description, 
-                // location, open_time, close_time, online_247, category, image, id_card
                 const formData = {
                     name: document.getElementById('v_name').value,
                     business_name: document.getElementById('v_business').value,
@@ -356,10 +451,13 @@
                     online_247: document.getElementById('v_online').value,
                     category: selectedCats.join(", "),
                     image: profileUrl,
-                    id_card: idCardUrl 
+                    id_card: idCardUrl,
+                    
+                    // NEW FIELDS
+                    subscription_plan: document.getElementById('v_plan').value,
+                    payment_proof: paymentUrl
                 };
 
-                // 3. Send to Google Apps Script
                 await fetch(SCRIPT_URL, {
                     method: 'POST',
                     mode: 'no-cors',
@@ -367,16 +465,24 @@
                     body: JSON.stringify(formData)
                 });
 
-                alert("🎉 Application Submitted Successfully! \n\nPlease allow up to 24 hours for verification. You will receive an email/WhatsApp when approved.");
+                alert("🎉 Application Submitted! \n\nWe have received your details and payment proof. Verification usually takes 24 hours.");
                 window.location.href = "index.html";
 
             } catch (error) {
                 console.error(error);
-                alert("Error submitting application. Please check your internet.");
+                alert("Error submitting application. Please check your internet connection.");
                 btn.disabled = false;
                 btn.innerText = "Submit Application";
             }
         }
+    </script>
+    <script type="text/javascript">
+    (function(w,d,v3){
+    w.chaportConfig = {
+    appId : '695935cd783cb76f48a392a4',
+    };
+
+    if(w.chaport)return;v3=w.chaport={};v3._q=[];v3._l={};v3.q=function(){v3._q.push(arguments)};v3.on=function(e,fn){if(!v3._l[e])v3._l[e]=[];v3._l[e].push(fn)};var s=d.createElement('script');s.type='text/javascript';s.async=true;s.src='https://app.chaport.com/javascripts/insert.js';var ss=d.getElementsByTagName('script')[0];ss.parentNode.insertBefore(s,ss)})(window, document);
     </script>
 </body>
 </html>

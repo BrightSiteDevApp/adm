@@ -196,7 +196,7 @@
       <a href="ambassadors/"><div class="info-card"><i class="fas fa-briefcase"></i> Ambassadors</div> </a>
       <a href="safety/"><div class="info-card"><i class="fas fa-shield-alt"></i> Safety</div></a>
       <a href="blogs/"><div class="info-card"><i class="fas fa-newspaper"></i> Blog</div></a>
-      <a href="category.html?cat=Valentine"><div class="info-card"><i class="fas fa-heart"></i> Val Packages</div></a>
+      <a href="vendor-register.html"><div class="info-card"><i class="fas fa-store-alt"></i> Vendor Reg</div></a>
     </section>
 
     <section class="categories">
@@ -251,7 +251,7 @@
 
     <section class="pricing-promo-section" style="padding: 10px 14px 20px;">
         <div style="border-radius: 12px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.1); margin-bottom: 20px;">
-            <img src="https://i.ibb.co/rfkxX3r9/1.png" alt="Vendor Pricing Plan" style="width: 100%; display: block;">
+            <img src="https://i.ibb.co/FqH2cDnk/IMG-20260117-WA0008.jpg" alt="Vendor Pricing Plan" style="width: 100%; display: block;">
         </div>
         <div style="text-align: center;">
             <a href="https://wa.me/2348144516127?text=I%20want%20to%20register%20as%20a%20vendor" style="background: #2d8eff; color: white; padding: 12px 35px; border-radius: 30px; text-decoration: none; font-weight: bold; font-size: 14px; box-shadow: 0 4px 10px rgba(45, 142, 255, 0.3); display: inline-block;">Become a Vendor</a>
@@ -494,9 +494,26 @@
             const suspendedSnap = await getDocs(collection(db, "vendor_status"));
             suspendedSnap.forEach(doc => { if (doc.data().status === "suspended") suspendedVendors.add(doc.id); });
 
-            const vendorRes = await fetch(`${apiRoot}/Vendors`);
-            const vendors = await vendorRes.json();
-            allVendors = vendors.filter(v => !suspendedVendors.has(v.vendor_id || v.Vendor_ID));
+            // ✅ FETCH BOTH SHEETS & MERGE
+            const [vendors1, vendors2] = await Promise.all([
+                fetch(`${apiRoot}/Vendors`).then(res => res.json()),
+                fetch(`${apiRoot}/Vendors_v2`).then(res => res.json().catch(() => []))
+            ]);
+
+            // Combine
+            const combinedVendors = [...vendors1, ...vendors2];
+
+            // Filter
+            allVendors = combinedVendors.filter(v => {
+                const vid = v.vendor_id || v.Vendor_ID;
+                const isSuspended = suspendedVendors.has(vid);
+                
+                // Check Verified (FALSE in V2 means invisible)
+                const verifyStatus = String(v.verified || v.Verified || "").toLowerCase().trim();
+                const isHidden = verifyStatus === "false";
+
+                return !isSuspended && !isHidden;
+            });
 
             allVendors.forEach(v => {
                 const vID = v.vendor_id || v.Vendor_ID;
