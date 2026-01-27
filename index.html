@@ -366,15 +366,17 @@
   <script type="module">
 
     // Register Service Worker correctly
-if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('sw.js')
-    .then(reg => console.log("SW Registered!", reg))
-    .catch(err => console.log("SW Manual Error:", err));
-}
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('sw.js')
+        .then(reg => console.log("SW Registered!", reg))
+        .catch(err => console.log("SW Manual Error:", err));
+    }
+
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
     import { getAuth, onAuthStateChanged, signInWithPopup, GoogleAuthProvider } 
     from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-    import { getFirestore, doc, setDoc, deleteDoc, collection, getDocs, query, getDoc } 
+    // ✅ ADDED "where" and "limit" to imports
+    import { getFirestore, doc, setDoc, deleteDoc, collection, getDocs, query, getDoc, where } 
     from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
     const firebaseConfig = {
@@ -403,19 +405,16 @@ if ('serviceWorker' in navigator) {
     // --- 🔵 PWA INSTALLATION SYSTEM ---
     let deferredPrompt;
     
-    // Listen for the install prompt
     window.addEventListener('beforeinstallprompt', (e) => {
         console.log('App is installable...');
         e.preventDefault();
         deferredPrompt = e;
         
-        // Show Popup automatically after 4 seconds
         setTimeout(() => {
             const popup = document.getElementById('install-popup');
             if(popup) popup.style.display = 'block';
         }, 4000);
 
-        // Show Footer Button
         const footerBtn = document.getElementById('manual-install-btn');
         if(footerBtn) footerBtn.style.display = 'inline-block';
     });
@@ -433,11 +432,9 @@ if ('serviceWorker' in navigator) {
         document.getElementById('manual-install-btn').style.display = 'none';
     };
 
-    // Attach listeners to both buttons
     document.getElementById('install-btn').addEventListener('click', triggerAppInstall);
     document.getElementById('manual-install-btn').addEventListener('click', triggerAppInstall);
     
-    // Check if already installed
     window.addEventListener('appinstalled', () => {
         console.log('App was successfully installed');
         document.getElementById('install-popup').style.display = 'none';
@@ -449,6 +446,7 @@ if ('serviceWorker' in navigator) {
     loadAds(); 
     initData();
     loadAnnouncement(); 
+    loadReviews(); // ✅ CALL THE NEW REVIEWS FUNCTION
 
     async function loadAnnouncement() {
         try {
@@ -506,10 +504,7 @@ if ('serviceWorker' in navigator) {
                 if(vID) globalPhoneBook[vID] = String(vPhone).replace(/[^0-9]/g, '');
             });
 
-
-            // ✅ This now shuffles and shows only 20 vendors
-            
-           const randomVendors = shuffle(allVendors).slice(0, 20); 
+            const randomVendors = shuffle(allVendors).slice(0, 20); 
             renderVendors(randomVendors);
             
             const productsRes = await fetch(`${apiRoot}/Products`);
@@ -531,9 +526,6 @@ if ('serviceWorker' in navigator) {
                 }
             });
 
-
-            // 👇👇👇 HERE IS THE NUMBER YOU ARE LOOKING FOR (20) 👇👇👇
-
             const shuffledNormal = shuffle(normal);
             const displayList = [...featured, ...shuffledNormal].slice(0, 20);
 
@@ -553,6 +545,55 @@ if ('serviceWorker' in navigator) {
             }));
         } catch(e) { return []; }
     }
+
+    // --- ✅ NEW FIRESTORE REVIEWS LOGIC ---
+    async function loadReviews() {
+        const container = document.getElementById('reviews-slider');
+        if (!container) return;
+
+        try {
+            // Fetch reviews where status is approved
+            const q = query(collection(db, "reviews"), where("status", "==", "approved"));
+            const snapshot = await getDocs(q);
+
+            let reviewsData = [];
+            snapshot.forEach(doc => {
+                reviewsData.push(doc.data());
+            });
+
+            if (reviewsData.length > 0) {
+                container.innerHTML = ""; 
+                // Shuffle and pick 5
+                const shuffled = shuffle(reviewsData).slice(0, 5);
+
+                shuffled.forEach(r => {
+                    // Use FontAwesome stars
+                    const starCount = r.rating || 5;
+                    const starString = '<i class="fas fa-star" style="color:#FFD700;"></i>'.repeat(starCount);
+
+                    let img = r.image || "img/person.png";
+                    if (!img.startsWith('http') && !img.startsWith('img/')) img = `img/${img}`;
+
+                    container.innerHTML += `
+                    <div class="review-card">
+                        <div class="review-header">
+                            <img src="${img}" class="review-img" onerror="this.src='img/person.png'">
+                            <div>
+                                <div class="review-name">${r.name || "Student"}</div>
+                                <div class="stars" style="font-size:10px;">${starString}</div>
+                            </div>
+                        </div>
+                        <div class="review-text">"${r.review}"</div>
+                    </div>`;
+                });
+            } else {
+                 container.innerHTML = "<p style='padding:20px; text-align:center; color:#777; font-size:12px;'>No reviews yet. Check back soon!</p>";
+            }
+        } catch (e) {
+            console.error("Error loading reviews:", e);
+        }
+    }
+    // --------------------------------------
 
     window.toggleSave = async function(id, name, price, image, vendor) {
         const user = auth.currentUser;
@@ -587,7 +628,6 @@ if ('serviceWorker' in navigator) {
         });
     }
 
-    // 🆕 UPDATED VIEW PRODUCT (Populates the new Modal Style)
     window.viewProduct = function(name, price, desc, img, phone, category) {
         document.getElementById('m-title').innerText = name;
         document.getElementById('m-price').innerText = price;
@@ -595,9 +635,8 @@ if ('serviceWorker' in navigator) {
         document.getElementById('m-category').innerText = "Category: " + category;
         document.getElementById('m-btn').href = `https://wa.me/${phone}?text=${encodeURIComponent(`Hi, I saw "${name}" on AFIT Market. Is it available?`)}`;
         
-        // Handle Similar Items (Preserving Homepage Logic)
         const similarWrapper = document.getElementById('similar-wrapper');
-        const similarGrid = document.getElementById('m-similar-grid'); // Note: ID changed to m-similar-grid
+        const similarGrid = document.getElementById('m-similar-grid'); 
         similarGrid.innerHTML = "";
 
         if (category && allProducts.length > 0) {
@@ -624,7 +663,6 @@ if ('serviceWorker' in navigator) {
             } else { similarWrapper.style.display = 'none'; }
         } else { similarWrapper.style.display = 'none'; }
 
-        // Use the new detail-modal ID
         document.getElementById('detail-modal').style.display = 'flex';
     };
 
@@ -635,13 +673,11 @@ if ('serviceWorker' in navigator) {
     window.addToHistory = function(id, name, price, image, vendor, desc) {
         let history = JSON.parse(localStorage.getItem('adm_history')) || [];
         history = history.filter(item => item.id !== id);
-        // Added 'desc' to object
         history.unshift({ id, name, price, image, vendor, desc, seenAt: Date.now() });
         if(history.length > 6) history.pop();
         localStorage.setItem('adm_history', JSON.stringify(history));
     };
 
-    // 🆕 UPDATED: Recently Viewed now attempts to fetch live description
     function loadRecentItems() {
         let history = JSON.parse(localStorage.getItem('adm_history')) || [];
         const container = document.getElementById('recent-grid');
@@ -659,7 +695,6 @@ if ('serviceWorker' in navigator) {
             section.style.display = 'block';
             container.innerHTML = "";
             history.forEach(p => {
-                // 🆕 Try to find live item to get description, else fall back to history desc
                 const liveItem = allProducts.find(prod => prod.id === p.id);
                 const liveDesc = liveItem ? (liveItem.description || liveItem.Description) : p.desc;
                 
@@ -728,10 +763,7 @@ if ('serviceWorker' in navigator) {
                 const pImage = p.image || p.Image;
                 const pPrice = p.price || p.Price;
                 const pVendor = p.vendor_id || p.Vendor_ID;
-                
-                // 🆕 FIXED: Removed "Flash Sale Item" placeholder
                 const pDesc = p.description || p.Description || ""; 
-                
                 const pCat = p.category || p.Category || "General";
                 const img = pImage.startsWith('http') ? pImage : `img/${pImage}`;
                 const vendorPhone = phoneBook[pVendor] || ADMIN_PHONE;
@@ -754,28 +786,13 @@ if ('serviceWorker' in navigator) {
 
     function shuffle(array) { return array.sort(() => 0.5 - Math.random()); }
     
-    fetch(`${apiRoot}/Reviews`)
-    .then(res => res.json())
-    .then(data => {
-        const container = document.getElementById('reviews-slider');
-        if(container && data.length > 0) {
-            container.innerHTML = ""; 
-            const shuffled = shuffle(data).slice(0, 5); 
-            shuffled.forEach(r => {
-                const starCount = parseInt(r.stars || r.Stars) || 5;
-                const starString = "⭐".repeat(starCount);
-                let img = r.image || r.Image || "person.png"; if(!img.startsWith('http')) img = `img/${img}`;
-                container.innerHTML += `<div class="review-card"><div class="review-header"><img src="${img}" class="review-img" onerror="this.src='img/person.png'"><div><div class="review-name">${r.name || "Student"}</div><div class="stars">${starString}</div></div></div><div class="review-text">"${r.review || "Great!"}"</div></div>`;
-            });
-        }
-    });
+    // --- OLD REVIEWS CODE REMOVED ---
 
     function setupMainSearch() {
         const searchInput = document.getElementById('main-search');
         const searchType = document.getElementById('search-type');
         
         if(searchInput) {
-            // Existing real-time listener (keeping this as is for best mobile UX)
             searchInput.addEventListener('input', (e) => {
                 const query = e.target.value.toLowerCase().trim();
                 const type = searchType.value; 
@@ -790,11 +807,10 @@ if ('serviceWorker' in navigator) {
                 }
             });
 
-            // 🆕 NEW: Listen for Enter Key to dismiss keyboard and jump to section
             searchInput.addEventListener('keydown', (e) => {
                 if (e.key === 'Enter') {
-                    e.preventDefault(); // Prevent form submit if any
-                    searchInput.blur(); // Dismiss the keyboard
+                    e.preventDefault(); 
+                    searchInput.blur(); 
                     
                     const type = searchType.value;
                     if(type === 'product') {
@@ -807,7 +823,6 @@ if ('serviceWorker' in navigator) {
         }
     }
 
-    // 🆕 UPDATED RENDER ITEMS (Includes Description Preview)
     function renderItems(data) {
         const itemGrid = document.getElementById("home-items-grid");
         if(!itemGrid) return;

@@ -6,7 +6,7 @@
     <title>Super Admin - AFIT Digital Market</title>
     <link rel="stylesheet" href="asset/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <link rel="icon" href="img/app-logo.png" type="image/png" sizes="192x192">
+    <link rel="icon" href="img/app-logo.png" type="image/png" sizes="192x192">
     <link rel="apple-touch-icon" href="img/app-logo.png">
     <link rel="icon" href="favicon.ico" type="image/x-icon">
     
@@ -43,6 +43,19 @@
         .btn-action { padding: 8px 15px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 12px; }
         .btn-suspend { background: #fff5f5; color: #d63031; border: 1px solid #d63031; }
         .btn-unsuspend { background: #00b894; color: white; }
+
+        /* REVIEW MANAGEMENT STYLES (NEW) */
+        .review-row {
+            background: white; padding: 15px; border-radius: 12px; margin-bottom: 10px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05); border-left: 5px solid #0984e3;
+            display: flex; flex-direction: column; gap: 10px;
+        }
+        .review-row.pending { border-left: 5px solid #fdcb6e; background: #fffbf0; }
+        .review-header { display: flex; justify-content: space-between; align-items: center; font-size: 12px; color: #555; }
+        .review-body { font-size: 14px; color: #333; font-style: italic; }
+        .review-actions { display: flex; gap: 10px; justify-content: flex-end; }
+        .btn-approve { background: #00b894; color: white; }
+        .btn-delete { background: #d63031; color: white; }
 
         /* PRODUCT MANAGER GRID */
         .flash-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 15px; }
@@ -103,7 +116,12 @@
             </div>
         </div>
 
-        <h4 class="section-title"><i class="fas fa-users-cog"></i> Vendor Management</h4>
+        <h4 class="section-title"><i class="fas fa-star" style="color:#fdcb6e;"></i> Review Approvals</h4>
+        <div id="review-list" style="display:flex; flex-direction:column; gap:10px;">
+            <p>Loading reviews...</p>
+        </div>
+
+        <h4 class="section-title" style="margin-top: 40px;"><i class="fas fa-users-cog"></i> Vendor Management</h4>
         <div class="vendor-list" id="vendor-list"></div>
 
         <h4 class="section-title" style="margin-top: 40px;"><i class="fas fa-box-open" style="color:#2d8eff;"></i> Item Manager</h4>
@@ -121,7 +139,7 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getAuth, onAuthStateChanged, signInWithPopup, GoogleAuthProvider } 
         from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-        import { getFirestore, doc, setDoc, updateDoc, collection, getDocs, getDoc } 
+        import { getFirestore, doc, setDoc, updateDoc, deleteDoc, collection, getDocs, getDoc, query, orderBy } 
         from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
         // CONFIG
@@ -151,7 +169,10 @@
                     setTimeout(() => {
                         loader.style.display = 'none';
                         document.getElementById('admin-content').style.display = 'block';
-                        loadVendors(); loadProducts(); loadCurrentAnnouncement();
+                        loadVendors(); 
+                        loadProducts(); 
+                        loadCurrentAnnouncement();
+                        loadReviews(); // ✅ LOAD REVIEWS
                     }, 800);
                 } else { document.body.innerHTML = "<h2 style='text-align:center; margin-top:50px; color:red;'>⛔ ACCESS DENIED</h2>"; }
             } else { signInWithPopup(auth, provider).catch(() => window.location.href = "index.html"); }
@@ -177,6 +198,60 @@
             document.getElementById('announce-input').value = "";
             alert("Cleared.");
         };
+
+        // --- 🔴 REVIEWS MANAGEMENT (NEW) ---
+        async function loadReviews() {
+            const list = document.getElementById('review-list');
+            try {
+                // Get all reviews, sorted by time
+                const q = query(collection(db, "reviews"), orderBy("createdAt", "desc"));
+                const snapshot = await getDocs(q);
+                
+                list.innerHTML = "";
+                if (snapshot.empty) {
+                    list.innerHTML = "<p style='color:#777; font-size:13px;'>No reviews found.</p>";
+                    return;
+                }
+
+                snapshot.forEach(doc => {
+                    const r = doc.data();
+                    const isPending = r.status === 'pending';
+                    const stars = "⭐".repeat(r.rating || 5);
+                    
+                    list.innerHTML += `
+                    <div class="review-row ${isPending ? 'pending' : ''}">
+                        <div class="review-header">
+                            <b>${r.name} (${stars})</b>
+                            ${isPending ? '<span style="color:#e67e22; font-weight:bold;">PENDING</span>' : '<span style="color:green;">LIVE</span>'}
+                        </div>
+                        <div class="review-body">"${r.review}"</div>
+                        <div class="review-actions">
+                            <button class="btn-action btn-delete" onclick="deleteReview('${doc.id}')">Delete</button>
+                            ${isPending ? `<button class="btn-action btn-approve" onclick="approveReview('${doc.id}')">Approve</button>` : ''}
+                        </div>
+                    </div>`;
+                });
+            } catch (err) {
+                console.error(err);
+                list.innerHTML = "<p>Error loading reviews.</p>";
+            }
+        }
+
+        window.approveReview = async function(id) {
+            if(!confirm("Approve this review?")) return;
+            try {
+                await updateDoc(doc(db, "reviews", id), { status: "approved" });
+                loadReviews(); // Refresh list
+            } catch(e) { alert("Error approving."); }
+        }
+
+        window.deleteReview = async function(id) {
+            if(!confirm("Permanently delete this review?")) return;
+            try {
+                await deleteDoc(doc(db, "reviews", id));
+                loadReviews(); // Refresh list
+            } catch(e) { alert("Error deleting."); }
+        }
 
         // --- VENDORS ---
         async function loadVendors() {
