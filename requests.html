@@ -53,7 +53,7 @@
             cursor: pointer; z-index: 200;
         }
 
-        /* 🆕 UPDATED MODAL STYLES (Matching other pages) */
+        /* MODAL STYLES */
         .modal-overlay {
             display: none; position: fixed; top: 0; left: 0;
             width: 100%; height: 100%; background: rgba(0,0,0,0.5);
@@ -169,11 +169,12 @@
         const db = getFirestore(app);
 
         const ADMIN_EMAIL = "afitdgm@gmail.com";
-        const SHEET_API = "https://opensheet.elk.sh/1SvVUbEnDgqgw2Z_M1ShQkzyFTsnnS6n8mTs7UMXVvF4/Vendors";
+        const SHEET_ID = "1SvVUbEnDgqgw2Z_M1ShQkzyFTsnnS6n8mTs7UMXVvF4";
+        const API_ROOT = `https://opensheet.elk.sh/${SHEET_ID}`;
         
         let currentUser = null;
         let isSuperAdmin = false;
-        let currentMode = 'all'; // 'all' or 'mine'
+        let currentMode = 'all'; 
         
         // Pagination
         let lastVisibleDoc = null;
@@ -191,6 +192,7 @@
                     roleText.innerHTML = "👑 Admin Mode: Viewing All Requests";
                     resetAndLoad('all');
                 } else {
+                    // ✅ DUAL CHECK: Check both Sheets
                     checkIfVendor(user.email).then(isVendor => {
                         if (isVendor) {
                             roleText.innerHTML = "🏪 Vendor Mode: Viewing Potential Customers";
@@ -212,11 +214,16 @@
             }
         });
 
+        // ✅ UPDATED: Checks both vendor sheets
         async function checkIfVendor(email) {
             try {
-                const res = await fetch(SHEET_API);
-                const vendors = await res.json();
-                return vendors.some(v => v.Email && v.Email.toLowerCase().trim() === email.toLowerCase().trim());
+                const [v1, v2] = await Promise.all([
+                    fetch(`${API_ROOT}/Vendors`).then(res => res.json()),
+                    fetch(`${API_ROOT}/Vendors_v2`).then(res => res.json().catch(() => []))
+                ]);
+
+                const allVendors = [...v1, ...v2];
+                return allVendors.some(v => v.Email && v.Email.toLowerCase().trim() === email.toLowerCase().trim());
             } catch (e) { return false; }
         }
 
@@ -241,8 +248,7 @@
                 const reqRef = collection(db, "public_requests");
                 let q;
 
-                // 🛠️ FIX FOR RED ERROR MESSAGE:
-                // We simplify the query to avoid needing a complex Composite Index.
+                // 🛠️ SIMPLE QUERY LOGIC
                 if (currentMode === 'all') {
                     if (lastVisibleDoc) {
                         q = query(reqRef, orderBy("timestamp", "desc"), startAfter(lastVisibleDoc), limit(BATCH_SIZE));
@@ -251,8 +257,7 @@
                     }
                 } else {
                     // 'mine' mode: removed orderBy to fix index error
-                    // We will sort client-side instead.
-                    q = query(reqRef, where("userId", "==", currentUser.uid), limit(BATCH_SIZE * 2)); // Load more to ensure we have enough
+                    q = query(reqRef, where("userId", "==", currentUser.uid), limit(BATCH_SIZE * 2)); 
                 }
 
                 const snapshot = await getDocs(q);
@@ -277,12 +282,12 @@
                 // Process docs
                 let docs = snapshot.docs;
 
-                // Client-side Sort for 'mine' mode to fix order without index
+                // Client-side Sort for 'mine' mode
                 if (currentMode === 'mine') {
                     docs.sort((a, b) => {
                         const tA = a.data().timestamp ? a.data().timestamp.seconds : 0;
                         const tB = b.data().timestamp ? b.data().timestamp.seconds : 0;
-                        return tB - tA; // Descending
+                        return tB - tA; 
                     });
                 }
 
