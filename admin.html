@@ -115,6 +115,43 @@
                 <button onclick="clearAnnouncement()" class="btn-action" style="background:#ff4757; color:white;">Clear</button>
             </div>
         </div>
+        <h4 class="section-title"><i class="fas fa-newspaper" style="color:#6c5ce7;"></i> Blog Manager</h4>
+<div class="announce-card" style="border-left: 5px solid #6c5ce7;">
+    <p style="margin:0 0 10px; color:#555;">Manage campus news and updates.</p>
+    <button onclick="openBlogManager()" class="btn-action" style="background:#6c5ce7; color:white; width:100%; padding:12px; font-size:14px;">
+        <i class="fas fa-edit"></i> Open Blog Dashboard
+    </button>
+</div>
+
+<div id="blogManagerModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(255,255,255,0.98); z-index:2000; overflow-y:auto;">
+    <div class="container" style="max-width:800px; padding-top:20px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+            <h2>📝 Blog Dashboard</h2>
+            <button onclick="document.getElementById('blogManagerModal').style.display='none'" style="border:none; background:none; font-size:24px; cursor:pointer;">&times;</button>
+        </div>
+
+        <div style="background:white; padding:20px; border-radius:12px; box-shadow:0 4px 15px rgba(0,0,0,0.1); margin-bottom:30px;">
+            <h4 id="blogFormTitle" style="margin-top:0;">Create New Post</h4>
+            <input type="hidden" id="editBlogId">
+            
+            <input type="text" id="blogTitle" placeholder="Blog Title" style="width:100%; padding:10px; margin-bottom:10px; border:1px solid #ddd; border-radius:8px;">
+            
+            <textarea id="blogSnippet" placeholder="Short Snippet (appears on card)" style="width:100%; height:60px; padding:10px; margin-bottom:10px; border:1px solid #ddd; border-radius:8px;"></textarea>
+            
+            <textarea id="blogContent" placeholder="Full Blog Content (Supports formatting)" style="width:100%; height:200px; padding:10px; margin-bottom:10px; border:1px solid #ddd; border-radius:8px;"></textarea>
+            
+            <label style="font-size:12px; font-weight:bold; display:block; margin-bottom:5px;">Cover Image:</label>
+            <input type="file" id="blogImageFile" accept="image/*" style="margin-bottom:10px;">
+            <div id="uploadStatus" style="font-size:11px; color:#6c5ce7; display:none;">Uploading to ImgBB...</div>
+            
+            <button onclick="saveBlog()" id="saveBlogBtn" class="btn-action" style="background:#00b894; color:white; width:100%; margin-top:10px;">Publish Post</button>
+            <button onclick="resetBlogForm()" id="cancelEditBtn" class="btn-action" style="background:#777; color:white; width:100%; margin-top:5px; display:none;">Cancel Edit</button>
+        </div>
+
+        <h4>Existing Posts</h4>
+        <div id="admin-blog-list" style="display:flex; flex-direction:column; gap:10px; padding-bottom:50px;"></div>
+    </div>
+</div>
 
         <h4 class="section-title"><i class="fas fa-star" style="color:#fdcb6e;"></i> Review Approvals</h4>
         <div id="review-list" style="display:flex; flex-direction:column; gap:10px;">
@@ -139,7 +176,8 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getAuth, onAuthStateChanged, signInWithPopup, GoogleAuthProvider } 
         from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-        import { getFirestore, doc, setDoc, updateDoc, deleteDoc, collection, getDocs, getDoc, query, orderBy } 
+        // ✅ Added addDoc and serverTimestamp to imports
+        import { getFirestore, doc, setDoc, addDoc, updateDoc, deleteDoc, collection, getDocs, getDoc, query, orderBy, serverTimestamp } 
         from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
         // CONFIG
@@ -159,6 +197,7 @@
 
         const ADMIN_EMAIL = "afitdgm@gmail.com"; 
         const SHEET_API = "https://opensheet.elk.sh/1SvVUbEnDgqgw2Z_M1ShQkzyFTsnnS6n8mTs7UMXVvF4/Vendors";
+        const IMGBB_KEY = "2ac38bef2c73c5a65e7ddf94efe37962";
         let allProducts = []; 
 
         onAuthStateChanged(auth, async (user) => {
@@ -172,11 +211,147 @@
                         loadVendors(); 
                         loadProducts(); 
                         loadCurrentAnnouncement();
-                        loadReviews(); // ✅ LOAD REVIEWS
+                        loadReviews();
                     }, 800);
                 } else { document.body.innerHTML = "<h2 style='text-align:center; margin-top:50px; color:red;'>⛔ ACCESS DENIED</h2>"; }
             } else { signInWithPopup(auth, provider).catch(() => window.location.href = "index.html"); }
         });
+
+        // --- BLOG MANAGER LOGIC (NEW) ---
+        window.openBlogManager = function() {
+            document.getElementById('blogManagerModal').style.display = 'block';
+            loadAdminBlogs();
+        }
+
+        window.loadAdminBlogs = async function() {
+            const list = document.getElementById('admin-blog-list');
+            list.innerHTML = "<p>Loading...</p>";
+            
+            try {
+                const q = query(collection(db, "blogs"), orderBy("timestamp", "desc"));
+                const snapshot = await getDocs(q);
+                
+                list.innerHTML = "";
+                snapshot.forEach(doc => {
+                    const b = doc.data();
+                    list.innerHTML += `
+                    <div style="background:white; padding:15px; border-radius:8px; border:1px solid #eee; display:flex; gap:10px; align-items:center;">
+                        <img src="${b.image}" style="width:50px; height:50px; object-fit:cover; border-radius:5px;" onerror="this.src='img/logo-blue.png'">
+                        <div style="flex:1;">
+                            <div style="font-weight:bold; font-size:14px;">${b.title}</div>
+                            <div style="font-size:11px; color:#777;">${b.timestamp ? new Date(b.timestamp.seconds * 1000).toLocaleDateString() : 'N/A'} • ${b.likes ? b.likes.length : 0} Likes</div>
+                        </div>
+                        <button onclick="editBlog('${doc.id}')" style="background:#ffeaa7; border:none; padding:5px 10px; border-radius:5px; cursor:pointer;">✏️</button>
+                        <button onclick="deleteBlog('${doc.id}')" style="background:#ff7675; color:white; border:none; padding:5px 10px; border-radius:5px; cursor:pointer;">🗑️</button>
+                    </div>`;
+                });
+            } catch(e) { console.error(e); list.innerHTML = "<p>Error loading blogs.</p>"; }
+        }
+
+        window.saveBlog = async function() {
+            const btn = document.getElementById('saveBlogBtn');
+            const fileInput = document.getElementById('blogImageFile');
+            const title = document.getElementById('blogTitle').value;
+            const snippet = document.getElementById('blogSnippet').value;
+            const content = document.getElementById('blogContent').value;
+            const editId = document.getElementById('editBlogId').value;
+
+            if(!title || !content) return alert("Title and Content are required");
+
+            btn.innerText = "Processing...";
+            btn.disabled = true;
+
+            let imageUrl = null;
+
+            // 1. Upload Image if selected
+            if(fileInput.files.length > 0) {
+                document.getElementById('uploadStatus').style.display = 'block';
+                const formData = new FormData();
+                formData.append("image", fileInput.files[0]);
+
+                try {
+                    const res = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_KEY}`, {
+                        method: "POST", body: formData
+                    });
+                    const data = await res.json();
+                    if(data.success) {
+                        imageUrl = data.data.url;
+                    } else {
+                        alert("Image upload failed");
+                        btn.disabled = false; return;
+                    }
+                } catch(e) {
+                    console.error(e);
+                    alert("Error uploading image");
+                    btn.disabled = false; return;
+                }
+            }
+
+            // 2. Save to Firestore
+            const blogData = {
+                title, snippet, content,
+                searchKeywords: title.toLowerCase().split(" "),
+                timestamp: serverTimestamp()
+            };
+            
+            if(imageUrl) blogData.image = imageUrl;
+            if(!editId && !imageUrl) blogData.image = "https://afitdgm.store/img/logo-blue.png";
+            if(!editId) blogData.likes = [];
+
+            try {
+                if(editId) {
+                    await updateDoc(doc(db, "blogs", editId), blogData);
+                    alert("Blog Updated!");
+                } else {
+                    await addDoc(collection(db, "blogs"), blogData);
+                    alert("Blog Published!");
+                }
+                resetBlogForm();
+                loadAdminBlogs();
+            } catch(e) {
+                console.error(e);
+                alert("Error saving to database.");
+            }
+
+            btn.innerText = "Publish Post";
+            btn.disabled = false;
+            document.getElementById('uploadStatus').style.display = 'none';
+        }
+
+        window.editBlog = async function(id) {
+            const docSnap = await getDoc(doc(db, "blogs", id));
+            if(docSnap.exists()) {
+                const data = docSnap.data();
+                document.getElementById('blogTitle').value = data.title;
+                document.getElementById('blogSnippet').value = data.snippet;
+                document.getElementById('blogContent').value = data.content;
+                document.getElementById('editBlogId').value = id;
+                
+                document.getElementById('blogFormTitle').innerText = "Edit Post";
+                document.getElementById('saveBlogBtn').innerText = "Update Post";
+                document.getElementById('cancelEditBtn').style.display = 'block';
+                document.getElementById('blogManagerModal').scrollTop = 0;
+            }
+        }
+
+        window.deleteBlog = async function(id) {
+            if(confirm("Permanently delete this blog post?")) {
+                await deleteDoc(doc(db, "blogs", id));
+                loadAdminBlogs();
+            }
+        }
+
+        window.resetBlogForm = function() {
+            document.getElementById('blogTitle').value = "";
+            document.getElementById('blogSnippet').value = "";
+            document.getElementById('blogContent').value = "";
+            document.getElementById('blogImageFile').value = "";
+            document.getElementById('editBlogId').value = "";
+            
+            document.getElementById('blogFormTitle').innerText = "Create New Post";
+            document.getElementById('saveBlogBtn').innerText = "Publish Post";
+            document.getElementById('cancelEditBtn').style.display = 'none';
+        }
 
         // --- ANNOUNCEMENT ---
         async function loadCurrentAnnouncement() {
@@ -199,29 +374,22 @@
             alert("Cleared.");
         };
 
-        // --- 🔴 REVIEWS MANAGEMENT (NEW) ---
+        // --- REVIEWS ---
         async function loadReviews() {
             const list = document.getElementById('review-list');
             try {
-                // Get all reviews, sorted by time
                 const q = query(collection(db, "reviews"), orderBy("createdAt", "desc"));
                 const snapshot = await getDocs(q);
-                
                 list.innerHTML = "";
-                if (snapshot.empty) {
-                    list.innerHTML = "<p style='color:#777; font-size:13px;'>No reviews found.</p>";
-                    return;
-                }
+                if (snapshot.empty) { list.innerHTML = "<p style='color:#777; font-size:13px;'>No reviews found.</p>"; return; }
 
                 snapshot.forEach(doc => {
                     const r = doc.data();
                     const isPending = r.status === 'pending';
-                    const stars = "⭐".repeat(r.rating || 5);
-                    
                     list.innerHTML += `
                     <div class="review-row ${isPending ? 'pending' : ''}">
                         <div class="review-header">
-                            <b>${r.name} (${stars})</b>
+                            <b>${r.name} (${r.rating}⭐)</b>
                             ${isPending ? '<span style="color:#e67e22; font-weight:bold;">PENDING</span>' : '<span style="color:green;">LIVE</span>'}
                         </div>
                         <div class="review-body">"${r.review}"</div>
@@ -231,26 +399,17 @@
                         </div>
                     </div>`;
                 });
-            } catch (err) {
-                console.error(err);
-                list.innerHTML = "<p>Error loading reviews.</p>";
-            }
+            } catch (err) { console.error(err); }
         }
-
         window.approveReview = async function(id) {
             if(!confirm("Approve this review?")) return;
-            try {
-                await updateDoc(doc(db, "reviews", id), { status: "approved" });
-                loadReviews(); // Refresh list
-            } catch(e) { alert("Error approving."); }
+            await updateDoc(doc(db, "reviews", id), { status: "approved" });
+            loadReviews();
         }
-
         window.deleteReview = async function(id) {
             if(!confirm("Permanently delete this review?")) return;
-            try {
-                await deleteDoc(doc(db, "reviews", id));
-                loadReviews(); // Refresh list
-            } catch(e) { alert("Error deleting."); }
+            await deleteDoc(doc(db, "reviews", id));
+            loadReviews();
         }
 
         // --- VENDORS ---
@@ -290,7 +449,7 @@
             loadVendors();
         };
 
-        // --- PRODUCTS (FLASH & FEATURED) ---
+        // --- PRODUCTS ---
         async function loadProducts() {
             const grid = document.getElementById('flash-list');
             try {
@@ -300,17 +459,14 @@
                 renderFlashList(allProducts);
             } catch (err) { grid.innerHTML = "<p>Error loading items.</p>"; }
         }
-
         function renderFlashList(items) {
             const grid = document.getElementById('flash-list');
             grid.innerHTML = "";
             if(items.length === 0) { grid.innerHTML = "<p>No items found.</p>"; return; }
-
             items.forEach(item => {
                 const isStory = item.is_story === "true";
                 const isFeatured = item.is_featured === "true";
                 const img = item.image.startsWith('http') ? item.image : `img/${item.image}`;
-                
                 grid.innerHTML += `
                 <div class="flash-card">
                     <img src="${img}" class="flash-img" onerror="this.src='img/logo-blue.png'">
@@ -319,31 +475,22 @@
                         <div class="flash-meta">${item.price} • ${item.vendor_id}</div>
                     </div>
                     <div class="controls">
-                        <button class="btn-star ${isFeatured ? 'active' : ''}" onclick="toggleFeatured('${item.id}', ${isFeatured})">
-                            <i class="fas fa-star"></i>
-                        </button>
-                        <label class="switch">
-                            <input type="checkbox" ${isStory ? 'checked' : ''} onchange="toggleStory('${item.id}', this)">
-                            <span class="slider"></span>
-                        </label>
+                        <button class="btn-star ${isFeatured ? 'active' : ''}" onclick="toggleFeatured('${item.id}', ${isFeatured})"><i class="fas fa-star"></i></button>
+                        <label class="switch"><input type="checkbox" ${isStory ? 'checked' : ''} onchange="toggleStory('${item.id}', this)"><span class="slider"></span></label>
                     </div>
                 </div>`;
             });
         }
-
         window.toggleStory = async function(docID, checkbox) {
             try { await updateDoc(doc(db, "products", docID), { is_story: checkbox.checked ? "true" : "false" }); }
             catch (e) { alert("Error."); checkbox.checked = !checkbox.checked; }
         };
-
         window.toggleFeatured = async function(docID, currentStatus) {
-            const newStatus = !currentStatus; // Toggle boolean
             try { 
-                await updateDoc(doc(db, "products", docID), { is_featured: newStatus ? "true" : "false" });
-                loadProducts(); // Refresh UI to show gold star
-            } catch(e) { alert("Error updating featured status."); }
+                await updateDoc(doc(db, "products", docID), { is_featured: (!currentStatus) ? "true" : "false" });
+                loadProducts(); 
+            } catch(e) { alert("Error."); }
         };
-
         document.getElementById('product-search').addEventListener('input', (e) => {
             const term = e.target.value.toLowerCase();
             const filtered = allProducts.filter(p => p.name.toLowerCase().includes(term) || p.vendor_id.toLowerCase().includes(term));
