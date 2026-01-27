@@ -25,6 +25,7 @@
             background: white;
             border-bottom: 1px solid #eee;
             margin-bottom: 20px;
+            transition: background 0.3s, border-color 0.3s;
         }
 
         /* Modern Blog Card */
@@ -124,11 +125,27 @@
 
         /* Dark Mode */
         body.dark-mode { background: #121212; }
+        
+        /* ✅ FIXED: Header Dark Mode */
+        body.dark-mode .blog-header-modern { 
+            background: #1e1e1e; 
+            border-bottom: 1px solid #333; 
+        }
+        body.dark-mode .blog-header-modern p { color: #aaa !important; }
+
         body.dark-mode .modern-blog-card { background: #1e1e1e; border-color: #333; }
         body.dark-mode .modern-title { color: #dfe6e9; }
         body.dark-mode .modern-snippet { color: #b2bec3; }
         body.dark-mode .like-pill { background: #2d3436; color: #dfe6e9; }
         body.dark-mode .like-pill.active { background: #d63031; color: white; }
+        
+        /* Modal Dark Mode */
+        body.dark-mode .blog-modal-content { background: #1e1e1e; color: white; }
+        body.dark-mode .modal-title { color: white; }
+        body.dark-mode .modal-text { color: #ddd; }
+        
+        /* Footer Dark Mode */
+        body.dark-mode .site-footer { background: #1e1e1e; border-top: 1px solid #333; }
     </style>
 </head>
 <body>
@@ -162,6 +179,10 @@
         <i class="fas fa-newspaper" style="font-size: 50px; margin-bottom: 15px; opacity: 0.3;"></i>
         <h3 style="font-size: 16px; color: #555;">No Updates Yet</h3>
     </div>
+    
+    <footer class="site-footer" style="margin-top: 40px; text-align: center; padding: 20px; color: #777; font-size: 12px;">
+        <p>&copy; 2026 BrightSiteDev</p>
+    </footer>
 
 </div>
 
@@ -235,12 +256,10 @@
                     const likes = b.likes || [];
                     const likeCount = likes.length;
                     
-                    // Check if current user liked this
                     const isLiked = currentUser && likes.includes(currentUser.uid);
                     const likeClass = isLiked ? 'active' : '';
                     const heartIcon = isLiked ? 'fas fa-heart' : 'far fa-heart';
 
-                    // Escape strings for onclick
                     const safeTitle = b.title.replace(/'/g, "\\'");
                     const safeContent = b.content.replace(/'/g, "\\'").replace(/"/g, '&quot;').replace(/\n/g, '<br>');
 
@@ -278,7 +297,6 @@
     // --- LIKE LOGIC ---
     window.toggleLike = async function(blogId) {
         if (!currentUser) {
-            // Simple login prompt
             if(confirm("Sign in with Google to like posts?")) {
                 signInWithPopup(auth, provider).then(() => {
                     alert("Signed in! You can now like posts.");
@@ -287,15 +305,14 @@
             return;
         }
 
-        // Optimistic UI Update (Update number immediately before DB)
         const countSpan = document.getElementById(`count-${blogId}`);
         const pill = countSpan.parentElement;
         const icon = pill.querySelector('i');
         
         let currentCount = parseInt(countSpan.innerText);
-        const isLiking = !pill.classList.contains('active'); // If not active, we are liking
+        const isLiking = !pill.classList.contains('active'); 
 
-        // Update UI
+        // Optimistic UI Update
         if (isLiking) {
             pill.classList.add('active');
             icon.className = 'fas fa-heart';
@@ -306,7 +323,7 @@
             countSpan.innerText = Math.max(0, currentCount - 1);
         }
 
-        // Update Database
+        // DB Update
         const blogRef = doc(db, "blogs", blogId);
         try {
             if (isLiking) {
@@ -314,10 +331,7 @@
             } else {
                 await updateDoc(blogRef, { likes: arrayRemove(currentUser.uid) });
             }
-        } catch(e) {
-            console.error("Like error:", e);
-            // Revert UI on error (optional, but good practice)
-        }
+        } catch(e) { console.error("Like error:", e); }
     }
 
     // --- SHARE LOGIC ---
@@ -337,7 +351,7 @@
         document.getElementById('modalImg').src = img;
         document.getElementById('modalTitle').innerText = title;
         document.getElementById('modalDate').innerText = date;
-        document.getElementById('modalText').innerHTML = content; // Allows HTML <br>
+        document.getElementById('modalText').innerHTML = content; 
         
         const shareBtn = document.getElementById('shareBtn');
         shareBtn.onclick = function() { performShare(title, content.replace(/<br>/g, "\n")); };
