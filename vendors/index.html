@@ -2,6 +2,12 @@
 <html lang="en">
 <head>
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-70VSGR5WBW"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-70VSGR5WBW');
+  </script>
 
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
@@ -67,7 +73,6 @@
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
     import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-    // CONFIG (Matches your main page)
     const firebaseConfig = {
         apiKey: "AIzaSyA1eQbrJpH9OtDNDN7z9oTFTRSAE7vCFbg",
         authDomain: "afit-market-auth.firebaseapp.com",
@@ -81,11 +86,11 @@
     const db = getFirestore(app);
 
     const sheetID = "1SvVUbEnDgqgw2Z_M1ShQkzyFTsnnS6n8mTs7UMXVvF4";
-    const vendorsUrl = `https://opensheet.elk.sh/${sheetID}/Vendors`;
+    const apiRoot = `https://opensheet.elk.sh/${sheetID}`;
 
     document.addEventListener("DOMContentLoaded", async () => {
         try {
-            // 1. Get the list of suspended vendors from Firestore
+            // 1. Get Suspended List from Firestore
             const suspendedSnap = await getDocs(collection(db, "vendor_status"));
             const suspendedVendors = new Set();
             suspendedSnap.forEach(doc => {
@@ -94,17 +99,25 @@
                 }
             });
 
-            // 2. Fetch Vendors from Google Sheet
-            const res = await fetch(vendorsUrl);
-            const data = await res.json();
+            // 2. Fetch BOTH Sheets (Original & V2)
+            const [data1, data2] = await Promise.all([
+                fetch(`${apiRoot}/Vendors`).then(res => res.json()),
+                fetch(`${apiRoot}/Vendors_v2`).then(res => res.json().catch(() => [])) // Catch error if empty
+            ]);
+
+            // 3. Merge Data
+            const allVendors = [...data1, ...data2];
             
             const container = document.getElementById('all-vendors-container');
             container.innerHTML = "";
 
-            // 3. Filter out suspended vendors
-            const activeVendors = data.filter(v => {
+            // 4. Filter: Must NOT be suspended AND Verified must NOT be "FALSE"
+            const activeVendors = allVendors.filter(v => {
                 const vID = v.vendor_id || v.Vendor_ID;
-                return !suspendedVendors.has(vID);
+                const isVerified = String(v.verified || v.Verified || "").toLowerCase().trim();
+                
+                // Hide if suspended OR if Verification is strictly "false" (pending)
+                return !suspendedVendors.has(vID) && isVerified !== "false";
             });
 
             if(activeVendors.length === 0) {
@@ -122,9 +135,10 @@
                 const vID = v.vendor_id || v.Vendor_ID;
                 const vVerified = String(v.verified || v.Verified || "").toLowerCase().trim();
 
-                const img = vImage.startsWith('http') ? vImage : `../img/${vImage}`;
-                let badgeHtml = "";
+                let img = vImage || "logo-blue.png";
+                if (!img.startsWith('http')) img = `../img/${img}`;
                 
+                let badgeHtml = "";
                 if (vVerified === "gold") badgeHtml = '<i class="fas fa-check-circle tick-gold"></i>';
                 else if (vVerified === "blue") badgeHtml = '<i class="fas fa-check-circle tick-blue"></i>';
 

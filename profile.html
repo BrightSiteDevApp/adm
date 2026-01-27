@@ -316,15 +316,14 @@
     let currentVendorPhone = "";
     
     // --- PAGINATION VARIABLES ---
-    let allVendorProducts = []; // Stores ALL fetched products
-    let currentProductIndex = 0; // Tracks how many are shown
-    const BATCH_SIZE = 16; // Load 16 items at a time
+    let allVendorProducts = []; 
+    let currentProductIndex = 0; 
+    const BATCH_SIZE = 16; 
 
     const sheetID = "1SvVUbEnDgqgw2Z_M1ShQkzyFTsnnS6n8mTs7UMXVvF4";
     const apiRoot = `https://opensheet.elk.sh/${sheetID}`;
     const ADMIN_PHONE = "2348144516127"; 
 
-    // --- SECURITY: XSS Sanitizer ---
     function escapeHTML(str) {
         if (!str) return "";
         return String(str)
@@ -356,7 +355,6 @@
     }
 
     document.addEventListener("DOMContentLoaded", () => {
-        // Expose renderBatch to global window scope so HTML button can call it
         window.renderBatch = renderBatch;
 
         const params = new URLSearchParams(window.location.search);
@@ -369,26 +367,42 @@
         }
     });
 
+    // --- 🔵 UPDATED: DUAL SHEET FETCH ---
     function loadProfile(id) {
+        // First check if suspended in Firestore
         getDoc(doc(db, "vendor_status", id)).then(docSnap => {
             if (docSnap.exists() && docSnap.data().status === "suspended") {
-                document.getElementById('profile-skeleton').style.display = 'none'; // Hide Skeleton
+                document.getElementById('profile-skeleton').style.display = 'none'; 
                 document.getElementById('profile-content').style.display = 'none';
                 document.getElementById('error-message').style.display = 'block';
                 return;
             }
 
-            fetch(`${apiRoot}/Vendors`)
-            .then(res => { if (!res.ok) throw new Error("Connection Failed"); return res.json(); })
-            .then(data => {
-                const v = data.find(item => (item.vendor_id || item.Vendor_ID) === id);
+            // Fetch BOTH sheets simultaneously
+            Promise.all([
+                fetch(`${apiRoot}/Vendors`).then(res => res.json()),
+                fetch(`${apiRoot}/Vendors_v2`).then(res => res.json().catch(() => [])) // Catch empty V2
+            ])
+            .then(([vendors1, vendors2]) => {
+                // Merge Data
+                const allVendors = [...vendors1, ...vendors2];
+                
+                // Find vendor in the combined list
+                const v = allVendors.find(item => (item.vendor_id || item.Vendor_ID) === id);
+                
                 if(!v) { 
                     showError("Vendor Not Found", `ID "${id}" does not exist.`); 
                 } else {
+                    // Check if verify is FALSE (from V2 sheet logic)
+                    const isVerified = String(v.verified || v.Verified || "").toLowerCase().trim();
+                    if(isVerified === "false") {
+                        showError("Pending Approval", "This vendor profile is awaiting verification.");
+                        return;
+                    }
+
                     renderVendor(v, id);
                     if (v.Email) { pageVendorEmail = v.Email.toLowerCase().trim(); checkOwner(); }
                     
-                    // Show Content, Hide Skeleton
                     document.getElementById('profile-skeleton').style.display = 'none';
                     document.getElementById('profile-content').style.display = 'block';
 
@@ -449,11 +463,10 @@
             const firestoreProducts = await loadVendorFirestoreItems(id);
             const allProducts = [...sheetData, ...firestoreProducts];
             
-            // Store ONLY this vendor's products in the global array
             allVendorProducts = allProducts.filter(p => (p.vendor_id || p.Vendor_ID) === id);
             
             const grid = document.getElementById('vendor-grid');
-            grid.innerHTML = ""; // Clear any placeholders
+            grid.innerHTML = ""; 
             
             if(allVendorProducts.length === 0) { 
                 grid.innerHTML = "<p style='width:100%; text-align:center; padding:20px; color:#777;'>No items listed yet.</p>"; 
@@ -461,7 +474,6 @@
                 return; 
             }
             
-            // START RENDERING THE FIRST BATCH
             renderBatch();
         });
     }
@@ -471,11 +483,9 @@
         const loadMoreBtn = document.getElementById('load-more-btn');
         const loadMoreContainer = document.getElementById('load-more-container');
 
-        // Calculate end index for this batch
         const nextIndex = currentProductIndex + BATCH_SIZE;
         const productsToShow = allVendorProducts.slice(currentProductIndex, nextIndex);
 
-        // Loop through and append items
         productsToShow.forEach(p => {
             const pName = p.name || p.Name; 
             const pPrice = p.price || p.Price; 
@@ -483,10 +493,8 @@
             const pImage = p.image || p.Image;
             const pStatus = p.status || p.Status || "Active"; 
             const isFeatured = p.is_featured === "true"; 
-            // 🆕 GET DESCRIPTION
             const pDesc = p.description || p.Description || "No additional details.";
             
-            // Generate a safe ID for saving
             const pID = p.id || (p.vendor_id + "-" + pName).replace(/\s+/g, '-').toLowerCase();
             let pImg = pImage || "logo-blue.png"; 
             if (!pImg.startsWith('http')) pImg = `img/${pImg}`;
@@ -501,14 +509,11 @@
             if (isSold) badge = '<span style="background:red; color:white; font-size:9px; padding:2px 5px; position:absolute; top:10px; left:10px; border-radius:4px; z-index:10;">SOLD</span>';
             else if (isFeatured) badge = '<span style="background:#f1c40f; color:white; font-size:9px; padding:2px 5px; position:absolute; top:10px; left:10px; border-radius:4px; z-index:10; font-weight:bold;">⭐ Sponsored</span>';
 
-            // Sanitize Strings for JS function calls (onclick)
             const safeNameJS = pName.replace(/'/g, "\\'").replace(/"/g, "&quot;");
             const safeDescJS = pDesc.replace(/'/g, "\\'").replace(/"/g, "&quot;").replace(/\n/g, " ");
 
-            // USE ESCAPEHTML FOR DISPLAY TO PREVENT XSS
             const btnText = isSold ? "Sold" : "Get Item";
             const btnStyle = isSold ? "background:#777; pointer-events:none;" : "";
-            // 🆕 BUTTON now opens Modal
             const btnAction = isSold ? "" : `openDetailModal('${safeNameJS}', '${escapeHTML(pPrice)}', '${safeDescJS}', '${escapeHTML(pCategory)}')`;
 
             grid.innerHTML += `
@@ -528,19 +533,16 @@
             </div>`;
         });
 
-        // Update current index
         currentProductIndex = nextIndex;
 
-        // Handle "Load More" visibility
         if (currentProductIndex >= allVendorProducts.length) {
-            loadMoreContainer.style.display = 'none'; // No more items
+            loadMoreContainer.style.display = 'none'; 
         } else {
-            loadMoreContainer.style.display = 'block'; // Still items left
-            loadMoreBtn.innerText = "Load More"; // Reset button text
+            loadMoreContainer.style.display = 'block'; 
+            loadMoreBtn.innerText = "Load More"; 
         }
     }
 
-    // 🆕 FUNCTION TO OPEN MODAL
     window.openDetailModal = function(title, price, desc, category) {
         document.getElementById('m-title').innerText = title;
         document.getElementById('m-price').innerText = price;
@@ -548,7 +550,6 @@
         document.getElementById('m-category').innerText = "Category: " + category;
         
         const waMsg = encodeURIComponent(`Hi, I saw "${title}" on AFIT Market (Price: ${price}). Is it available?`);
-        // Uses global currentVendorPhone
         document.getElementById('m-btn').href = `https://wa.me/${currentVendorPhone}?text=${waMsg}`;
         
         document.getElementById('detail-modal').style.display = 'flex';
@@ -563,7 +564,7 @@
     }
 
     function showError(title, msg) {
-        document.getElementById('profile-skeleton').style.display = 'none'; // Hide skeleton on error
+        document.getElementById('profile-skeleton').style.display = 'none'; 
         const errorBox = document.getElementById('error-message');
         errorBox.style.display = 'block';
         errorBox.querySelector('h3').innerText = title;
