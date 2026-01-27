@@ -22,19 +22,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
    
     <title>Student Reviews | AFIT Digital Market (ADM)</title>
-    <meta name="description" content="Read real reviews from AFIT students using ADM.">
-    <meta name="keywords" content="AFIT market reviews, ADM vendor ratings">
-    <meta name="author" content="BrightSiteDev">
-    <meta name="robots" content="index, follow">
-
-    <meta property="og:type" content="website">
+    <meta name="description" content="Read real reviews from AFIT students.">
     <meta property="og:title" content="What Students Are Saying - AFIT Digital Market">
-    <meta property="og:description" content="Real feedback from the AFIT community.">
-    <meta property="og:url" content="https://afitdgm.store/reviews/">
     <meta property="og:image" content="https://afitdgm.store/img/logo-blue.png">
 
-    <link rel="canonical" href="https://afitdgm.store/reviews/">
-    
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="../asset/style.css">
     <link rel="icon" href="../img/app-logo.png" type="image/png">
@@ -113,10 +104,25 @@
             padding: 2px 8px;
             border-radius: 10px;
             font-size: 10px;
-            margin-left: 10px;
+            margin-left: 5px;
             font-weight: bold;
             vertical-align: middle;
         }
+        
+        /* User Action Buttons (Edit/Delete) */
+        .user-actions {
+            display: flex;
+            gap: 15px;
+            margin-left: auto; /* Push to right */
+        }
+        .action-icon {
+            font-size: 14px;
+            cursor: pointer;
+            color: #999;
+            transition: color 0.2s;
+        }
+        .action-icon:hover { color: var(--primary-blue, #007bff); }
+        .action-delete:hover { color: #ff4757; }
     </style>
 </head>
 <body>
@@ -160,16 +166,6 @@
                 </div>
                 <div class="skeleton sk-text-long"></div>
             </div>
-            <div class="skeleton-card" style="width: 100%;">
-                <div style="display:flex; gap:10px; margin-bottom:10px;">
-                    <div class="skeleton sk-img" style="width:40px; height:40px;"></div>
-                    <div style="flex:1;">
-                        <div class="skeleton sk-text-short" style="width:60%; margin-bottom:5px;"></div>
-                        <div class="skeleton sk-text-short" style="width:30%;"></div>
-                    </div>
-                </div>
-                <div class="skeleton sk-text-long"></div>
-            </div>
         </div>
         
         <div style="margin-top: 30px; text-align: center;">
@@ -182,7 +178,7 @@
     <div id="reviewModal" class="modal-overlay">
         <div class="modal-content">
             <span class="close-modal" onclick="closeReviewModal()">&times;</span>
-            <h3 style="text-align:center; color: #333;">Rate your experience</h3>
+            <h3 id="modalTitle" style="text-align:center; color: #333;">Rate your experience</h3>
             
             <div class="star-rating-input" id="starInput">
                 <i class="fas fa-star" data-val="1"></i>
@@ -199,27 +195,12 @@
     </div>
 
     <footer class="site-footer">
-        <div class="footer-newsletter" style="margin-bottom: 20px; padding-bottom: 20px; border-bottom: 1px solid #444;">
-            <h4 style="color: white; margin-bottom: 8px; font-size: 14px;">Join our Community</h4>
-            <p style="font-size: 11px; color: #aaa; margin-bottom: 12px;">Get updates on new vendors and flash sales.</p>
-            
-            <form action="https://formspree.io/f/mdakzbpy" method="POST" style="display: flex; justify-content: center; gap: 8px; max-width: 300px; margin: 0 auto;">
-                <input type="email" name="email" placeholder="Enter email" required 
-                       style="width: 70%; padding: 8px 12px; border-radius: 20px; border: none; outline: none; font-size: 12px;">
-                <button type="submit" 
-                        style="width: 30%; background: var(--primary-blue, #007bff); color: white; border: none; padding: 8px; border-radius: 20px; font-size: 11px; font-weight: bold; cursor: pointer;">
-                    Join
-                </button>
-            </form>
-            </div>
-
         <div class="footer-links">
             <a href="../about-us/">About Us</a> | 
             <a href="../safety/">Safety Tips</a> | 
             <a href="../t&c/">T & C</a> | 
             <a href="../contact-us/">Contact</a>
         </div>
-        
         <p style="margin-top:10px; color:#777;">&copy; 2026 BrightSiteDev</p>
     </footer>
 
@@ -230,9 +211,8 @@
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
     import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-    import { getFirestore, collection, addDoc, getDocs, query, orderBy, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+    import { getFirestore, collection, addDoc, updateDoc, deleteDoc, doc, getDocs, query, orderBy, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-    // ✅ YOUR CONFIGURATION
     const firebaseConfig = {
         apiKey: "AIzaSyA1eQbrJpH9OtDNDN7z9oTFTRSAE7vCFbg",
         authDomain: "afit-market-auth.firebaseapp.com",
@@ -249,16 +229,14 @@
     let currentUser = null;
     let allReviews = [];
     let selectedRating = 0;
+    
+    // Track if we are editing an existing review
+    let editingReviewId = null;
 
-    // Listen for Authentication State
     onAuthStateChanged(auth, (user) => {
         if (user) {
             currentUser = user;
-            console.log("User logged in:", user.displayName);
-        } else {
-            console.log("No user logged in");
         }
-        // Always load reviews regardless of auth state
         loadReviews();
     });
 
@@ -268,24 +246,41 @@
             alert("Please sign in to write a review!");
             return;
         }
-        // Check 2 review limit
-        const myReviews = allReviews.filter(r => r.uid === currentUser.uid);
-        if(myReviews.length >= 2) {
-            alert("You have reached the limit of 2 reviews per account.");
-            return;
+        
+        // Check limit ONLY if creating new
+        if (!editingReviewId) {
+            const myReviews = allReviews.filter(r => r.uid === currentUser.uid);
+            if(myReviews.length >= 2) {
+                alert("You have reached the limit of 2 reviews per account.");
+                return;
+            }
         }
+        
+        document.getElementById('reviewModal').style.display = 'flex';
+    }
+
+    // Called when user clicks "Edit" icon
+    window.openEditModal = function(id, text, rating) {
+        editingReviewId = id;
+        document.getElementById('modalTitle').innerText = "Edit your review";
+        document.getElementById('reviewText').value = text;
+        selectedRating = rating;
+        updateStars();
         document.getElementById('reviewModal').style.display = 'flex';
     }
 
     window.closeReviewModal = function() {
         document.getElementById('reviewModal').style.display = 'none';
+        
+        // Reset Form
         selectedRating = 0;
+        editingReviewId = null;
         updateStars();
         document.getElementById('reviewText').value = "";
         document.getElementById('reviewError').style.display = 'none';
+        document.getElementById('modalTitle').innerText = "Rate your experience"; // Reset title
     }
 
-    // Star Click Logic
     document.querySelectorAll('#starInput i').forEach(star => {
         star.addEventListener('click', function() {
             selectedRating = parseInt(this.getAttribute('data-val'));
@@ -301,7 +296,7 @@
         });
     }
 
-    // --- SUBMIT LOGIC ---
+    // --- SUBMIT (CREATE OR EDIT) ---
     window.submitReview = async function() {
         const text = document.getElementById('reviewText').value;
         const errorMsg = document.getElementById('reviewError');
@@ -322,29 +317,55 @@
         submitBtn.disabled = true;
 
         try {
-            await addDoc(collection(db, "reviews"), {
-                uid: currentUser.uid,
-                name: currentUser.displayName || "Student",
-                image: currentUser.photoURL || "../img/person.png",
-                rating: selectedRating,
-                review: text,
-                status: "pending", // ⚠️ DEFAULT STATUS IS PENDING
-                createdAt: serverTimestamp()
-            });
+            if (editingReviewId) {
+                // ✅ UPDATE EXISTING
+                await updateDoc(doc(db, "reviews", editingReviewId), {
+                    rating: selectedRating,
+                    review: text,
+                    status: "pending", // Force re-approval on edit
+                    updatedAt: serverTimestamp()
+                });
+                alert("Review updated! It is now pending approval.");
+            } else {
+                // ✅ CREATE NEW
+                await addDoc(collection(db, "reviews"), {
+                    uid: currentUser.uid,
+                    name: currentUser.displayName || "Student",
+                    image: currentUser.photoURL || "../img/person.png",
+                    rating: selectedRating,
+                    review: text,
+                    status: "pending", 
+                    createdAt: serverTimestamp()
+                });
+                alert("Review submitted! It will appear as 'Pending' until approved.");
+            }
 
-            alert("Review submitted! It will appear as 'Pending' until approved.");
             closeReviewModal();
-            loadReviews(); // Reload to show the new pending review
+            loadReviews(); 
+
         } catch (e) {
-            console.error("Error adding review: ", e);
-            alert("Error submitting review. Please try again.");
+            console.error("Error submitting review: ", e);
+            alert("Error. Please try again.");
         }
         
         submitBtn.innerText = "Submit Review";
         submitBtn.disabled = false;
     }
 
-    // --- LOAD REVIEWS (Hybrid Logic) ---
+    // --- DELETE LOGIC ---
+    window.deleteMyReview = async function(id) {
+        if(!confirm("Are you sure you want to delete this review?")) return;
+        
+        try {
+            await deleteDoc(doc(db, "reviews", id));
+            loadReviews();
+        } catch(e) {
+            alert("Error deleting review.");
+            console.error(e);
+        }
+    }
+
+    // --- LOAD REVIEWS ---
     async function loadReviews() {
         const container = document.getElementById('all-reviews-container');
         
@@ -358,11 +379,11 @@
                 const data = doc.data();
                 data.id = doc.id;
                 
-                // LOGIC: Show if Approved OR if it belongs to current user
+                // Show if Approved OR if it belongs to current user
                 if (data.status === 'approved') {
                     allReviews.push(data);
                 } else if (currentUser && data.uid === currentUser.uid) {
-                    allReviews.push(data); // Show user their own pending review
+                    allReviews.push(data); 
                 }
             });
 
@@ -370,13 +391,7 @@
 
         } catch (e) {
             console.error("Error loading reviews:", e);
-            // If the collection doesn't exist yet, just show empty
-            if(e.code === 'permission-denied') {
-                container.innerHTML = "<p style='text-align:center;'>Please setup Firestore Rules.</p>";
-            } else {
-                container.innerHTML = ""; // Clear skeletons if empty
-                if(allReviews.length === 0) container.innerHTML = "<p style='text-align:center; color:#999; padding:20px;'>No reviews yet. Be the first!</p>";
-            }
+            if(allReviews.length === 0) container.innerHTML = "<p style='text-align:center; color:#999; padding:20px;'>No reviews yet. Be the first!</p>";
         }
     }
 
@@ -393,22 +408,37 @@
             const stars = r.rating;
             const starString = '<i class="fas fa-star" style="color:#FFD700;"></i>'.repeat(stars);
             
-            // Check if pending
             let pendingBadge = "";
             if(r.status === 'pending') {
                 pendingBadge = `<span class="pending-tag">PENDING</span>`;
             }
 
+            // ✅ CHECK IF THIS IS MY REVIEW TO SHOW ICONS
+            let actionButtons = "";
+            if (currentUser && r.uid === currentUser.uid) {
+                // Escape quotes for the onclick function
+                const safeReview = r.review.replace(/'/g, "\\'").replace(/"/g, '&quot;');
+                actionButtons = `
+                    <div class="user-actions">
+                        <i class="fas fa-edit action-icon" onclick="openEditModal('${r.id}', '${safeReview}', ${r.rating})"></i>
+                        <i class="fas fa-trash action-icon action-delete" onclick="deleteMyReview('${r.id}')"></i>
+                    </div>
+                `;
+            }
+
             container.innerHTML += `
             <div class="review-card" style="width: 100%;"> 
-                <div class="review-header">
-                    <img src="${r.image}" class="review-img" alt="User" onerror="this.src='../img/person.png'">
-                    <div>
-                        <div class="review-name">${r.name} ${pendingBadge}</div>
-                        <div class="stars" style="font-size:10px;">${starString}</div>
+                <div class="review-header" style="display:flex; justify-content:space-between; align-items:flex-start;">
+                    <div style="display:flex; gap:10px;">
+                        <img src="${r.image}" class="review-img" alt="User" onerror="this.src='../img/person.png'">
+                        <div>
+                            <div class="review-name">${r.name} ${pendingBadge}</div>
+                            <div class="stars" style="font-size:10px;">${starString}</div>
+                        </div>
                     </div>
+                    ${actionButtons}
                 </div>
-                <div class="review-text">"${r.review}"</div>
+                <div class="review-text" style="margin-top:5px;">"${r.review}"</div>
             </div>`;
         });
     }
