@@ -6,206 +6,291 @@
     <title>Coming Soon | AFIT Digital Market</title>
     
     <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#2d3436">
+    <meta name="theme-color" content="#2d8eff">
 
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="icon" href="img/app-logo.png" type="image/png" sizes="192x192">
     <link rel="apple-touch-icon" href="img/app-logo.png">
-    <link rel="icon" href="favicon.ico" type="image/x-icon">
     
     <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;800&display=swap');
+
         body {
             margin: 0;
             padding: 0;
-            font-family: 'Segoe UI', sans-serif;
-            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(-45deg, #ee7752, #e73c7e, #23a6d5, #23d5ab);
+            background-size: 400% 400%;
+            animation: gradientBG 15s ease infinite;
             height: 100vh;
             display: flex;
             align-items: center;
             justify-content: center;
-            text-align: center;
-            color: #333;
+            overflow: hidden;
+            position: relative;
         }
+
+        @keyframes gradientBG {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        /* Floating Background Shapes */
+        .shape {
+            position: absolute;
+            filter: blur(50px);
+            z-index: 0;
+            animation: float 6s ease-in-out infinite;
+        }
+        .shape-1 { top: 10%; left: 10%; width: 100px; height: 100px; background: rgba(255, 255, 255, 0.3); border-radius: 50%; }
+        .shape-2 { bottom: 20%; right: 10%; width: 150px; height: 150px; background: rgba(255, 255, 255, 0.2); border-radius: 50%; animation-delay: 1s; }
+
+        @keyframes float {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-20px); }
+            100% { transform: translateY(0px); }
+        }
+
+        /* Glassmorphism Container */
         .container {
-            background: white;
-            padding: 40px;
-            border-radius: 20px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            background: rgba(255, 255, 255, 0.9);
+            padding: 40px 30px;
+            border-radius: 24px;
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            border: 1px solid rgba(255, 255, 255, 0.18);
             width: 90%;
-            max-width: 400px;
+            max-width: 420px;
+            text-align: center;
+            position: relative;
+            z-index: 10;
         }
+
+        .logo-box {
+            background: white;
+            width: 90px;
+            height: 90px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+        
         .logo {
-            width: 80px;
-            margin-bottom: 20px;
+            width: 60px;
+            object-fit: contain;
         }
-        h1 { margin: 0; font-size: 24px; color: #2d3436; }
-        p { color: #636e72; line-height: 1.6; margin-top: 10px; }
+
+        h1 { 
+            margin: 0; 
+            font-size: 28px; 
+            font-weight: 800;
+            color: #2d3436; 
+            letter-spacing: -0.5px;
+        }
+        
+        p { 
+            color: #636e72; 
+            line-height: 1.6; 
+            margin-top: 10px; 
+            font-size: 14px;
+        }
+
         .badge {
             background: #ffeaa7;
             color: #d63031;
-            padding: 5px 15px;
+            padding: 6px 16px;
             border-radius: 50px;
-            font-size: 12px;
-            font-weight: bold;
+            font-size: 11px;
+            font-weight: 800;
             display: inline-block;
             margin-bottom: 15px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            box-shadow: 0 4px 10px rgba(255, 234, 167, 0.5);
         }
-        
+
         /* NOTIFY SECTION */
         .notify-box {
             margin-top: 25px;
-            padding-top: 20px;
-            border-top: 1px solid #eee;
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 16px;
         }
+        
         .notify-label {
-            font-size: 14px;
-            font-weight: 600;
-            color: #2d3436;
+            font-size: 13px;
+            font-weight: 700;
+            color: #2d8eff;
             display: block;
-            margin-bottom: 10px;
+            margin-bottom: 12px;
+            text-transform: uppercase;
         }
+
         .input-group {
+            position: relative;
             display: flex;
-            gap: 5px;
+            background: white;
+            border-radius: 50px;
+            padding: 4px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            border: 1px solid #eee;
         }
+
         .email-input {
             flex: 1;
-            padding: 10px 15px;
-            border: 1px solid #ddd;
-            border-radius: 5px;
+            padding: 12px 20px;
+            border: none;
             outline: none;
             font-size: 13px;
+            background: transparent;
+            font-family: inherit;
         }
-        .email-input:focus {
-            border-color: #25D366;
-        }
+
         .notify-btn {
             background: #2d3436;
             color: white;
             border: none;
-            padding: 10px 15px;
-            border-radius: 5px;
-            cursor: pointer;
-            font-weight: bold;
-            font-size: 13px;
-        }
-
-        /* CONTACT BUTTON */
-        .social-btn {
-            display: inline-block;
-            margin-top: 15px;
-            text-decoration: none;
-            background: #25D366;
-            color: white;
             padding: 10px 20px;
-            border-radius: 5px;
-            font-weight: bold;
-            font-size: 14px;
-            width: 100%;
-            box-sizing: border-box;
+            border-radius: 50px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 12px;
+            transition: transform 0.2s;
+        }
+        .notify-btn:active { transform: scale(0.95); }
+
+        /* BUTTONS GRID */
+        .action-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 20px;
         }
 
-        /* VENDOR LOGIN BUTTON */
-        .vendor-btn {
-            display: inline-block;
-            margin-top: 10px;
+        .btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 12px;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 12px;
+            cursor: pointer;
+            border: none;
             text-decoration: none;
+            transition: all 0.2s;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+        }
+        .btn:active { transform: scale(0.98); }
+
+        .btn-whatsapp {
+            background: #e6fffa;
+            color: #25D366;
+            border: 1px solid #25D366;
+        }
+        .btn-vendor {
             background: #2d3436;
             color: white;
-            padding: 10px 20px;
-            border-radius: 5px;
-            font-weight: bold;
-            font-size: 14px;
-            width: 100%;
-            box-sizing: border-box;
-            cursor: pointer;
-            border: none;
         }
 
-        /* INSTALL APP BUTTON */
+        /* INSTALL APP SECTION */
         #install-container {
-            display: none; /* Hidden by default */
+            display: none;
             margin-top: 20px;
-            padding-top: 15px;
-            border-top: 1px dashed #ccc;
         }
         .install-btn {
-            background: #2d8eff;
+            background: linear-gradient(135deg, #2d8eff, #6c5ce7);
             color: white;
-            border: none;
-            padding: 12px 20px;
-            border-radius: 30px;
-            font-size: 14px;
-            font-weight: bold;
-            cursor: pointer;
             width: 100%;
+            padding: 14px;
+            border-radius: 50px;
+            border: none;
+            font-weight: 700;
+            font-size: 14px;
+            box-shadow: 0 8px 20px rgba(45, 142, 255, 0.3);
+            cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
             gap: 10px;
-            box-shadow: 0 4px 10px rgba(45, 142, 255, 0.3);
-            transition: transform 0.2s;
+            animation: pulse 2s infinite;
         }
-        .install-btn:active {
-            transform: scale(0.95);
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.02); }
+            100% { transform: scale(1); }
         }
 
         /* IOS INSTRUCTIONS */
         #ios-install-message {
             display: none;
-            background: #f1f1f1;
-            padding: 10px;
-            border-radius: 10px;
-            margin-top: 15px;
-            border: 1px solid #ccc;
+            background: #fff3cd;
+            color: #856404;
+            padding: 15px;
+            border-radius: 12px;
+            margin-top: 20px;
+            border: 1px solid #ffeeba;
+            text-align: left;
         }
         .ios-instructions {
-            font-size: 12px;
-            color: #555;
-            line-height: 1.5;
+            font-size: 11px;
+            line-height: 1.6;
+            margin: 0;
         }
     </style>
-    
 </head>
 <body>
+
+    <div class="shape shape-1"></div>
+    <div class="shape shape-2"></div>
+
     <div class="container">
-        <img src="img/logo-blue.png" alt="ADM Logo" class="logo">
-        <br>
-        <span class="badge">🚧 UNDER CONSTRUCTION</span>
+        <div class="logo-box">
+            <img src="img/logo-blue.png" alt="ADM Logo" class="logo">
+        </div>
+
+        <span class="badge">🚧 Under Construction</span>
         <h1>AFIT Digital Market</h1>
-        <p>We are upgrading the platform to serve you better. The full marketplace will launch soon!</p>
+        <p>We are building the ultimate marketplace for AFIT students. Something huge is coming!</p>
         
         <div class="notify-box">
-            <span class="notify-label">🚀 Get notified when we launch!</span>
+            <span class="notify-label">🚀 Get notified when we launch</span>
             <form action="https://formsubmit.co/afitdgm@gmail.com" method="POST" class="input-group">
-                <input type="email" name="email" class="email-input" placeholder="Enter your email" required>
+                <input type="email" name="email" class="email-input" placeholder="Enter your email address" required>
                 <input type="hidden" name="_next" value="https://afitdgm.store/coming-soon.html">
                 <input type="hidden" name="_captcha" value="false">
                 <button type="submit" class="notify-btn">Notify Me</button>
             </form>
-            <p style="font-size: 11px; color: #999; margin-top: 8px;">We promise not to spam you.</p>
         </div>
 
-        <a href="https://wa.me/2349153375488" class="social-btn">
-            <i class="fab fa-whatsapp"></i> Contact Admin
-        </a>
-
-        <button onclick="promptVendorCode()" class="vendor-btn">
-            <i class="fas fa-lock"></i> Vendor Login
-        </button>
+        <div class="action-grid">
+            <a href="https://wa.me/2349153375488" class="btn btn-whatsapp">
+                <i class="fab fa-whatsapp"></i> Contact
+            </a>
+            <button onclick="promptVendorCode()" class="btn btn-vendor">
+                <i class="fas fa-lock"></i> Vendor Login
+            </button>
+        </div>
 
         <div id="install-container">
-            <p style="font-size: 12px; color: #666; margin-bottom: 10px;">Get the App ready for launch day!</p>
+            <p style="font-size: 11px; color: #666; margin-bottom: 10px; margin-top: 15px;">Don't miss the launch!</p>
             <button id="install-btn" class="install-btn">
-                <i class="fas fa-download"></i> Install App
+                <i class="fas fa-download"></i> Install App Now
             </button>
         </div>
 
         <div id="ios-install-message">
             <p class="ios-instructions">
-                <strong>For iPhone Users:</strong><br>
-                1. Tap the <strong>Share</strong> button <i class="fas fa-share-square"></i> below.<br>
-                2. Scroll down and select <strong>"Add to Home Screen"</strong> <i class="far fa-plus-square"></i>.
+                <strong>📲 Install on iPhone:</strong><br>
+                1. Tap the <strong>Share</strong> button <i class="fas fa-share-square"></i> at the bottom.<br>
+                2. Scroll down and tap <strong>"Add to Home Screen"</strong> <i class="far fa-plus-square"></i>.
             </p>
         </div>
     </div>
@@ -215,14 +300,11 @@
         function promptVendorCode() {
             const code = prompt("Enter Vendor Access Code:");
             if (code === "1020") {
-                // Correct Code -> Redirect to Vendor Link
                 window.location.href = "https://afitdgm.store/?access=vendor";
             } else if (code !== null) {
-                // Wrong Code -> Rude Alert
-                alert("You're not a verified vendor, GET OUT!");
+                alert("⛔ Access Denied: You are not a verified vendor.");
             }
         }
-        // -------------------------
 
         // 1. Check if user is on iPhone/iPad to show instructions
         const isIos = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
@@ -243,10 +325,8 @@
         const installBtn = document.getElementById('install-btn');
 
         window.addEventListener('beforeinstallprompt', (e) => {
-            // Prevent Chrome from showing the mini-infobar
             e.preventDefault();
             deferredPrompt = e;
-            // Only show button if NOT on iOS (since iOS uses instructions)
             if (!isIos) {
                 installContainer.style.display = 'block';
             }
