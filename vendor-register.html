@@ -247,6 +247,11 @@
             </div>
 
             <div class="form-group">
+                <label class="form-label">Ambassador ID (Optional)</label>
+                <input type="text" id="v_ambassador_id" class="form-input" placeholder="e.g. ADM-VA001">
+            </div>
+
+            <div class="form-group">
                 <label class="form-label">Upload Payment Screenshot</label>
                 <div class="file-upload-box">
                     <i class="fas fa-file-invoice-dollar upload-icon" style="color: #00b894;"></i>
@@ -368,7 +373,7 @@
     </div>
 
     <script>
-        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwiNHU3Leo0nXG9r3nmg1ByPK_wB4kOeRxYQX03pKElrSl5-G3vbqtJfVewEWMh2NvCzw/exec"; 
+        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyX6HGXNmSZO7_ewGvUN3zwcEL18FI5MCezh90cJMvQHg1IgKmLVS9-bKp0a0oc39Vfig/exec"; 
         const IMGBB_KEY = "2ac38bef2c73c5a65e7ddf94efe37962";
 
         const categories = [
@@ -455,7 +460,8 @@
                     
                     // NEW FIELDS
                     subscription_plan: document.getElementById('v_plan').value,
-                    payment_proof: paymentUrl
+                    payment_proof: paymentUrl,
+                    ambassador_id: document.getElementById('v_ambassador_id').value
                 };
 
                 await fetch(SCRIPT_URL, {
@@ -465,7 +471,8 @@
                     body: JSON.stringify(formData)
                 });
 
-                alert("🎉 Application Submitted! \n\nWe have received your details and payment proof. Verification usually takes 24 hours.");
+                // ✅ UPDATED SUCCESS MESSAGE HERE
+                alert("Thank you for submitting your application! \n\nIt will be reviewed, and you will be contacted through WhatsApp and Email within 24 hours.");
                 window.location.href = "index.html";
 
             } catch (error) {
