@@ -178,10 +178,10 @@
         import { getFirestore, collection, addDoc, getDocs, query, where, orderBy, deleteDoc, doc, limit, startAfter } 
         from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-        // 🔴 PASTE YOUR EMAILJS KEYS HERE 🔴
-        const EMAILJS_SERVICE_ID = "service_ukl05om"; // Already filled!
-        const EMAILJS_TEMPLATE_ID = "template_rj6x3zo"; // <--- PASTE HERE
-        const EMAILJS_PUBLIC_KEY = "JIN2155jWIVMJLogI";   // <--- PASTE HERE
+        // ✅ I HAVE PRE-FILLED YOUR KEYS FROM YOUR SCREENSHOTS
+        const EMAILJS_SERVICE_ID = "service_22ew001";
+        const EMAILJS_TEMPLATE_ID = "template_rj6x3zo"; 
+        const EMAILJS_PUBLIC_KEY = "JlN2155jWlVMJLogI"; 
 
         // Initialize EmailJS
         if(typeof emailjs !== 'undefined') {
@@ -208,8 +208,6 @@
         let currentUser = null;
         let isSuperAdmin = false;
         let currentMode = 'all'; 
-        
-        // Pagination
         let lastVisibleDoc = null;
         let isFetching = false;
         const BATCH_SIZE = 10;
@@ -218,7 +216,6 @@
             if (user) {
                 currentUser = user;
                 isSuperAdmin = user.email.toLowerCase() === ADMIN_EMAIL.toLowerCase();
-                
                 const roleText = document.getElementById('role-badge');
                 
                 if (isSuperAdmin) {
@@ -235,15 +232,19 @@
                         }
                     });
                 }
-
                 document.getElementById('load-more-btn').addEventListener('click', () => {
                     loadNextBatch();
                 });
-
             } else {
                 window.location.href = "login.html";
             }
         });
+
+        // Smart Helper to get value regardless of case (Email, email, EMAIL)
+        function getSmartValue(row, key) {
+            if(!row) return null;
+            return row[key] || row[key.toLowerCase()] || row[key.toUpperCase()] || null;
+        }
 
         async function checkIfVendor(email) {
             try {
@@ -251,9 +252,12 @@
                     fetch(`${API_ROOT}/Vendors`).then(res => res.json()),
                     fetch(`${API_ROOT}/Vendors_v2`).then(res => res.json().catch(() => []))
                 ]);
-
                 const allVendors = [...v1, ...v2];
-                return allVendors.some(v => v.Email && v.Email.toLowerCase().trim() === email.toLowerCase().trim());
+                // Smart check for Email column
+                return allVendors.some(v => {
+                    const vEmail = getSmartValue(v, 'Email');
+                    return vEmail && vEmail.toLowerCase().trim() === email.toLowerCase().trim();
+                });
             } catch (e) { return false; }
         }
 
@@ -267,7 +271,6 @@
         async function loadNextBatch() {
             if(isFetching) return;
             isFetching = true;
-
             const container = document.getElementById('requests-container');
             const loadBtnDiv = document.getElementById('load-more-container');
             const loadBtn = document.getElementById('load-more-btn');
@@ -276,7 +279,6 @@
             try {
                 const reqRef = collection(db, "public_requests");
                 let q;
-
                 if (currentMode === 'all') {
                     if (lastVisibleDoc) {
                         q = query(reqRef, orderBy("timestamp", "desc"), startAfter(lastVisibleDoc), limit(BATCH_SIZE));
@@ -307,7 +309,6 @@
                 }
 
                 let docs = snapshot.docs;
-
                 if (currentMode === 'mine') {
                     docs.sort((a, b) => {
                         const tA = a.data().timestamp ? a.data().timestamp.seconds : 0;
@@ -338,7 +339,6 @@
                         <div class="req-title">${d.title}</div>
                         <div style="margin-bottom:5px;">${categoryTag}</div>
                         <div class="req-budget">Budget: ₦${d.budget}</div>
-                        
                         <div class="req-meta">
                             <span><i class="far fa-clock"></i> ${timeString}</span>
                             <a href="https://wa.me/${d.phone}?text=Hi, I have the ${d.title} you requested on AFIT Market." class="btn-call">
@@ -362,14 +362,13 @@
             isFetching = false;
         }
 
-        // 🔴 UPDATED SUBMIT FUNCTION WITH SMART CATEGORY FILTER 🔴
+        // 🔴 SAFE SUBMIT FUNCTION 🔴
         window.submitRequest = async function() {
             const title = document.getElementById('req-title').value;
             const budget = document.getElementById('req-budget').value;
             const phone = document.getElementById('req-phone').value;
             const categorySelect = document.getElementById('req-category');
             const category = categorySelect ? categorySelect.value : "";
-            
             const btn = document.querySelector('.chat-btn');
 
             if(!title || !budget || !phone || !category) { 
@@ -399,20 +398,29 @@
                 ]);
                 const allVendors = [...v1, ...v2];
 
-                // 3. SMART FILTER LOGIC
+                // 3. SMART FILTER WITH CRASH PROTECTION
                 const targetCat = category.toLowerCase();
                 
                 const filteredVendors = allVendors.filter(v => {
-                    if(!v.Category) return false;
-                    // Split "Phone, Laptop" into ["phone", " laptop"] and check match
-                    const categories = v.Category.toLowerCase().split(',').map(c => c.trim());
+                    // Try to find Category and Email (case insensitive)
+                    const vCat = getSmartValue(v, 'Category');
+                    const vEmail = getSmartValue(v, 'Email');
+
+                    // If vendor is missing category or email, SKIP THEM (Don't crash)
+                    if(!vCat || !vEmail) return false;
+
+                    // Split "Phone, Laptop" -> ["phone", " laptop"] and check match
+                    const categories = vCat.toLowerCase().split(',').map(c => c.trim());
                     return categories.includes(targetCat);
                 });
 
                 // 4. Get Unique Emails
                 const emailSet = new Set(
                     filteredVendors
-                    .map(v => v.Email ? v.Email.trim() : null)
+                    .map(v => {
+                        const email = getSmartValue(v, 'Email');
+                        return email ? email.trim() : null;
+                    })
                     .filter(email => email && email.includes('@'))
                 );
                 const vendorEmails = Array.from(emailSet).join(',');
@@ -431,7 +439,7 @@
                     
                     alert(`Request Posted! ${emailSet.size} relevant vendors notified.`);
                 } else {
-                    alert("Request Posted! (No vendors found for this category yet)");
+                    alert("Request Posted! (Note: No vendors found with matching 'category' and 'email' in the sheet yet).");
                 }
 
                 closeModal();
@@ -439,9 +447,10 @@
 
             } catch (e) {
                 console.error(e);
-                alert("Error: " + e.message);
+                alert("Request Saved! (Email error: " + e.message + ")");
                 btn.innerText = "Post Request";
                 btn.disabled = false;
+                location.reload();
             }
         };
 
