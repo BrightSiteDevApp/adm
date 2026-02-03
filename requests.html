@@ -10,6 +10,8 @@
     <link rel="apple-touch-icon" href="img/app-logo.png">
     <link rel="icon" href="favicon.ico" type="image/x-icon">
     
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+
     <style>
         body { background-color: #f8f9fa; transition: background 0.3s; }
         
@@ -142,10 +144,31 @@
             <p style="font-size:12px; color:#777; margin-bottom:20px; margin-top:0;">What are you looking for? Vendors will contact you.</p>
             
             <input type="text" id="req-title" class="form-input" placeholder="I am looking for... (e.g. iPhone XR)">
+            
+            <label style="font-size:12px; color:#555; font-weight:bold;">Category</label>
+            <select id="req-category" class="form-input">
+                <option value="" disabled selected>Select Category (Required)</option>
+                <option value="Phone">Phone</option>
+                <option value="Laptops">Laptops</option>
+                <option value="Gadgets">Gadgets</option>
+                <option value="Fashion">Fashion</option>
+                <option value="Fashion Accessories">Fashion Accessories</option>
+                <option value="Phone Accessories">Phone Accessories</option>
+                <option value="Appliances">Appliances</option>
+                <option value="Food & Snacks">Food & Snacks</option>
+                <option value="Fragrance">Fragrance</option>
+                <option value="Hair Services">Hair Services</option>
+                <option value="Graphic Design">Graphic Design</option>
+                <option value="Lifestyle">Lifestyle</option>
+                <option value="Nail Care">Nail Care</option>
+                <option value="Services">Services (General)</option>
+                <option value="Sport Kits">Sport Kits</option>
+            </select>
+
             <input type="text" id="req-budget" class="form-input" placeholder="My Budget (e.g. 120,000)">
             <input type="tel" id="req-phone" class="form-input" placeholder="WhatsApp Number">
             
-            <button onclick="submitRequest()" class="chat-btn" style="width:100%; background:#2d8eff; border:none; padding:12px; border-radius:30px; font-weight:bold; cursor:pointer;">Post Request</button>
+            <button onclick="submitRequest()" class="chat-btn" style="width:100%; background:#2d8eff; border:none; padding:12px; border-radius:30px; font-weight:bold; cursor:pointer; color: white;">Post Request</button>
         </div>
     </div>
 
@@ -154,6 +177,16 @@
         import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
         import { getFirestore, collection, addDoc, getDocs, query, where, orderBy, deleteDoc, doc, limit, startAfter } 
         from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+        // 🔴 PASTE YOUR EMAILJS KEYS HERE 🔴
+        const EMAILJS_SERVICE_ID = "service_ukl05om"; // Already filled!
+        const EMAILJS_TEMPLATE_ID = "template_rj6x3zo"; // <--- PASTE HERE
+        const EMAILJS_PUBLIC_KEY = "JIN2155jWIVMJLogI";   // <--- PASTE HERE
+
+        // Initialize EmailJS
+        if(typeof emailjs !== 'undefined') {
+            emailjs.init(EMAILJS_PUBLIC_KEY);
+        }
 
         const firebaseConfig = {
             apiKey: "AIzaSyA1eQbrJpH9OtDNDN7z9oTFTRSAE7vCFbg",
@@ -192,7 +225,6 @@
                     roleText.innerHTML = "👑 Admin Mode: Viewing All Requests";
                     resetAndLoad('all');
                 } else {
-                    // ✅ DUAL CHECK: Check both Sheets
                     checkIfVendor(user.email).then(isVendor => {
                         if (isVendor) {
                             roleText.innerHTML = "🏪 Vendor Mode: Viewing Potential Customers";
@@ -204,7 +236,6 @@
                     });
                 }
 
-                // Setup Load More
                 document.getElementById('load-more-btn').addEventListener('click', () => {
                     loadNextBatch();
                 });
@@ -214,7 +245,6 @@
             }
         });
 
-        // ✅ UPDATED: Checks both vendor sheets
         async function checkIfVendor(email) {
             try {
                 const [v1, v2] = await Promise.all([
@@ -227,7 +257,6 @@
             } catch (e) { return false; }
         }
 
-        // Resets pagination and clears container
         function resetAndLoad(mode) {
             currentMode = mode;
             lastVisibleDoc = null;
@@ -248,7 +277,6 @@
                 const reqRef = collection(db, "public_requests");
                 let q;
 
-                // 🛠️ SIMPLE QUERY LOGIC
                 if (currentMode === 'all') {
                     if (lastVisibleDoc) {
                         q = query(reqRef, orderBy("timestamp", "desc"), startAfter(lastVisibleDoc), limit(BATCH_SIZE));
@@ -256,7 +284,6 @@
                         q = query(reqRef, orderBy("timestamp", "desc"), limit(BATCH_SIZE));
                     }
                 } else {
-                    // 'mine' mode: removed orderBy to fix index error
                     q = query(reqRef, where("userId", "==", currentUser.uid), limit(BATCH_SIZE * 2)); 
                 }
 
@@ -279,10 +306,8 @@
                     lastVisibleDoc = snapshot.docs[snapshot.docs.length - 1];
                 }
 
-                // Process docs
                 let docs = snapshot.docs;
 
-                // Client-side Sort for 'mine' mode
                 if (currentMode === 'mine') {
                     docs.sort((a, b) => {
                         const tA = a.data().timestamp ? a.data().timestamp.seconds : 0;
@@ -305,10 +330,13 @@
                         deleteBtn = `<button class="btn-delete" onclick="deleteRequest('${docSnap.id}')"><i class="fas fa-trash"></i></button>`;
                     }
 
+                    let categoryTag = d.category ? `<span style="font-size:10px; background:#eee; padding:2px 6px; border-radius:4px; margin-right:5px;">${d.category}</span>` : "";
+
                     container.innerHTML += `
                     <div class="req-card">
                         ${deleteBtn}
                         <div class="req-title">${d.title}</div>
+                        <div style="margin-bottom:5px;">${categoryTag}</div>
                         <div class="req-budget">Budget: ₦${d.budget}</div>
                         
                         <div class="req-meta">
@@ -334,32 +362,83 @@
             isFetching = false;
         }
 
+        // 🔴 UPDATED SUBMIT FUNCTION WITH SMART CATEGORY FILTER 🔴
         window.submitRequest = async function() {
             const title = document.getElementById('req-title').value;
             const budget = document.getElementById('req-budget').value;
             const phone = document.getElementById('req-phone').value;
+            const categorySelect = document.getElementById('req-category');
+            const category = categorySelect ? categorySelect.value : "";
+            
             const btn = document.querySelector('.chat-btn');
 
-            if(!title || !budget || !phone) { alert("Please fill all fields"); return; }
+            if(!title || !budget || !phone || !category) { 
+                alert("Please fill all fields and select a Category."); 
+                return; 
+            }
 
-            btn.innerText = "Posting...";
+            btn.innerText = "Processing...";
             btn.disabled = true;
 
             try {
+                // 1. Save to Firebase
                 await addDoc(collection(db, "public_requests"), {
                     title: title,
                     budget: budget,
                     phone: phone.replace(/[^0-9]/g, ''),
+                    category: category,
                     userId: currentUser.uid,
                     userName: currentUser.displayName || "Student",
                     timestamp: new Date()
                 });
 
-                alert("Request Posted!");
+                // 2. Fetch Vendors
+                const [v1, v2] = await Promise.all([
+                    fetch(`${API_ROOT}/Vendors`).then(res => res.json()),
+                    fetch(`${API_ROOT}/Vendors_v2`).then(res => res.json().catch(() => []))
+                ]);
+                const allVendors = [...v1, ...v2];
+
+                // 3. SMART FILTER LOGIC
+                const targetCat = category.toLowerCase();
+                
+                const filteredVendors = allVendors.filter(v => {
+                    if(!v.Category) return false;
+                    // Split "Phone, Laptop" into ["phone", " laptop"] and check match
+                    const categories = v.Category.toLowerCase().split(',').map(c => c.trim());
+                    return categories.includes(targetCat);
+                });
+
+                // 4. Get Unique Emails
+                const emailSet = new Set(
+                    filteredVendors
+                    .map(v => v.Email ? v.Email.trim() : null)
+                    .filter(email => email && email.includes('@'))
+                );
+                const vendorEmails = Array.from(emailSet).join(',');
+
+                // 5. Send Email via EmailJS
+                if(vendorEmails.length > 0) {
+                    console.log(`Sending email to: ${emailSet.size} vendors`);
+                    
+                    await emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, {
+                        request_title: title,
+                        request_budget: budget,
+                        request_category: category,
+                        user_phone: phone,
+                        bcc_emails: vendorEmails
+                    });
+                    
+                    alert(`Request Posted! ${emailSet.size} relevant vendors notified.`);
+                } else {
+                    alert("Request Posted! (No vendors found for this category yet)");
+                }
+
                 closeModal();
                 location.reload(); 
 
             } catch (e) {
+                console.error(e);
                 alert("Error: " + e.message);
                 btn.innerText = "Post Request";
                 btn.disabled = false;
