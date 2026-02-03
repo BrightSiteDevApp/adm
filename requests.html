@@ -181,7 +181,7 @@
         // ✅ YOUR KEYS (Confirmed from screenshots)
         const EMAILJS_SERVICE_ID = "service_22ew001";
         const EMAILJS_TEMPLATE_ID = "template_rj6x3zo"; 
-        const EMAILJS_PUBLIC_KEY = "JlN2155jWlVMJLogI"; 
+        const EMAILJS_PUBLIC_KEY = "JIN2155jWIVMJLogI"; 
 
         // Initialize EmailJS
         if(typeof emailjs !== 'undefined') {
@@ -420,13 +420,18 @@
         if(vendorEmails.length > 0) {
             console.log("Sending email to:", vendorEmails);
             
-            const emailPromise = emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, {
-                request_title: title,
-                request_budget: budget,
-                request_category: category,
-                user_phone: phone,
-                bcc_emails: vendorEmails  // <--- MAKE SURE THIS IS IN YOUR TEMPLATE
-            });
+           const emailPromise = emailjs.send(
+    EMAILJS_SERVICE_ID, 
+    EMAILJS_TEMPLATE_ID, 
+    {
+        request_title: title,
+        request_budget: budget,
+        request_category: category,
+        user_phone: phone,
+        bcc_emails: vendorEmails
+    },
+    EMAILJS_PUBLIC_KEY  // <--- ADD THIS HERE!
+);
 
             // 5-second timeout protection
             const timeoutPromise = new Promise((_, reject) => 
