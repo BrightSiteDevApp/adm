@@ -362,7 +362,7 @@
         }
 
         // 🔴 FINAL CORRECTED SUBMIT FUNCTION 🔴
-       window.submitRequest = async function() {
+      window.submitRequest = async function() {
     const title = document.getElementById('req-title').value;
     const budget = document.getElementById('req-budget').value;
     const phone = document.getElementById('req-phone').value;
@@ -370,6 +370,7 @@
     const category = categorySelect ? categorySelect.value : "";
     const btn = document.querySelector('.chat-btn');
 
+    // 1. Basic Validation
     if(!title || !budget || !phone || !category) { 
         alert("Please fill all fields and select a Category."); 
         return; 
@@ -379,7 +380,7 @@
     btn.disabled = true;
 
     try {
-        // 1. Save to Firebase
+        // 2. Save to Firebase (This always works nicely)
         console.log("Step 1: Saving to Firebase...");
         await addDoc(collection(db, "public_requests"), {
             title: title,
@@ -391,17 +392,39 @@
             timestamp: new Date()
         });
 
-        // 2. Fetch Vendors
+        // 3. Fetch Vendors with Error Check
         console.log("Step 2: Fetching Vendors...");
-        const [v1, v2] = await Promise.all([
-            fetch(`${API_ROOT}/Vendors`).then(res => res.json()).catch(e => { console.warn("V1 failed", e); return []; }),
-            fetch(`${API_ROOT}/Vendors_v2`).then(res => res.json()).catch(e => { console.warn("V2 failed", e); return []; })
-        ]);
+        let v1 = [], v2 = [];
+        let sheetError = false;
+
+        try {
+            // Using Promise.all to fetch both sheets
+            [v1, v2] = await Promise.all([
+                fetch(`${API_ROOT}/Vendors`).then(res => {
+                    if(!res.ok) throw new Error("Sheet 1 Failed");
+                    return res.json();
+                }),
+                fetch(`${API_ROOT}/Vendors_v2`).then(res => {
+                    if(!res.ok) throw new Error("Sheet 2 Failed");
+                    return res.json();
+                })
+            ]);
+        } catch(e) {
+            console.warn("Sheet fetch failed:", e);
+            sheetError = true;
+        }
 
         const allVendors = [...(Array.isArray(v1)?v1:[]), ...(Array.isArray(v2)?v2:[])];
         console.log(`Found ${allVendors.length} total vendors.`);
 
-        // 3. Smart Filter
+        // 4. Check if Sheet Failed
+        if(allVendors.length === 0 && sheetError) {
+             alert("Request Saved! (But could not contact vendors due to weak network).");
+             location.reload();
+             return;
+        }
+
+        // 5. Smart Filter
         const targetCat = category.toLowerCase();
         const filteredVendors = allVendors.filter(v => {
             const c = getSmartValue(v, 'Category');
@@ -410,38 +433,37 @@
             return c.toLowerCase().split(',').map(x=>x.trim()).includes(targetCat);
         });
 
-        console.log(`Filtered down to ${filteredVendors.length} vendors for category: ${category}`);
+        console.log(`Filtered down to ${filteredVendors.length} vendors.`);
 
-        // 4. Extract Emails
+        // 6. Send Email (Only if vendors found)
         const emailSet = new Set(filteredVendors.map(v => getSmartValue(v, 'Email').trim()));
         const vendorEmails = Array.from(emailSet).join(',');
 
-        // 5. Send Email
         if(vendorEmails.length > 0) {
             console.log("Sending email to:", vendorEmails);
             
-           const emailPromise = emailjs.send(
-    EMAILJS_SERVICE_ID, 
-    EMAILJS_TEMPLATE_ID, 
-    {
-        request_title: title,
-        request_budget: budget,
-        request_category: category,
-        user_phone: phone,
-        bcc_emails: vendorEmails
-    },
-    EMAILJS_PUBLIC_KEY  // <--- ADD THIS HERE!
-);
+            const emailPromise = emailjs.send(
+                EMAILJS_SERVICE_ID, 
+                EMAILJS_TEMPLATE_ID, 
+                {
+                    request_title: title,
+                    request_budget: budget,
+                    request_category: category,
+                    user_phone: phone,
+                    bcc_emails: vendorEmails
+                },
+                EMAILJS_PUBLIC_KEY
+            );
 
-            // 5-second timeout protection
+            // ✅ INCREASED TIMEOUT TO 20 SECONDS
             const timeoutPromise = new Promise((_, reject) => 
                 setTimeout(() => reject(new Error("Email connection timed out")), 20000)
             );
 
             await Promise.race([emailPromise, timeoutPromise]);
-            alert(`Success! Request posted and ${emailSet.size} vendors notified.`);
+            alert(`Success! Request posted and ${emailSet.size} vendors notified via Email.`);
         } else {
-            console.log("No vendors found for this category.");
+            // This means the Sheet worked, but no vendor sells this item
             alert("Request Posted! (No vendors matched this category yet).");
         }
 
@@ -450,15 +472,13 @@
 
     } catch (err) {
         console.error("Full Error Object:", err);
-        
-        // FIX: Check for 'text' (EmailJS) OR 'message' (Standard JS)
         const errorMessage = err.text || err.message || "Unknown error";
         
-        alert("Request Posted! (Note: Email failed: " + errorMessage + ")");
+        // Show success even if email fails, because the request IS in the database
+        alert("Request Posted! (Note: Email notification failed: " + errorMessage + ")");
         location.reload();
     }
 };
-
         window.deleteRequest = async function(docID) {
             if(!confirm("Delete this request?")) return;
             try {
