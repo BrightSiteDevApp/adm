@@ -362,92 +362,97 @@
         }
 
         // 🔴 FINAL CORRECTED SUBMIT FUNCTION 🔴
-        window.submitRequest = async function() {
-            const title = document.getElementById('req-title').value;
-            const budget = document.getElementById('req-budget').value;
-            const phone = document.getElementById('req-phone').value;
-            const categorySelect = document.getElementById('req-category');
-            const category = categorySelect ? categorySelect.value : "";
-            const btn = document.querySelector('.chat-btn');
+       window.submitRequest = async function() {
+    const title = document.getElementById('req-title').value;
+    const budget = document.getElementById('req-budget').value;
+    const phone = document.getElementById('req-phone').value;
+    const categorySelect = document.getElementById('req-category');
+    const category = categorySelect ? categorySelect.value : "";
+    const btn = document.querySelector('.chat-btn');
 
-            if(!title || !budget || !phone || !category) { 
-                alert("Please fill all fields and select a Category."); 
-                return; 
-            }
+    if(!title || !budget || !phone || !category) { 
+        alert("Please fill all fields and select a Category."); 
+        return; 
+    }
 
-            btn.innerText = "Processing...";
-            btn.disabled = true;
+    btn.innerText = "Processing...";
+    btn.disabled = true;
 
-            try {
-                // 1. Save to Firebase
-                await addDoc(collection(db, "public_requests"), {
-                    title: title,
-                    budget: budget,
-                    phone: phone.replace(/[^0-9]/g, ''),
-                    category: category,
-                    userId: currentUser.uid,
-                    userName: currentUser.displayName || "Student",
-                    timestamp: new Date()
-                });
+    try {
+        // 1. Save to Firebase
+        console.log("Step 1: Saving to Firebase...");
+        await addDoc(collection(db, "public_requests"), {
+            title: title,
+            budget: budget,
+            phone: phone.replace(/[^0-9]/g, ''),
+            category: category,
+            userId: currentUser.uid,
+            userName: currentUser.displayName || "Student",
+            timestamp: new Date()
+        });
 
-                // 2. Fetch Vendors (Original URL - No Cache Buster)
-                const [v1, v2] = await Promise.all([
-                    fetch(`${API_ROOT}/Vendors`).then(res => res.json()),
-                    fetch(`${API_ROOT}/Vendors_v2`).then(res => res.json().catch(() => []))
-                ]);
-                const allVendors = [...(Array.isArray(v1)?v1:[]), ...(Array.isArray(v2)?v2:[])];
+        // 2. Fetch Vendors
+        console.log("Step 2: Fetching Vendors...");
+        const [v1, v2] = await Promise.all([
+            fetch(`${API_ROOT}/Vendors`).then(res => res.json()).catch(e => { console.warn("V1 failed", e); return []; }),
+            fetch(`${API_ROOT}/Vendors_v2`).then(res => res.json()).catch(e => { console.warn("V2 failed", e); return []; })
+        ]);
 
-                // 3. Smart Filter (Case Insensitive + Comma Support)
-                const targetCat = category.toLowerCase();
-                const filteredVendors = allVendors.filter(v => {
-                    const c = getSmartValue(v, 'Category');
-                    const e = getSmartValue(v, 'Email');
-                    
-                    if(!c || !e) return false;
-                    
-                    return c.toLowerCase().split(',').map(x=>x.trim()).includes(targetCat);
-                });
+        const allVendors = [...(Array.isArray(v1)?v1:[]), ...(Array.isArray(v2)?v2:[])];
+        console.log(`Found ${allVendors.length} total vendors.`);
 
-                // 4. Extract Emails
-                const emailSet = new Set(filteredVendors.map(v => getSmartValue(v, 'Email').trim()));
-                const vendorEmails = Array.from(emailSet).join(',');
+        // 3. Smart Filter
+        const targetCat = category.toLowerCase();
+        const filteredVendors = allVendors.filter(v => {
+            const c = getSmartValue(v, 'Category');
+            const e = getSmartValue(v, 'Email');
+            if(!c || !e) return false;
+            return c.toLowerCase().split(',').map(x=>x.trim()).includes(targetCat);
+        });
 
-                // 5. Send Email (With 5-Second Safety Timer)
-                if(vendorEmails.length > 0) {
-                    console.log("Sending to:", vendorEmails);
-                    
-                    const emailPromise = emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, {
-                        request_title: title,
-                        request_budget: budget,
-                        request_category: category,
-                        user_phone: phone,
-                        bcc_emails: vendorEmails
-                    });
+        console.log(`Filtered down to ${filteredVendors.length} vendors for category: ${category}`);
 
-                    // 5-second timeout protection
-                    const timeoutPromise = new Promise((_, reject) => 
-                        setTimeout(() => reject(new Error("Email connection timed out")), 5000)
-                    );
+        // 4. Extract Emails
+        const emailSet = new Set(filteredVendors.map(v => getSmartValue(v, 'Email').trim()));
+        const vendorEmails = Array.from(emailSet).join(',');
 
-                    try {
-                        await Promise.race([emailPromise, timeoutPromise]);
-                        alert(`Success! Request posted and ${emailSet.size} vendors notified.`);
-                    } catch (err) {
-                        alert(`Request Posted! (Note: Email notification delayed/failed due to network: ${err.message})`);
-                    }
-                } else {
-                    alert("Request Posted! (No vendors matched this category yet).");
-                }
+        // 5. Send Email
+        if(vendorEmails.length > 0) {
+            console.log("Sending email to:", vendorEmails);
+            
+            const emailPromise = emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, {
+                request_title: title,
+                request_budget: budget,
+                request_category: category,
+                user_phone: phone,
+                bcc_emails: vendorEmails  // <--- MAKE SURE THIS IS IN YOUR TEMPLATE
+            });
 
-                closeModal();
-                location.reload(); 
+            // 5-second timeout protection
+            const timeoutPromise = new Promise((_, reject) => 
+                setTimeout(() => reject(new Error("Email connection timed out")), 5000)
+            );
 
-            } catch (e) {
-                console.error(e);
-                alert("Request Saved! (System error: " + e.message + ")");
-                location.reload();
-            }
-        };
+            await Promise.race([emailPromise, timeoutPromise]);
+            alert(`Success! Request posted and ${emailSet.size} vendors notified.`);
+        } else {
+            console.log("No vendors found for this category.");
+            alert("Request Posted! (No vendors matched this category yet).");
+        }
+
+        closeModal();
+        location.reload(); 
+
+    } catch (err) {
+        console.error("Full Error Object:", err);
+        
+        // FIX: Check for 'text' (EmailJS) OR 'message' (Standard JS)
+        const errorMessage = err.text || err.message || "Unknown error";
+        
+        alert("Request Posted! (Note: Email failed: " + errorMessage + ")");
+        location.reload();
+    }
+};
 
         window.deleteRequest = async function(docID) {
             if(!confirm("Delete this request?")) return;
