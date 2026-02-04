@@ -19,6 +19,22 @@
             margin-bottom: -30px;
             box-shadow: 0 4px 15px rgba(45, 142, 255, 0.3);
         }
+        
+        /* NEW: Subscription Info Box */
+        .plan-info-box {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(5px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 12px;
+            padding: 12px 15px;
+            margin-top: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .plan-label { font-size: 10px; opacity: 0.8; text-transform: uppercase; letter-spacing: 0.5px; }
+        .plan-value { font-size: 13px; font-weight: bold; margin-top: 2px; }
+
         .stats-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -126,11 +142,25 @@
                     Checking...
                 </div>
             </div>
+            
             <h2 style="margin-top:20px; font-size:22px; margin-bottom: 5px;">Hi, <span id="dash-name">...</span></h2>
+            
             <div style="font-size:12px; opacity:0.9; margin-top:5px; display:flex; align-items:center; gap:5px;">
                 <i class="fas fa-crown" style="color:#ffd700;"></i> 
                 Limit: <span id="limit-display">Checking...</span> items
             </div>
+
+            <div class="plan-info-box">
+                <div>
+                    <div class="plan-label">Current Plan</div>
+                    <div class="plan-value" id="sub-plan">Loading...</div>
+                </div>
+                <div style="text-align: right;">
+                    <div class="plan-label">Due Date</div>
+                    <div class="plan-value" id="sub-due">---</div>
+                </div>
+            </div>
+
         </div>
 
         <div class="stats-grid">
@@ -310,6 +340,13 @@
                     // --- VENDOR FOUND ---
                     currentVendorID = myVendorProfile.Vendor_ID || myVendorProfile.vendor_id;
                     maxItems = parseInt(myVendorProfile.Max_Items) || 5;
+
+                    // ✅ NEW: GET PLAN & DUE DATE
+                    const plan = myVendorProfile.Subscription_Plan || myVendorProfile.subscription_plan || "Essential Plan";
+                    const due = myVendorProfile.Next_Payment_Due || myVendorProfile.next_payment_due || "N/A";
+
+                    document.getElementById('sub-plan').innerText = plan;
+                    document.getElementById('sub-due').innerText = due;
 
                     // Unhide Dashboard
                     const mainContent = document.getElementById('main-content');
