@@ -16,244 +16,203 @@
         @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;500;700;900&display=swap');
 
         :root {
-            --brand: #2d8eff; /* Your Brand Color */
-            --dark-bg: #0b1120;
-            --glass: rgba(255, 255, 255, 0.95);
+            --brand: #2d8eff;
+            --accent: #f1c40f;
+            --dark-bg: #020617;
+            /* Card Background: Darker and more opaque for the 'pop-out' effect */
+            --card-bg: rgba(15, 23, 42, 0.85);
+            --border: rgba(255, 255, 255, 0.15);
         }
 
         * { box-sizing: border-box; }
 
         body {
-            margin: 0;
-            padding: 20px;
+            margin: 0; padding: 20px;
             font-family: 'Outfit', sans-serif;
-            /* Professional Dark Brand Background */
-            background: radial-gradient(circle at top left, #1e3a8a, #0f172a);
+            background-color: var(--dark-bg);
+            background: radial-gradient(circle at center, #1e293b, #020617);
             min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            overflow-x: hidden;
-            color: #333;
+            display: flex; align-items: center; justify-content: center;
+            overflow: hidden; /* Prevents scroll from the rotated background */
+            color: white;
+            position: relative;
         }
 
-        /* Animated Background Mesh */
-        .bg-mesh {
+        /* --- NEW WATERMARK BACKGROUND --- */
+        .bg-watermark {
             position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
+            top: -50%; left: -50%; 
+            width: 200%; height: 200%;
             z-index: -1;
-            opacity: 0.3;
-            background-image: linear-gradient(#2d8eff 1px, transparent 1px),
-                              linear-gradient(90deg, #2d8eff 1px, transparent 1px);
-            background-size: 40px 40px;
-            background-position: center center;
-            mask-image: radial-gradient(circle, rgba(0,0,0,1) 0%, rgba(0,0,0,0) 80%);
-            -webkit-mask-image: radial-gradient(circle, rgba(0,0,0,1) 0%, rgba(0,0,0,0) 80%);
+            
+            /* The Watermark Pattern */
+            background-image: url('img/app-logo.png'); /* Uses your logo */
+            background-repeat: repeat;
+            background-size: 100px 100px; /* Adjust spacing of logos */
+            
+            /* Diagonal Rotation & Subtle Opacity */
+            transform: rotate(-20deg);
+            opacity: 0.04; /* Very faint (5%) */
+            pointer-events: none;
+            filter: grayscale(100%) brightness(1.5); /* Makes it look like a watermark */
         }
 
+        /* --- MAIN CARD --- */
         .container {
-            background: var(--glass);
-            width: 100%;
-            max-width: 450px;
-            padding: 35px 25px;
-            border-radius: 24px;
+            width: 100%; max-width: 480px;
             text-align: center;
             position: relative;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.6);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
-            animation: fadeIn 0.8s ease-out;
+            z-index: 10;
+            
+            /* The "Pop Out" Card Style */
+            background: var(--card-bg);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--border);
+            border-radius: 24px;
+            padding: 40px 30px;
+            box-shadow: 0 25px 60px -10px rgba(0, 0, 0, 0.6);
+            
+            animation: popIn 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
 
-        @keyframes fadeIn {
-            from { transform: translateY(20px); opacity: 0; }
-            to { transform: translateY(0); opacity: 1; }
+        @keyframes popIn {
+            from { opacity: 0; transform: scale(0.95) translateY(30px); }
+            to { opacity: 1; transform: scale(1) translateY(0); }
         }
 
         .logo {
-            width: 80px;
-            height: 80px;
-            object-fit: contain;
-            margin-bottom: 15px;
-            filter: drop-shadow(0 4px 10px rgba(45, 142, 255, 0.2));
-        }
-
-        .status-badge {
-            background: #e0f2fe;
-            color: var(--brand);
-            border: 1px solid #bae6fd;
-            padding: 5px 12px;
-            border-radius: 20px;
-            font-size: 11px;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            display: inline-block;
-            margin-bottom: 15px;
+            width: 80px; height: 80px; object-fit: contain;
+            margin-bottom: 20px;
+            filter: drop-shadow(0 4px 10px rgba(0,0,0,0.3));
         }
 
         h1 {
-            margin: 0;
-            font-size: 28px;
-            font-weight: 900;
-            color: #0f172a;
-            line-height: 1.2;
-            margin-bottom: 10px;
+            font-size: 28px; font-weight: 800; margin: 0 0 10px 0;
+            color: white;
         }
 
-        p {
-            color: #64748b;
-            font-size: 14px;
-            line-height: 1.6;
-            margin: 0 0 25px 0;
-        }
+        p { color: #94a3b8; font-size: 14px; margin: 0 0 30px 0; line-height: 1.6; }
 
-        /* --- FIXED INPUT LAYOUT --- */
-        .input-wrapper {
-            display: flex;
-            align-items: center;
-            justify-content: space-between; /* Keeps button to the right */
-            background: #f1f5f9;
-            border-radius: 50px; /* Pill shape */
-            padding: 4px 4px 4px 15px; /* Padding for text input */
-            border: 2px solid transparent;
-            transition: 0.3s;
+        /* --- COUNTDOWN TIMER --- */
+        .countdown-wrapper {
             margin-bottom: 30px;
-            box-shadow: inset 0 2px 4px rgba(0,0,0,0.03);
+            padding: 15px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 16px;
+            border: 1px solid rgba(255,255,255,0.05);
         }
 
-        .input-wrapper:focus-within {
-            background: #fff;
-            border-color: var(--brand);
-            box-shadow: 0 0 0 4px rgba(45, 142, 255, 0.15);
+        #timer-active { display: flex; justify-content: space-between; gap: 8px; }
+        
+        .time-box {
+            flex: 1;
+            background: rgba(255,255,255,0.05);
+            padding: 8px 4px;
+            border-radius: 10px;
         }
+
+        .t-num { font-size: 20px; font-weight: 700; color: var(--brand); display: block; }
+        .t-label { font-size: 9px; color: #64748b; text-transform: uppercase; letter-spacing: 1px; margin-top: 4px; }
+
+        /* Pending State */
+        #timer-placeholder {
+            display: none;
+            font-size: 15px; font-weight: 500; color: #e2e8f0;
+            letter-spacing: 0.5px; padding: 5px 0;
+        }
+        .pulse-dot {
+            display: inline-block; width: 8px; height: 8px; 
+            background: var(--brand); border-radius: 50%; margin-right: 8px;
+            box-shadow: 0 0 10px var(--brand);
+            animation: pulse-dot 1.5s infinite;
+        }
+        @keyframes pulse-dot { 0% { opacity: 0.5; } 50% { opacity: 1; } 100% { opacity: 0.5; } }
+
+        /* --- FORM & BUTTONS --- */
+        .input-wrapper {
+            display: flex; align-items: center; justify-content: space-between;
+            background: rgba(255,255,255,0.05);
+            border-radius: 50px; padding: 4px 4px 4px 18px;
+            border: 1px solid var(--border);
+            transition: 0.3s; margin-bottom: 25px;
+        }
+        .input-wrapper:focus-within { border-color: var(--brand); background: rgba(255,255,255,0.1); }
 
         .email-input {
-            flex-grow: 1;
-            border: none;
-            background: transparent;
-            font-size: 14px;
-            outline: none;
-            color: #333;
-            min-width: 0; /* Prevents input from breaking flex */
+            flex: 1; border: none; background: transparent;
+            font-size: 14px; outline: none; color: white; min-width: 0;
         }
+        .email-input::placeholder { color: #64748b; }
 
         .notify-btn {
-            background: var(--dark-bg);
-            color: white;
-            border: none;
-            padding: 10px 18px;
-            border-radius: 50px;
-            font-weight: 600;
-            cursor: pointer;
-            font-size: 12px;
-            flex-shrink: 0; /* CRITICAL FIX: Prevents button shrinking */
-            white-space: nowrap; /* Keeps text on one line */
-            transition: 0.2s;
+            background: var(--brand); color: white; border: none;
+            padding: 10px 18px; border-radius: 50px;
+            font-weight: 600; font-size: 12px; cursor: pointer;
+            transition: 0.2s; white-space: nowrap;
         }
         .notify-btn:active { transform: scale(0.95); }
 
-        /* --- BUTTON GRID --- */
-        .grid-buttons {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 12px;
-            margin-bottom: 20px;
-        }
+        .grid-buttons { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 15px; }
 
         .btn {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            padding: 12px;
-            border-radius: 12px;
-            text-decoration: none;
-            font-weight: 600;
-            font-size: 13px;
+            display: flex; align-items: center; justify-content: center; gap: 8px;
+            padding: 12px; border-radius: 12px; text-decoration: none;
+            font-weight: 600; font-size: 13px; cursor: pointer; border: none;
             transition: 0.2s;
-            cursor: pointer;
-            border: none;
         }
+        .btn-contact { background: rgba(37, 211, 102, 0.1); color: #25D366; border: 1px solid rgba(37, 211, 102, 0.3); }
+        .btn-vendor { background: rgba(255, 255, 255, 0.05); color: white; border: 1px solid var(--border); }
+        
         .btn:active { transform: scale(0.96); }
 
-        .btn-contact {
-            background: white;
-            color: #25D366;
-            border: 1px solid #25D366;
-        }
-        
-        .btn-vendor {
-            background: white;
-            color: #333;
-            border: 1px solid #cbd5e1;
-        }
-
-        /* --- INSTALL APP --- */
-        #install-container {
-            display: none;
-            margin-top: 10px;
-            border-top: 1px solid #e2e8f0;
-            padding-top: 20px;
-        }
-
-        .install-btn {
-            width: 100%;
-            background: var(--brand); /* Brand Blue */
-            color: white;
-            padding: 14px;
-            border-radius: 12px;
-            border: none;
-            font-size: 14px;
-            font-weight: 700;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            cursor: pointer;
-            box-shadow: 0 4px 15px rgba(45, 142, 255, 0.4);
-            animation: pulse 2s infinite;
-        }
-
-        @keyframes pulse {
-            0% { box-shadow: 0 0 0 0 rgba(45, 142, 255, 0.4); }
-            70% { box-shadow: 0 0 0 10px rgba(45, 142, 255, 0); }
-            100% { box-shadow: 0 0 0 0 rgba(45, 142, 255, 0); }
-        }
-
-        /* --- IOS MESSAGE --- */
-        #ios-install-message {
-            display: none;
-            background: #f8fafc;
-            border: 1px dashed #cbd5e1;
-            padding: 15px;
-            border-radius: 12px;
-            margin-top: 20px;
-            text-align: left;
-        }
-        .ios-title { font-weight: 700; font-size: 12px; margin-bottom: 5px; color: #334155; }
-        .ios-text { font-size: 11px; color: #64748b; margin: 0; line-height: 1.5; }
+        /* --- INSTALL LINK --- */
+        #install-container { display: none; margin-top: 15px; }
+        .install-link { color: #64748b; font-size: 12px; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; cursor: pointer; padding: 8px 15px; border-radius: 20px; background: rgba(0,0,0,0.2); }
+        .install-link:hover { color: white; background: rgba(255,255,255,0.05); }
 
     </style>
 </head>
 <body>
 
-    <div class="bg-mesh"></div>
+    <div class="bg-watermark"></div>
 
     <div class="container">
         
         <img src="img/logo-blue.png" alt="ADM" class="logo">
-
-        <div>
-            <span class="status-badge">● Under Construction</span>
-        </div>
-
         <h1>AFIT Digital Market</h1>
-        <p>The ultimate student marketplace is leveling up. Join the waitlist to get early access.</p>
+        <p>The ultimate campus marketplace is loading.</p>
+
+        <div class="countdown-wrapper">
+            
+            <div id="timer-placeholder">
+                <span class="pulse-dot"></span> Launch Window: 22 Feb - 27 Feb
+            </div>
+
+            <div id="timer-active" style="display: none;">
+                <div class="time-box">
+                    <span class="t-num" id="days">00</span>
+                    <span class="t-label">Days</span>
+                </div>
+                <div class="time-box">
+                    <span class="t-num" id="hours">00</span>
+                    <span class="t-label">Hours</span>
+                </div>
+                <div class="time-box">
+                    <span class="t-num" id="minutes">00</span>
+                    <span class="t-label">Mins</span>
+                </div>
+                <div class="time-box">
+                    <span class="t-num" id="seconds">00</span>
+                    <span class="t-label">Secs</span>
+                </div>
+            </div>
+
+        </div>
 
         <form action="https://formsubmit.co/afitdgm@gmail.com" method="POST">
             <div class="input-wrapper">
-                <input type="email" name="email" class="email-input" placeholder="Enter your email" required>
+                <input type="email" name="email" class="email-input" placeholder="Enter email for early access" required>
                 <input type="hidden" name="_next" value="https://afitdgm.store/coming-soon.html">
                 <input type="hidden" name="_captcha" value="false">
                 <button type="submit" class="notify-btn">Notify Me</button>
@@ -265,49 +224,77 @@
                 <i class="fab fa-whatsapp"></i> Support
             </a>
             <button onclick="promptVendorCode()" class="btn btn-vendor">
-                <i class="fas fa-lock"></i> Vendor Login
+                <i class="fas fa-store"></i> Vendor Login
             </button>
         </div>
 
         <div id="install-container">
-            <button id="install-btn" class="install-btn">
+            <div id="install-btn" class="install-link">
                 <i class="fas fa-download"></i> Install App
-            </button>
-            <div style="font-size: 11px; color: #94a3b8; margin-top: 8px;">Get ready for launch day</div>
-        </div>
-
-        <div id="ios-install-message">
-            <div class="ios-title"> Install on iPhone</div>
-            <p class="ios-text">
-                1. Tap the <strong>Share</strong> button <i class="fas fa-share-square"></i> below.<br>
-                2. Select <strong>"Add to Home Screen"</strong> <i class="far fa-plus-square"></i>.
-            </p>
+            </div>
         </div>
 
     </div>
 
     <script>
-        // --- VENDOR ACCESS ---
+        // ============================================
+        // 🛑 STEP 1: SET YOUR LAUNCH DATE HERE
+        // ============================================
+        // Leave empty "" to show "Launch Window: 22 Feb - 27 Feb"
+        // When ready, put date like: "Feb 25, 2026 12:00:00"
+        
+        const launchDateString = ""; 
+
+        // ============================================
+
+        const timerActive = document.getElementById('timer-active');
+        const timerPlaceholder = document.getElementById('timer-placeholder');
+
+        function startTimer() {
+            if (!launchDateString) {
+                // No date selected yet -> Show Placeholder
+                timerActive.style.display = 'none';
+                timerPlaceholder.style.display = 'block';
+                return;
+            }
+
+            // Date IS selected -> Show Timer
+            timerPlaceholder.style.display = 'none';
+            timerActive.style.display = 'flex';
+
+            const countDownDate = new Date(launchDateString).getTime();
+
+            const x = setInterval(function() {
+                const now = new Date().getTime();
+                const distance = countDownDate - now;
+
+                if (distance < 0) {
+                    clearInterval(x);
+                    document.getElementById("timer-active").innerHTML = "<h3 style='width:100%; color: #2d8eff; margin: 10px 0;'>WE ARE LIVE!</h3>";
+                    return;
+                }
+
+                const days = Math.floor(distance / (1000 * 60 * 60 * 24));
+                const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+                const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+
+                document.getElementById("days").innerText = days < 10 ? "0" + days : days;
+                document.getElementById("hours").innerText = hours < 10 ? "0" + hours : hours;
+                document.getElementById("minutes").innerText = minutes < 10 ? "0" + minutes : minutes;
+                document.getElementById("seconds").innerText = seconds < 10 ? "0" + seconds : seconds;
+
+            }, 1000);
+        }
+
+        // Initialize Timer
+        startTimer();
+
+        // --- VENDOR & APP UTILS ---
         function promptVendorCode() {
             const code = prompt("Enter Vendor Access Code:");
-            if (code === "1020") {
-                window.location.href = "https://afitdgm.store/?access=vendor";
-            } else if (code !== null && code !== "") {
-                alert("⛔ Access Denied: Incorrect Code.");
-            }
-        }
-
-        // --- PWA LOGIC ---
-        const isIos = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
-        
-        if (isIos) {
-            document.getElementById('ios-install-message').style.display = 'block';
-        }
-
-        if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('./sw.js')
-                .then(() => console.log('✅ SW Registered'))
-                .catch(() => console.log('❌ SW Failed'));
+            if (code === "1020") window.location.href = "https://afitdgm.store/?access=vendor";
+            else if (code) alert("⛔ Access Denied");
         }
 
         let deferredPrompt;
@@ -317,7 +304,7 @@
         window.addEventListener('beforeinstallprompt', (e) => {
             e.preventDefault();
             deferredPrompt = e;
-            if (!isIos) {
+            if (!/iPad|iPhone|iPod/.test(navigator.userAgent)) {
                 installContainer.style.display = 'block';
             }
         });
@@ -325,14 +312,9 @@
         installBtn.addEventListener('click', async () => {
             if (deferredPrompt) {
                 deferredPrompt.prompt();
-                const { outcome } = await deferredPrompt.userChoice;
                 deferredPrompt = null;
                 installContainer.style.display = 'none';
             }
-        });
-
-        window.addEventListener('appinstalled', () => {
-            installContainer.style.display = 'none';
         });
     </script>
 </body>
