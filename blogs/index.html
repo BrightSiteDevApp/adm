@@ -112,7 +112,7 @@
             cursor: pointer;
         }
 
-        /* Modal Updates */
+        /* --- 🔴 UPDATED MODAL TEXT STYLES --- */
         .modal-text {
             white-space: pre-wrap; 
             font-family: 'Segoe UI', sans-serif;
@@ -120,7 +120,22 @@
             color: #2d3436;
             font-size: 15px;
             margin-top: 20px;
+            
+            /* These lines fix the horizontal scrolling issue */
+            word-wrap: break-word;       
+            overflow-wrap: break-word;   
+            word-break: break-word;      
+            max-width: 100%;             
         }
+        
+        /* Style for the clickable links */
+        .modal-text a {
+            color: #2d8eff;
+            text-decoration: underline;
+            font-weight: 600;
+            word-break: break-all; /* Ensures really long URLs break */
+        }
+
         .blog-modal-content { border-radius: 20px; }
 
         /* Dark Mode */
@@ -143,6 +158,7 @@
         body.dark-mode .blog-modal-content { background: #1e1e1e; color: white; }
         body.dark-mode .modal-title { color: white; }
         body.dark-mode .modal-text { color: #ddd; }
+        body.dark-mode .modal-text a { color: #74b9ff; } /* Lighter blue for dark mode */
         
         /* Footer Dark Mode */
         body.dark-mode .site-footer { background: #1e1e1e; border-top: 1px solid #333; }
@@ -263,6 +279,7 @@
                     const likeClass = isLiked ? 'active' : '';
                     const heartIcon = isLiked ? 'fas fa-heart' : 'far fa-heart';
 
+                    // Prepare Safe Strings
                     const safeTitle = b.title.replace(/'/g, "\\'");
                     const safeContent = b.content.replace(/'/g, "\\'").replace(/"/g, '&quot;').replace(/\n/g, '<br>');
 
@@ -349,12 +366,21 @@
         }
     }
 
-    // --- MODAL LOGIC ---
+    // --- 🔴 MODAL LOGIC WITH AUTO-LINKING ---
     window.openBlog = function(title, date, img, content) {
         document.getElementById('modalImg').src = img;
         document.getElementById('modalTitle').innerText = title;
         document.getElementById('modalDate').innerText = date;
-        document.getElementById('modalText').innerHTML = content; 
+        
+        // 1. Convert URLs to clickable Links
+        // This Regex finds http/https links and wraps them in <a> tags
+        const linkifiedContent = content.replace(
+            /(https?:\/\/[^\s<]+)/g, 
+            '<a href="$1" target="_blank">$1</a>'
+        );
+
+        // 2. Insert into Modal
+        document.getElementById('modalText').innerHTML = linkifiedContent; 
         
         const shareBtn = document.getElementById('shareBtn');
         shareBtn.onclick = function() { performShare(title, content.replace(/<br>/g, "\n")); };
