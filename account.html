@@ -99,6 +99,12 @@
                     <i class="fas fa-chevron-right" style="color: #2d8eff;"></i>
                 </a>
 
+                <a href="ticket.html" id="btn-ticket" class="account-option" style="display: none; background: #e0f2f1; border-color: #009688;">
+    <div class="option-icon" style="background: #009688; color: white;"><i class="fas fa-ticket-alt"></i></div>
+    <div class="option-text" style="color: #009688;">Vendor Support Tickets</div>
+    <i class="fas fa-chevron-right" style="color: #009688;"></i>
+</a>
+
                 <a href="saved.html" class="account-option">
                     <div class="option-icon"><i class="far fa-heart"></i></div>
                     <div class="option-text">Saved Items</div>
@@ -174,7 +180,7 @@
             }
         });
 
-        async function checkIfVendor(email) {
+       async function checkIfVendor(email) {
             try {
                 // Fetch BOTH sheets
                 const [v1, v2] = await Promise.all([
@@ -189,7 +195,10 @@
                 const isVendor = allVendors.some(v => v.Email && v.Email.toLowerCase().trim() === email);
 
                 if (isVendor) {
+                    // Show Dashboard Button
                     document.getElementById('btn-dashboard').style.display = "flex";
+                    // Show Ticket Button (NEW)
+                    document.getElementById('btn-ticket').style.display = "flex";
                 }
             } catch (err) { console.error(err); }
         }

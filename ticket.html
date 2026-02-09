@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Support Tickets - AFIT Digital Market</title>
+    <link rel="stylesheet" href="asset/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="icon" href="img/app-logo.png" type="image/png">
+    
+    <style>
+        body { background-color: #f4f7f6; }
+        .ticket-container { max-width: 600px; margin: 0 auto; padding: 20px; }
+        
+        /* FORM CARD */
+        .form-card {
+            background: white; padding: 20px; border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05); margin-bottom: 25px;
+            display: none; /* Hidden by default until loaded */
+        }
+        
+        .input-group { margin-bottom: 15px; }
+        .input-group label { display: block; margin-bottom: 5px; font-weight: 600; font-size: 13px; color: #555; }
+        .custom-input { 
+            width: 100%; padding: 12px; border: 1px solid #ddd; 
+            border-radius: 8px; font-size: 14px; box-sizing: border-box; 
+        }
+        
+        /* TICKET LIST */
+        .ticket-card {
+            background: white; padding: 15px; border-radius: 10px;
+            margin-bottom: 15px; position: relative;
+            border-left: 5px solid #ccc;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.03);
+            animation: fadeIn 0.3s;
+        }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        .status-badge {
+            display: inline-block; padding: 3px 8px; border-radius: 4px;
+            font-size: 10px; font-weight: bold; text-transform: uppercase;
+        }
+        .pending { border-color: #f1c40f; } .badge-pending { background: #fff3cd; color: #856404; }
+        .resolved { border-color: #2ecc71; } .badge-resolved { background: #d4edda; color: #155724; }
+
+        .btn-submit {
+            background: #009688; color: white; border: none; padding: 12px;
+            width: 100%; border-radius: 8px; font-weight: bold; cursor: pointer;
+        }
+        .btn-delete {
+            background: #ff7675; color: white; border: none; padding: 5px 10px;
+            border-radius: 5px; font-size: 12px; cursor: pointer; float: right;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header" style="background:white; padding:15px; display:flex; align-items:center; position:sticky; top:0; z-index:100;">
+        <a href="account.html" class="back-btn"><i class="fas fa-arrow-left"></i></a>
+        <span style="font-weight:bold; margin-left:15px;">Vendor Support</span>
+    </div>
+
+    <div id="loader" style="text-align:center; padding-top:100px;">
+        <i class="fas fa-circle-notch fa-spin" style="font-size:30px; color:#009688;"></i>
+    </div>
+
+    <div id="main-content" class="ticket-container" style="display:none;">
+        
+        <div id="create-section" class="form-card">
+            <h3 style="margin-top:0; color:#009688;"><i class="fas fa-pen-fancy"></i> New Request</h3>
+            <p style="font-size:12px; color:#777; margin-bottom:15px;">
+                You can have max <b>3 pending requests</b> at a time.
+            </p>
+            
+            <div class="input-group">
+                <label>What do you want to change?</label>
+                <select id="t-type" class="custom-input">
+                    <option value="Update Business Name">Business Name</option>
+                    <option value="Update Logo">Business Logo</option>
+                    <option value="Update Hours">Opening Time</option>
+                    <option value="Update Location">Location</option>
+                    <option value="Update Description">Description</option>
+                    <option value="Update Socials">Whatsapp/IG/Email</option>
+                    <option value="Other">Other</option>
+                </select>
+            </div>
+
+            <div class="input-group">
+                <label>Details (Be specific)</label>
+                <textarea id="t-desc" class="custom-input" style="height:80px;" placeholder="e.g. Change my closing time from 8pm to 10pm..."></textarea>
+            </div>
+
+            <div class="input-group">
+                <label>Upload Image (Optional)</label>
+                <input type="file" id="t-file" class="custom-input" accept="image/*">
+                <div id="upload-msg" style="font-size:11px; color:#0984e3; display:none;">Uploading image... please wait...</div>
+            </div>
+
+            <button onclick="submitTicket()" id="btn-submit" class="btn-submit">Submit Request</button>
+        </div>
+
+        <div id="limit-msg" style="display:none; text-align:center; background:#ffeaa7; padding:15px; border-radius:10px; margin-bottom:20px;">
+            <i class="fas fa-exclamation-triangle"></i> You have reached the limit of 3 pending tickets. Please wait for one to be resolved.
+        </div>
+
+        <h4 style="margin:20px 0 10px; color:#555;">My Tickets</h4>
+        <div id="ticket-list"></div>
+
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+        import { getFirestore, doc, addDoc, deleteDoc, collection, getDocs, query, where, orderBy, serverTimestamp, updateDoc } 
+        from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyA1eQbrJpH9OtDNDN7z9oTFTRSAE7vCFbg",
+            authDomain: "afit-market-auth.firebaseapp.com",
+            projectId: "afit-market-auth",
+            storageBucket: "afit-market-auth.firebasestorage.app",
+            messagingSenderId: "894920886640",
+            appId: "1:894920886640:web:77d0a6b39bf89ff8f767b5"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        const IMGBB_KEY = "2ac38bef2c73c5a65e7ddf94efe37962";
+        
+        let currentUser = null;
+        const SHEET_ID = "1SvVUbEnDgqgw2Z_M1ShQkzyFTsnnS6n8mTs7UMXVvF4";
+
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                currentUser = user;
+                // 1. Verify Vendor Status
+                const isVendor = await verifyVendor(user.email);
+                if(!isVendor) {
+                    alert("Access Denied: Vendors Only.");
+                    window.location.href = "account.html";
+                    return;
+                }
+                
+                // 2. Clean up old resolved tickets (Older than 2 days)
+                await cleanupOldTickets(user.email);
+
+                // 3. Load Tickets
+                loadUserTickets();
+
+            } else {
+                window.location.href = "login.html";
+            }
+        });
+
+        // --- CORE FUNCTIONS ---
+
+        async function verifyVendor(email) {
+            try {
+                // Quick fetch to OpenSheet to verify
+                const res = await fetch(`https://opensheet.elk.sh/${SHEET_ID}/Vendors`);
+                const data = await res.json();
+                const res2 = await fetch(`https://opensheet.elk.sh/${SHEET_ID}/Vendors_v2`);
+                const data2 = await res2.json().catch(()=>[]);
+                const all = [...data, ...data2];
+                return all.some(v => v.Email && v.Email.toLowerCase().trim() === email.toLowerCase().trim());
+            } catch(e) { return false; }
+        }
+
+        async function cleanupOldTickets(email) {
+            // Delete resolved tickets older than 48 hours
+            // Since firestore filtering by complex date logic on client is tricky without composite indexes,
+            // we will fetch all resolved tickets for this user and check date in JS.
+            const q = query(collection(db, "tickets"), 
+                where("vendorEmail", "==", email), 
+                where("status", "==", "resolved")
+            );
+            const snapshot = await getDocs(q);
+            const twoDaysAgo = new Date();
+            twoDaysAgo.setDate(twoDaysAgo.getDate() - 2);
+
+            snapshot.forEach(async (d) => {
+                const data = d.data();
+                if(data.resolvedAt) {
+                    const resolvedDate = new Date(data.resolvedAt.seconds * 1000);
+                    if(resolvedDate < twoDaysAgo) {
+                        await deleteDoc(doc(db, "tickets", d.id)); // Delete from DB
+                    }
+                }
+            });
+        }
+
+        async function loadUserTickets() {
+            const list = document.getElementById('ticket-list');
+            const form = document.getElementById('create-section');
+            const limitMsg = document.getElementById('limit-msg');
+            
+            list.innerHTML = "Loading...";
+
+            const q = query(collection(db, "tickets"), where("vendorEmail", "==", currentUser.email), orderBy("createdAt", "desc"));
+            const snapshot = await getDocs(q);
+            
+            list.innerHTML = "";
+            let pendingCount = 0;
+
+            if(snapshot.empty) { list.innerHTML = "<p style='color:#777; font-size:13px; text-align:center;'>No history.</p>"; }
+
+            snapshot.forEach(doc => {
+                const t = doc.data();
+                if(t.status === 'pending') pendingCount++;
+
+                const date = t.createdAt ? new Date(t.createdAt.seconds * 1000).toLocaleDateString() : 'Today';
+                const isPending = t.status === 'pending';
+
+                list.innerHTML += `
+                <div class="ticket-card ${isPending ? 'pending' : 'resolved'}">
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                        <span class="status-badge ${isPending ? 'badge-pending' : 'badge-resolved'}">${t.status}</span>
+                        <span style="font-size:11px; color:#aaa;">${date}</span>
+                    </div>
+                    <h4 style="margin:8px 0; font-size:15px;">${t.type}</h4>
+                    <p style="font-size:13px; color:#555; margin:0 0 10px;">${t.description}</p>
+                    ${t.imageUrl ? `<a href="${t.imageUrl}" target="_blank" style="font-size:12px; color:#009688;">View Image</a>` : ''}
+                    
+                    ${isPending ? `<button onclick="deleteTicket('${doc.id}')" class="btn-delete">Delete</button>` : ''}
+                </div>`;
+            });
+
+            // UI LOGIC
+            document.getElementById('loader').style.display = 'none';
+            document.getElementById('main-content').style.display = 'block';
+
+            if(pendingCount >= 3) {
+                form.style.display = 'none';
+                limitMsg.style.display = 'block';
+            } else {
+                form.style.display = 'block';
+                limitMsg.style.display = 'none';
+            }
+        }
+
+        window.submitTicket = async function() {
+            const type = document.getElementById('t-type').value;
+            const desc = document.getElementById('t-desc').value;
+            const fileInput = document.getElementById('t-file');
+            const btn = document.getElementById('btn-submit');
+
+            if(!desc) return alert("Please describe the change.");
+
+            btn.disabled = true;
+            btn.innerText = "Processing...";
+
+            let imageUrl = "";
+
+            // Handle Image Upload
+            if(fileInput.files.length > 0) {
+                document.getElementById('upload-msg').style.display = 'block';
+                const formData = new FormData();
+                formData.append("image", fileInput.files[0]);
+                try {
+                    const res = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_KEY}`, { method: "POST", body: formData });
+                    const data = await res.json();
+                    if(data.success) imageUrl = data.data.url;
+                } catch(e) { 
+                    alert("Image upload failed"); 
+                    btn.disabled = false; btn.innerText = "Submit Request";
+                    return;
+                }
+            }
+
+            // Save to Firestore
+            try {
+                await addDoc(collection(db, "tickets"), {
+                    vendorEmail: currentUser.email,
+                    vendorName: currentUser.displayName || "Vendor",
+                    type: type,
+                    description: desc,
+                    imageUrl: imageUrl,
+                    status: "pending",
+                    createdAt: serverTimestamp()
+                });
+                
+                // Reset Form
+                document.getElementById('t-desc').value = "";
+                document.getElementById('t-file').value = "";
+                document.getElementById('upload-msg').style.display = 'none';
+                
+                loadUserTickets(); // Refresh
+                alert("Ticket Sent! Admin will review shortly.");
+            } catch(e) {
+                console.error(e);
+                alert("Error sending ticket.");
+            }
+            
+            btn.disabled = false;
+            btn.innerText = "Submit Request";
+        }
+
+        window.deleteTicket = async function(id) {
+            if(confirm("Cancel this request?")) {
+                await deleteDoc(doc(db, "tickets", id));
+                loadUserTickets();
+            }
+        }
+    </script>
+</body>
+</html>

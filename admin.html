@@ -135,6 +135,8 @@
             <button onclick="openBlogManager()" class="btn-action" style="background:#9b59b6; color:white; width:100%;">
                 <i class="fas fa-edit"></i> Open Blog Dashboard
             </button>
+
+            
         </div>
 
         <h4 class="section-title"><i class="fas fa-star"></i> Review Approvals</h4>
@@ -163,6 +165,17 @@
                 <button onclick="searchVendorProducts()" class="btn-action btn-search">Load Items</button>
             </div>
             <div id="product-results" class="product-grid"></div>
+        </div>
+
+        <h4 class="section-title"><i class="fas fa-ticket-alt"></i> Ticket Center</h4>
+        <div class="admin-card" style="border-left: 5px solid #00b894;">
+            <p style="margin:0 0 10px; color:#555;">Manage profile update requests from vendors.</p>
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+                <div id="pending-ticket-count" style="font-weight:bold; color:#d63031;">Loading...</div>
+                <button onclick="openTicketManager()" class="btn-action" style="background:#00b894; color:white;">
+                    <i class="fas fa-tasks"></i> Open Tickets
+                </button>
+            </div>
         </div>
 
     </div>
@@ -196,6 +209,18 @@
             </div>
             <div id="review-modal-list">
                 <p style="text-align:center; color:#777;">Loading reviews...</p>
+            </div>
+        </div>
+    </div>
+
+    <div id="ticketManagerModal" class="modal-overlay">
+        <div class="modal-body">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+                <h2 style="margin:0;">🎫 Ticket Management</h2>
+                <button onclick="document.getElementById('ticketManagerModal').style.display='none'" style="border:none; background:none; font-size:24px; cursor:pointer;">&times;</button>
+            </div>
+            <div id="ticket-admin-list">
+                <p style="text-align:center;">Loading tickets...</p>
             </div>
         </div>
     </div>
@@ -434,6 +459,69 @@
                 searchVendorProducts(); 
             } catch(e) { alert("Error updating status."); }
         };
+
+
+        // ================= TICKET MANAGER =================
+        window.openTicketManager = function() {
+            document.getElementById('ticketManagerModal').style.display = 'block';
+            loadAdminTickets();
+        }
+
+        window.loadAdminTickets = async function() {
+            const list = document.getElementById('ticket-admin-list');
+            const counter = document.getElementById('pending-ticket-count');
+            
+            list.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Loading...';
+            
+            try {
+                // Get only PENDING tickets for admin to act on
+                const q = query(collection(db, "tickets"), where("status", "==", "pending"), orderBy("createdAt", "desc"));
+                const snapshot = await getDocs(q);
+                
+                // Update the counter on the dashboard card
+                if(counter) counter.innerText = `${snapshot.size} Pending Requests`;
+
+                list.innerHTML = "";
+                if (snapshot.empty) { list.innerHTML = "<p style='text-align:center; color:#777;'>No pending tickets.</p>"; return; }
+
+                snapshot.forEach(doc => {
+                    const t = doc.data();
+                    const date = t.createdAt ? new Date(t.createdAt.seconds * 1000).toLocaleString() : 'Just now';
+                    
+                    list.innerHTML += `
+                    <div class="result-item" style="display:block;">
+                        <div style="display:flex; justify-content:space-between; margin-bottom:5px;">
+                            <span style="font-weight:bold; color:#00b894;">${t.type.toUpperCase()}</span>
+                            <span style="font-size:11px; color:#777;">${date}</span>
+                        </div>
+                        <div style="font-weight:600; margin-bottom:5px;">${t.vendorName} (${t.vendorEmail})</div>
+                        <div style="background:#fff; padding:10px; border:1px solid #eee; border-radius:5px; margin-bottom:10px;">
+                            ${t.description}
+                        </div>
+                        ${t.imageUrl ? `<a href="${t.imageUrl}" target="_blank" style="display:inline-block; margin-bottom:10px; color:#2d8eff; font-size:12px;"><i class="fas fa-image"></i> View Attached Image</a>` : ''}
+                        
+                        <div style="text-align:right; border-top:1px solid #eee; padding-top:10px;">
+                            <button onclick="resolveTicket('${doc.id}')" class="btn-action" style="background:#2d3436; color:white;">Mark Resolved ✅</button>
+                        </div>
+                    </div>`;
+                });
+            } catch (err) { console.error(err); list.innerHTML = "Error loading tickets."; }
+        }
+
+        window.resolveTicket = async function(id) {
+            if(!confirm("Have you updated the Google Sheet? Marking this as resolved will hide it from your pending list.")) return;
+            
+            try {
+                await updateDoc(doc(db, "tickets", id), {
+                    status: "resolved",
+                    resolvedAt: serverTimestamp()
+                });
+                loadAdminTickets(); // Refresh list
+            } catch(e) { alert("Error updating ticket."); }
+        }
+
+        // Auto-load count on startup
+        setTimeout(() => { try { loadAdminTickets(); } catch(e){} }, 2000);
 
         // ================= GLOBAL ANNOUNCEMENT =================
         async function loadCurrentAnnouncement() {
