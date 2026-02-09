@@ -108,7 +108,7 @@
 
     </div>
 
-    <script type="module">
+   <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
         import { getFirestore, doc, addDoc, deleteDoc, collection, getDocs, query, where, orderBy, serverTimestamp, updateDoc } 
@@ -142,8 +142,12 @@
                     return;
                 }
                 
-                // 2. Clean up old resolved tickets (Older than 2 days)
-                await cleanupOldTickets(user.email);
+                // 2. Clean up old resolved tickets
+                try {
+                    await cleanupOldTickets(user.email);
+                } catch(err) {
+                    console.log("Cleanup skipped:", err);
+                }
 
                 // 3. Load Tickets
                 loadUserTickets();
@@ -153,11 +157,8 @@
             }
         });
 
-        // --- CORE FUNCTIONS ---
-
         async function verifyVendor(email) {
             try {
-                // Quick fetch to OpenSheet to verify
                 const res = await fetch(`https://opensheet.elk.sh/${SHEET_ID}/Vendors`);
                 const data = await res.json();
                 const res2 = await fetch(`https://opensheet.elk.sh/${SHEET_ID}/Vendors_v2`);
@@ -168,9 +169,6 @@
         }
 
         async function cleanupOldTickets(email) {
-            // Delete resolved tickets older than 48 hours
-            // Since firestore filtering by complex date logic on client is tricky without composite indexes,
-            // we will fetch all resolved tickets for this user and check date in JS.
             const q = query(collection(db, "tickets"), 
                 where("vendorEmail", "==", email), 
                 where("status", "==", "resolved")
@@ -184,7 +182,7 @@
                 if(data.resolvedAt) {
                     const resolvedDate = new Date(data.resolvedAt.seconds * 1000);
                     if(resolvedDate < twoDaysAgo) {
-                        await deleteDoc(doc(db, "tickets", d.id)); // Delete from DB
+                        await deleteDoc(doc(db, "tickets", d.id));
                     }
                 }
             });
@@ -194,48 +192,59 @@
             const list = document.getElementById('ticket-list');
             const form = document.getElementById('create-section');
             const limitMsg = document.getElementById('limit-msg');
+            const loader = document.getElementById('loader');
+            const mainContent = document.getElementById('main-content');
             
             list.innerHTML = "Loading...";
 
-            const q = query(collection(db, "tickets"), where("vendorEmail", "==", currentUser.email), orderBy("createdAt", "desc"));
-            const snapshot = await getDocs(q);
-            
-            list.innerHTML = "";
-            let pendingCount = 0;
+            try {
+                const q = query(collection(db, "tickets"), where("vendorEmail", "==", currentUser.email), orderBy("createdAt", "desc"));
+                const snapshot = await getDocs(q);
+                
+                list.innerHTML = "";
+                let pendingCount = 0;
 
-            if(snapshot.empty) { list.innerHTML = "<p style='color:#777; font-size:13px; text-align:center;'>No history.</p>"; }
+                if(snapshot.empty) { list.innerHTML = "<p style='color:#777; font-size:13px; text-align:center;'>No history.</p>"; }
 
-            snapshot.forEach(doc => {
-                const t = doc.data();
-                if(t.status === 'pending') pendingCount++;
+                snapshot.forEach(doc => {
+                    const t = doc.data();
+                    if(t.status === 'pending') pendingCount++;
 
-                const date = t.createdAt ? new Date(t.createdAt.seconds * 1000).toLocaleDateString() : 'Today';
-                const isPending = t.status === 'pending';
+                    const date = t.createdAt ? new Date(t.createdAt.seconds * 1000).toLocaleDateString() : 'Today';
+                    const isPending = t.status === 'pending';
 
-                list.innerHTML += `
-                <div class="ticket-card ${isPending ? 'pending' : 'resolved'}">
-                    <div style="display:flex; justify-content:space-between; align-items:center;">
-                        <span class="status-badge ${isPending ? 'badge-pending' : 'badge-resolved'}">${t.status}</span>
-                        <span style="font-size:11px; color:#aaa;">${date}</span>
-                    </div>
-                    <h4 style="margin:8px 0; font-size:15px;">${t.type}</h4>
-                    <p style="font-size:13px; color:#555; margin:0 0 10px;">${t.description}</p>
-                    ${t.imageUrl ? `<a href="${t.imageUrl}" target="_blank" style="font-size:12px; color:#009688;">View Image</a>` : ''}
-                    
-                    ${isPending ? `<button onclick="deleteTicket('${doc.id}')" class="btn-delete">Delete</button>` : ''}
-                </div>`;
-            });
+                    list.innerHTML += `
+                    <div class="ticket-card ${isPending ? 'pending' : 'resolved'}">
+                        <div style="display:flex; justify-content:space-between; align-items:center;">
+                            <span class="status-badge ${isPending ? 'badge-pending' : 'badge-resolved'}">${t.status}</span>
+                            <span style="font-size:11px; color:#aaa;">${date}</span>
+                        </div>
+                        <h4 style="margin:8px 0; font-size:15px;">${t.type}</h4>
+                        <p style="font-size:13px; color:#555; margin:0 0 10px;">${t.description}</p>
+                        ${t.imageUrl ? `<a href="${t.imageUrl}" target="_blank" style="font-size:12px; color:#009688;">View Image</a>` : ''}
+                        
+                        ${isPending ? `<button onclick="deleteTicket('${doc.id}')" class="btn-delete">Delete</button>` : ''}
+                    </div>`;
+                });
 
-            // UI LOGIC
-            document.getElementById('loader').style.display = 'none';
-            document.getElementById('main-content').style.display = 'block';
+                // Check pending limit
+                if(pendingCount >= 3) {
+                    form.style.display = 'none';
+                    limitMsg.style.display = 'block';
+                } else {
+                    form.style.display = 'block';
+                    limitMsg.style.display = 'none';
+                }
 
-            if(pendingCount >= 3) {
-                form.style.display = 'none';
-                limitMsg.style.display = 'block';
-            } else {
-                form.style.display = 'block';
-                limitMsg.style.display = 'none';
+                // Show Content
+                loader.style.display = 'none';
+                mainContent.style.display = 'block';
+
+            } catch (err) {
+                console.error(err);
+                loader.innerHTML = `<p style="color:red; padding:20px;">Error loading tickets.<br>Check your internet or Firebase Rules.</p>`;
+                // Still show content so they can try to submit
+                mainContent.style.display = 'block';
             }
         }
 
@@ -252,7 +261,6 @@
 
             let imageUrl = "";
 
-            // Handle Image Upload
             if(fileInput.files.length > 0) {
                 document.getElementById('upload-msg').style.display = 'block';
                 const formData = new FormData();
@@ -268,7 +276,6 @@
                 }
             }
 
-            // Save to Firestore
             try {
                 await addDoc(collection(db, "tickets"), {
                     vendorEmail: currentUser.email,
@@ -280,16 +287,15 @@
                     createdAt: serverTimestamp()
                 });
                 
-                // Reset Form
                 document.getElementById('t-desc').value = "";
                 document.getElementById('t-file').value = "";
                 document.getElementById('upload-msg').style.display = 'none';
                 
-                loadUserTickets(); // Refresh
+                loadUserTickets(); 
                 alert("Ticket Sent! Admin will review shortly.");
             } catch(e) {
                 console.error(e);
-                alert("Error sending ticket.");
+                alert("Error sending ticket. Permissions might be denied.");
             }
             
             btn.disabled = false;
@@ -298,8 +304,12 @@
 
         window.deleteTicket = async function(id) {
             if(confirm("Cancel this request?")) {
-                await deleteDoc(doc(db, "tickets", id));
-                loadUserTickets();
+                try {
+                    await deleteDoc(doc(db, "tickets", id));
+                    loadUserTickets();
+                } catch(e) {
+                    alert("Error deleting. Check permissions.");
+                }
             }
         }
     </script>
