@@ -359,12 +359,15 @@
                 const statusMap = {};
                 statusSnapshot.forEach(doc => { statusMap[doc.id] = doc.data().status; });
 
-                // 4. Render
+               // 4. Render
                 resultsDiv.innerHTML = "";
                 matches.forEach(v => {
                     const vid = getVal(v, 'vendor_id');
                     const name = getVal(v, 'business_name');
                     const isSuspended = statusMap[vid] === "suspended";
+
+                    // THE FIX: Escape single quotes in the name so it doesn't break the onclick function
+                    const safeName = name.replace(/'/g, "\\'");
 
                     resultsDiv.innerHTML += `
                     <div class="result-item" style="border-left: 5px solid ${isSuspended ? '#e74c3c' : '#2ecc71'}">
@@ -372,7 +375,7 @@
                             <h4>${name} <span style="font-size:12px; color:#999;">(${vid})</span></h4>
                             <p>${getVal(v, 'email')}</p>
                         </div>
-                        <button onclick="toggleSuspend('${vid}', ${isSuspended}, '${name}')" 
+                        <button onclick="toggleSuspend('${vid}', ${isSuspended}, '${safeName}')" 
                             class="btn-action" style="background:${isSuspended ? '#2ecc71' : '#ffecec'}; color:${isSuspended ? 'white' : 'red'}; border:1px solid red;">
                             ${isSuspended ? 'Unsuspend' : 'Suspend'}
                         </button>
