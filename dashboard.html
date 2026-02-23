@@ -547,19 +547,21 @@
                 // NEW UPLOAD: Batch write to count securely
                 const batch = writeBatch(db);
 
-                // A. Prepare new product
+                // A. Prepare new product with owner_uid for Firebase Rules
                 const newProductRef = doc(collection(db, "products"));
                 batch.set(newProductRef, {
                     name: name, price: formattedPrice, description: desc, 
                     category: cat, condition: condition, image: finalImageUrl,
-                    vendor_id: currentVendorID, status: "Active", is_story: "false", timestamp: new Date()
+                    vendor_id: currentVendorID, 
+                    owner_uid: auth.currentUser.uid, // <-- Added for Rules verification
+                    status: "Active", is_story: "false", timestamp: new Date()
                 });
 
-                // B. Add +1 to postedCount
+                // B. Add +1 to postedCount (using merge to safely create if it doesn't exist)
                 const limitRef = doc(db, "vendor_limits", currentVendorID);
-                batch.update(limitRef, {
+                batch.set(limitRef, {
                     postedCount: increment(1)
-                });
+                }, { merge: true });
 
                 await batch.commit();
                 alert("Item Posted successfully!");
@@ -596,11 +598,11 @@
             // A. Delete the product
             batch.delete(doc(db, "products", docID));
             
-            // B. Subtract 1 from postedCount
+            // B. Subtract 1 from postedCount (using merge to safely handle missing docs)
             const limitRef = doc(db, "vendor_limits", currentVendorID);
-            batch.update(limitRef, {
+            batch.set(limitRef, {
                 postedCount: increment(-1)
-            });
+            }, { merge: true });
 
             await batch.commit();
             
