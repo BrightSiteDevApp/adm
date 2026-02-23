@@ -5,83 +5,223 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
   <title>Page Not Found | AFIT Digital Market</title>
   
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+  
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
- <link rel="icon" href="img/app-logo.png" type="image/png" sizes="192x192">
-    <link rel="apple-touch-icon" href="img/app-logo.png">
-    <link rel="icon" href="favicon.ico" type="image/x-icon">
+  <link rel="icon" href="img/app-logo.png" type="image/png" sizes="192x192">
+  <link rel="apple-touch-icon" href="img/app-logo.png">
+  <link rel="icon" href="favicon.ico" type="image/x-icon">
 
   <style>
+      /* CSS Variables for seamless Light/Dark mode */
+      :root {
+          --bg-color: #f8fafc;
+          --text-main: #0f172a;
+          --text-muted: #64748b;
+          --card-bg: #ffffff;
+          --card-border: #e2e8f0;
+          --primary: #3b82f6;
+          --primary-hover: #2563eb;
+          --shadow-sm: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
+          --shadow-md: 0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -4px rgba(0, 0, 0, 0.04);
+          --watermark: rgba(15, 23, 42, 0.03);
+      }
+
+      body.dark-mode {
+          --bg-color: #0f172a;
+          --text-main: #f8fafc;
+          --text-muted: #94a3b8;
+          --card-bg: #1e293b;
+          --card-border: #334155;
+          --primary: #60a5fa;
+          --primary-hover: #93c5fd;
+          --shadow-sm: 0 4px 6px -1px rgba(0, 0, 0, 0.2);
+          --shadow-md: 0 10px 15px -3px rgba(0, 0, 0, 0.3);
+          --watermark: rgba(255, 255, 255, 0.02);
+      }
+
+      * {
+          box-sizing: border-box;
+          margin: 0;
+          padding: 0;
+      }
+
+      body {
+          font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+          background-color: var(--bg-color);
+          color: var(--text-main);
+          transition: background-color 0.3s ease, color 0.3s ease;
+          min-height: 100vh;
+          display: flex;
+          flex-direction: column;
+      }
+
+      .app-container {
+          flex: 1;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          padding: 2rem 1.5rem;
+          position: relative;
+          overflow: hidden;
+      }
+
+      /* Subtle background watermark */
+      .watermark {
+          position: absolute;
+          top: 50%;
+          left: 50%;
+          transform: translate(-50%, -50%);
+          font-size: clamp(150px, 30vw, 400px);
+          font-weight: 800;
+          color: var(--watermark);
+          z-index: 0;
+          pointer-events: none;
+          user-select: none;
+      }
+
+      .header {
+          width: 100%;
+          text-align: center;
+          z-index: 1;
+          margin-bottom: 2rem;
+      }
+
+      .site-logo {
+          height: 36px;
+          transition: transform 0.3s ease;
+      }
+      
+      .site-logo:hover {
+          transform: scale(1.05);
+      }
+
       .error-content {
           text-align: center;
-          padding: 50px 20px;
-          min-height: 60vh;
+          z-index: 1;
           display: flex;
           flex-direction: column;
           justify-content: center;
           align-items: center;
+          flex: 1;
+          width: 100%;
+          max-width: 420px;
       }
+
+      /* Gradient Icon */
       .error-icon {
-          font-size: 80px;
-          color: #2d8eff;
-          margin-bottom: 20px;
-          opacity: 0.8;
-          animation: float 3s ease-in-out infinite;
+          font-size: 72px;
+          background: linear-gradient(135deg, var(--primary), #8b5cf6);
+          -webkit-background-clip: text;
+          -webkit-text-fill-color: transparent;
+          margin-bottom: 1.5rem;
+          animation: float 4s ease-in-out infinite;
       }
+
       @keyframes float {
           0% { transform: translateY(0px); }
-          50% { transform: translateY(-10px); }
+          50% { transform: translateY(-12px); }
           100% { transform: translateY(0px); }
       }
+
       .error-title {
-          font-size: 24px;
+          font-size: 28px;
           font-weight: 800;
-          color: #333;
-          margin-bottom: 10px;
+          margin-bottom: 0.75rem;
+          letter-spacing: -0.02em;
       }
+
       .error-text {
-          color: #777;
-          font-size: 14px;
-          margin-bottom: 30px;
-          max-width: 300px;
-          line-height: 1.5;
+          color: var(--text-muted);
+          font-size: 15px;
+          margin-bottom: 2.5rem;
+          line-height: 1.6;
       }
+
       .link-grid {
           display: grid;
-          grid-template-columns: 1fr 1fr;
-          gap: 15px;
+          grid-template-columns: repeat(2, 1fr);
+          gap: 1rem;
           width: 100%;
-          max-width: 350px;
       }
+
       .link-card {
-          background: white;
-          padding: 15px;
-          border-radius: 12px;
-          box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+          background: var(--card-bg);
+          padding: 1.25rem 1rem;
+          border-radius: 16px;
+          box-shadow: var(--shadow-sm);
           text-decoration: none;
-          color: #333;
+          color: var(--text-main);
           display: flex;
           flex-direction: column;
           align-items: center;
-          transition: transform 0.2s;
-          border: 1px solid #eee;
+          transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+          border: 1px solid var(--card-border);
       }
-      .link-card:active { transform: scale(0.95); }
-      .link-card i { font-size: 20px; color: #2d8eff; margin-bottom: 8px; }
-      .link-card span { font-size: 12px; font-weight: bold; }
 
-      /* Dark Mode Fixes */
-      body.dark-mode .error-title, 
-      body.dark-mode .link-card { color: #fff !important; }
-      body.dark-mode .link-card { background: #1e1e1e !important; border-color: #333 !important; }
-      body.dark-mode .error-text { color: #aaa !important; }
+      .link-card:hover { 
+          transform: translateY(-4px);
+          box-shadow: var(--shadow-md);
+          border-color: var(--primary);
+      }
+
+      .link-card:active { 
+          transform: scale(0.96); 
+      }
+
+      .link-card i { 
+          font-size: 24px; 
+          color: var(--primary); 
+          margin-bottom: 0.75rem; 
+          transition: transform 0.3s ease;
+      }
+
+      .link-card:hover i {
+          transform: scale(1.1);
+      }
+
+      .link-card span { 
+          font-size: 13px; 
+          font-weight: 600; 
+      }
+
+      .site-footer {
+          text-align: center;
+          z-index: 1;
+          margin-top: auto;
+          padding-top: 2rem;
+      }
+
+      .site-footer p {
+          color: var(--text-muted);
+          font-size: 13px;
+      }
+
+      .site-footer a {
+          color: var(--primary);
+          text-decoration: none;
+          font-weight: 600;
+          transition: color 0.2s;
+      }
+      
+      .site-footer a:hover {
+          color: var(--primary-hover);
+          text-decoration: underline;
+      }
   </style>
 </head>
 <body>
 
   <div class="app-container">
     
-    <div class="header" style="text-align: center;">
-      <a href="/"> <img src="/img/logo-white.png" alt="AFIT Market" class="site-logo" style="height:30px;"> </a>
+    <div class="watermark">404</div>
+    
+    <div class="header">
+      <a href="/"> 
+        <img src="/img/logo-white.png" alt="AFIT Market" class="site-logo" onerror="this.src='https://via.placeholder.com/150x40?text=AFIT+Market'"> 
+      </a>
     </div>
 
     <div class="error-content">
@@ -98,7 +238,7 @@
                 <i class="fas fa-box-open"></i>
                 <span>All Items</span>
             </a>
-            <a href="404.html" class="link-card">
+            <a href="/vendors/" class="link-card">
                 <i class="fas fa-store"></i>
                 <span>Vendors</span>
             </a>
@@ -110,16 +250,18 @@
     </div>
 
     <footer class="site-footer">
-        <p style="margin-top:20px; color:#777; font-size: 12px;">
-    &copy; 2026 All rights reserved. Powered by 
-    <a href="https://brightsitedev.tech" target="_blank" style="color:#2d8eff; text-decoration:none; font-weight:bold;">Brightsitedev</a>
-</p>
+        <p>
+            &copy; 2026 All rights reserved. Powered by 
+            <a href="https://brightsitedev.tech" target="_blank">Brightsitedev</a>
+        </p>
     </footer>
 
   </div>
 
   <script>
-    if (localStorage.getItem('theme') === 'dark') {
+    // Check local storage or system preference for dark mode
+    const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+    if (localStorage.getItem('theme') === 'dark' || (!localStorage.getItem('theme') && prefersDark)) {
         document.body.classList.add('dark-mode');
     }
   </script>

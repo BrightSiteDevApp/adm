@@ -264,6 +264,18 @@
             } else { signInWithPopup(auth, provider).catch(() => window.location.href = "index.html"); }
         });
 
+
+        // ================= HELPER FOR SECURITY (XSS PREVENTION) =================
+        function escapeHTML(str) {
+            if (!str) return "";
+            return String(str)
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        }
+
         // ================= HELPER FOR SHEETS =================
         function getVal(row, key) {
             if(!row) return "";
@@ -297,13 +309,18 @@
                 snapshot.forEach(doc => {
                     const r = doc.data();
                     const isPending = r.status === 'pending';
+                    
+                    // 🛡️ SECURE: Sanitize user inputs before injecting
+                    const safeName = escapeHTML(r.name);
+                    const safeReview = escapeHTML(r.review);
+
                     list.innerHTML += `
                     <div class="review-card" style="border-left: 5px solid ${isPending ? '#f1c40f' : '#2ecc71'};">
                         <div style="display:flex; justify-content:space-between;">
-                            <strong>${r.name} (${r.rating}⭐)</strong>
+                            <strong>${safeName} (${r.rating}⭐)</strong>
                             <span class="review-status ${isPending ? 'status-pending' : 'status-approved'}">${r.status || 'live'}</span>
                         </div>
-                        <p style="font-style:italic; color:#555; margin:5px 0;">"${r.review}"</p>
+                        <p style="font-style:italic; color:#555; margin:5px 0;">"${safeReview}"</p>
                         <div style="text-align:right; margin-top:10px;">
                             <button onclick="deleteReview('${doc.id}')" class="btn-action" style="background:#e74c3c; color:white; padding:5px 10px;">Delete</button>
                             ${isPending ? `<button onclick="approveReview('${doc.id}')" class="btn-action" style="background:#2ecc71; color:white; padding:5px 10px;">Approve</button>` : ''}
@@ -312,7 +329,6 @@
                 });
             } catch (err) { console.error(err); list.innerHTML = "Error loading reviews."; }
         }
-
         window.approveReview = async function(id) {
             if(!confirm("Approve this review?")) return;
             await updateDoc(doc(db, "reviews", id), { status: "approved" });
@@ -470,18 +486,16 @@
             loadAdminTickets();
         }
 
-        window.loadAdminTickets = async function() {
+      window.loadAdminTickets = async function() {
             const list = document.getElementById('ticket-admin-list');
             const counter = document.getElementById('pending-ticket-count');
             
             list.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Loading...';
             
             try {
-                // Get only PENDING tickets for admin to act on
                 const q = query(collection(db, "tickets"), where("status", "==", "pending"), orderBy("createdAt", "desc"));
                 const snapshot = await getDocs(q);
                 
-                // Update the counter on the dashboard card
                 if(counter) counter.innerText = `${snapshot.size} Pending Requests`;
 
                 list.innerHTML = "";
@@ -491,15 +505,20 @@
                     const t = doc.data();
                     const date = t.createdAt ? new Date(t.createdAt.seconds * 1000).toLocaleString() : 'Just now';
                     
+                    // 🛡️ SECURE: Sanitize ticket inputs
+                    const safeVendorName = escapeHTML(t.vendorName);
+                    const safeVendorEmail = escapeHTML(t.vendorEmail);
+                    const safeDesc = escapeHTML(t.description);
+                    
                     list.innerHTML += `
                     <div class="result-item" style="display:block;">
                         <div style="display:flex; justify-content:space-between; margin-bottom:5px;">
-                            <span style="font-weight:bold; color:#00b894;">${t.type.toUpperCase()}</span>
+                            <span style="font-weight:bold; color:#00b894;">${escapeHTML(t.type).toUpperCase()}</span>
                             <span style="font-size:11px; color:#777;">${date}</span>
                         </div>
-                        <div style="font-weight:600; margin-bottom:5px;">${t.vendorName} (${t.vendorEmail})</div>
+                        <div style="font-weight:600; margin-bottom:5px;">${safeVendorName} (${safeVendorEmail})</div>
                         <div style="background:#fff; padding:10px; border:1px solid #eee; border-radius:5px; margin-bottom:10px;">
-                            ${t.description}
+                            ${safeDesc}
                         </div>
                         ${t.imageUrl ? `<a href="${t.imageUrl}" target="_blank" style="display:inline-block; margin-bottom:10px; color:#2d8eff; font-size:12px;"><i class="fas fa-image"></i> View Attached Image</a>` : ''}
                         
@@ -510,7 +529,6 @@
                 });
             } catch (err) { console.error(err); list.innerHTML = "Error loading tickets."; }
         }
-
         window.resolveTicket = async function(id) {
             if(!confirm("Have you updated the Google Sheet? Marking this as resolved will hide it from your pending list.")) return;
             
