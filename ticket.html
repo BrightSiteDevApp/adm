@@ -142,6 +142,7 @@
         
         let currentUser = null;
         const SHEET_ID = "1SvVUbEnDgqgw2Z_M1ShQkzyFTsnnS6n8mTs7UMXVvF4";
+        const API_ROOT = `https://opensheet.elk.sh/${SHEET_ID}`;
 
         // 🛡️ XSS SANITIZER
         function escapeHTML(str) {
@@ -152,6 +153,12 @@
                 .replace(/>/g, "&gt;")
                 .replace(/"/g, "&quot;")
                 .replace(/'/g, "&#039;");
+        }
+
+        // 🛡️ SMART VALUE HELPER (Handles column naming variations)
+        function getSmartValue(row, key) {
+            if(!row) return null;
+            return row[key] || row[key.toLowerCase()] || row[key.toUpperCase()] || null;
         }
 
         onAuthStateChanged(auth, async (user) => {
@@ -173,19 +180,27 @@
             }
         });
 
+        // ✅ UPGRADED: Concurrent Fetching & Smart Reading
         async function verifyVendor(email) {
             try {
-                const res = await fetch(`https://opensheet.elk.sh/${SHEET_ID}/Vendors`);
-                const data = await res.json();
-                const res2 = await fetch(`https://opensheet.elk.sh/${SHEET_ID}/Vendors_v2`);
-                const data2 = await res2.json().catch(()=>[]);
-                const all = [...data, ...data2];
-                return all.some(v => v.Email && v.Email.toLowerCase().trim() === email.toLowerCase().trim());
-            } catch(e) { return false; }
+                const [v1, v2] = await Promise.all([
+                    fetch(`${API_ROOT}/Vendors`).then(res => res.ok ? res.json() : []).catch(() => []),
+                    fetch(`${API_ROOT}/Vendors_v2`).then(res => res.ok ? res.json() : []).catch(() => [])
+                ]);
+                
+                const allVendors = [...(Array.isArray(v1) ? v1 : []), ...(Array.isArray(v2) ? v2 : [])];
+                
+                return allVendors.some(v => {
+                    const vEmail = getSmartValue(v, 'Email');
+                    return vEmail && vEmail.toLowerCase().trim() === email.toLowerCase().trim();
+                });
+            } catch(e) { 
+                console.error(e);
+                return false; 
+            }
         }
 
         async function cleanupOldTickets(uid) {
-            // FIXED: Query by userId to satisfy Firebase Rules
             const q = query(collection(db, "tickets"), 
                 where("userId", "==", uid), 
                 where("status", "==", "resolved")
@@ -215,7 +230,6 @@
             list.innerHTML = "Loading...";
 
             try {
-                // FIXED: Query by userId to satisfy Firebase Rules
                 const q = query(collection(db, "tickets"), where("userId", "==", currentUser.uid), orderBy("createdAt", "desc"));
                 const snapshot = await getDocs(q);
                 
@@ -301,7 +315,7 @@
 
             try {
                 await addDoc(collection(db, "tickets"), {
-                    userId: currentUser.uid, // ✅ FIXED: Required by Firebase Rules
+                    userId: currentUser.uid, 
                     vendorEmail: currentUser.email,
                     vendorName: currentUser.displayName || "Vendor",
                     vendorId: vendorId, 
