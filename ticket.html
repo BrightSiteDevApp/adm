@@ -143,6 +143,17 @@
         let currentUser = null;
         const SHEET_ID = "1SvVUbEnDgqgw2Z_M1ShQkzyFTsnnS6n8mTs7UMXVvF4";
 
+        // 🛡️ XSS SANITIZER
+        function escapeHTML(str) {
+            if (!str) return "";
+            return String(str)
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        }
+
         onAuthStateChanged(auth, async (user) => {
             if (user) {
                 currentUser = user;
@@ -153,7 +164,7 @@
                     return;
                 }
                 
-                try { await cleanupOldTickets(user.email); } catch(err) { console.log("Cleanup skipped:", err); }
+                try { await cleanupOldTickets(user.uid); } catch(err) { console.log("Cleanup skipped:", err); }
 
                 loadUserTickets();
 
@@ -173,9 +184,10 @@
             } catch(e) { return false; }
         }
 
-        async function cleanupOldTickets(email) {
+        async function cleanupOldTickets(uid) {
+            // FIXED: Query by userId to satisfy Firebase Rules
             const q = query(collection(db, "tickets"), 
-                where("vendorEmail", "==", email), 
+                where("userId", "==", uid), 
                 where("status", "==", "resolved")
             );
             const snapshot = await getDocs(q);
@@ -203,7 +215,8 @@
             list.innerHTML = "Loading...";
 
             try {
-                const q = query(collection(db, "tickets"), where("vendorEmail", "==", currentUser.email), orderBy("createdAt", "desc"));
+                // FIXED: Query by userId to satisfy Firebase Rules
+                const q = query(collection(db, "tickets"), where("userId", "==", currentUser.uid), orderBy("createdAt", "desc"));
                 const snapshot = await getDocs(q);
                 
                 list.innerHTML = "";
@@ -218,15 +231,20 @@
                     const date = t.createdAt ? new Date(t.createdAt.seconds * 1000).toLocaleDateString() : 'Today';
                     const isPending = t.status === 'pending';
 
+                    // 🛡️ SECURE: Sanitize inputs before rendering
+                    const safeType = escapeHTML(t.type);
+                    const safeVendorId = escapeHTML(t.vendorId);
+                    const safeDesc = escapeHTML(t.description);
+
                     list.innerHTML += `
                     <div class="ticket-card ${isPending ? 'pending' : 'resolved'}">
                         <div style="display:flex; justify-content:space-between; align-items:center;">
-                            <span class="status-badge ${isPending ? 'badge-pending' : 'badge-resolved'}">${t.status}</span>
+                            <span class="status-badge ${isPending ? 'badge-pending' : 'badge-resolved'}">${escapeHTML(t.status)}</span>
                             <span style="font-size:11px; color:#aaa;">${date}</span>
                         </div>
-                        <h4 style="margin:8px 0; font-size:15px;">${t.type}</h4>
-                        <div style="font-size:11px; color:#2d8eff; font-weight:bold;">ID: ${t.vendorId || 'N/A'}</div>
-                        <p style="font-size:13px; color:#555; margin:5px 0 10px;">${t.description}</p>
+                        <h4 style="margin:8px 0; font-size:15px;">${safeType}</h4>
+                        <div style="font-size:11px; color:#2d8eff; font-weight:bold;">ID: ${safeVendorId || 'N/A'}</div>
+                        <p style="font-size:13px; color:#555; margin:5px 0 10px;">${safeDesc}</p>
                         ${t.imageUrl ? `<a href="${t.imageUrl}" target="_blank" style="font-size:12px; color:#2d8eff;">View Image</a>` : ''}
                         
                         ${isPending ? `<button onclick="deleteTicket('${doc.id}')" class="btn-delete">Delete</button>` : ''}
@@ -283,9 +301,10 @@
 
             try {
                 await addDoc(collection(db, "tickets"), {
+                    userId: currentUser.uid, // ✅ FIXED: Required by Firebase Rules
                     vendorEmail: currentUser.email,
                     vendorName: currentUser.displayName || "Vendor",
-                    vendorId: vendorId, // Saving Vendor ID
+                    vendorId: vendorId, 
                     type: type,
                     description: desc,
                     imageUrl: imageUrl,
@@ -301,7 +320,7 @@
                 alert("Ticket Sent! Admin will review shortly.");
             } catch(e) {
                 console.error(e);
-                alert("Error sending ticket.");
+                alert("Error sending ticket. Permission denied.");
             }
             
             btn.disabled = false;
@@ -318,6 +337,6 @@
                 }
             }
         }
-    </script>
+</script>
 </body>
 </html>
