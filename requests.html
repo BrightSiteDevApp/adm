@@ -288,6 +288,17 @@
         let isFetching = false;
         const BATCH_SIZE = 10;
 
+        // 🛡️ XSS SANITIZATION HELPER
+        function escapeHTML(str) {
+            if (!str) return "";
+            return String(str)
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        }
+
         // 🌟 CHECK RULES ON LOAD
         setTimeout(() => {
             const lastSeen = localStorage.getItem('rules_seen_date');
@@ -415,17 +426,23 @@
                         deleteBtn = `<button class="btn-delete" onclick="deleteRequest('${docSnap.id}')"><i class="fas fa-trash"></i></button>`;
                     }
 
-                    let categoryTag = d.category ? `<span class="req-badge">${d.category}</span>` : "";
+                    // 🛡️ SECURE: Escape user inputs to prevent XSS
+                    const safeTitle = escapeHTML(d.title);
+                    const safeCategory = escapeHTML(d.category);
+                    const safeBudget = escapeHTML(d.budget);
+                    const safePhone = escapeHTML(d.phone);
+
+                    let categoryTag = d.category ? `<span class="req-badge">${safeCategory}</span>` : "";
 
                     container.innerHTML += `
                     <div class="req-card">
                         ${deleteBtn}
-                        <div class="req-title">${d.title}</div>
+                        <div class="req-title">${safeTitle}</div>
                         <div style="margin-bottom:5px;">${categoryTag}</div>
-                        <div class="req-budget">Budget: ₦${parseInt(d.budget).toLocaleString()}</div>
+                        <div class="req-budget">Budget: ₦${parseInt(safeBudget).toLocaleString()}</div>
                         <div class="req-meta">
                             <span><i class="far fa-clock"></i> ${timeString}</span>
-                            <a href="https://wa.me/${d.phone}?text=Hi, I saw your request for '${d.title}' on AFIT Market." class="btn-call">
+                            <a href="https://wa.me/${safePhone}?text=Hi, I saw your request for '${safeTitle}' on AFIT Market." class="btn-call">
                                 <i class="fab fa-whatsapp"></i> Contact
                             </a>
                         </div>
@@ -464,7 +481,7 @@
             btn.disabled = true;
 
             try {
-                // 🛑 1. CHECK ACTIVE REQUESTS LIMIT
+                // 🛑 1. CHECK ACTIVE REQUESTS LIMIT (Live DB check - highly secure)
                 const qLimit = query(collection(db, "public_requests"), where("userId", "==", currentUser.uid));
                 const snapLimit = await getDocs(qLimit);
                 const activeCount = snapLimit.size;
@@ -476,7 +493,7 @@
                     return;
                 }
 
-                // 🛑 2. CHECK TIME COOLDOWN
+                // 🛑 2. CHECK TIME COOLDOWN (Client-side deterrence)
                 const now = Date.now();
                 const lastPostTime = localStorage.getItem('last_req_time');
                 const cooldownEnd = localStorage.getItem('cooldown_end');
@@ -605,6 +622,6 @@
         };
         window.closeRules = () => document.getElementById('rules-modal').style.display = 'none';
 
-    </script>
+</script>
 </body>
 </html>
