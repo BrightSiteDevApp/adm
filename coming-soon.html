@@ -19,9 +19,9 @@
             --brand: #2d8eff;
             --accent: #f1c40f;
             --dark-bg: #020617;
-            /* Card Background: Darker and more opaque for the 'pop-out' effect */
             --card-bg: rgba(15, 23, 42, 0.85);
             --border: rgba(255, 255, 255, 0.15);
+            --text-muted: #94a3b8;
         }
 
         * { box-sizing: border-box; }
@@ -33,28 +33,24 @@
             background: radial-gradient(circle at center, #1e293b, #020617);
             min-height: 100vh;
             display: flex; align-items: center; justify-content: center;
-            overflow: hidden; /* Prevents scroll from the rotated background */
+            overflow-x: hidden;
             color: white;
             position: relative;
         }
 
-        /* --- NEW WATERMARK BACKGROUND --- */
+        /* --- WATERMARK BACKGROUND --- */
         .bg-watermark {
             position: fixed;
             top: -50%; left: -50%; 
             width: 200%; height: 200%;
             z-index: -1;
-            
-            /* The Watermark Pattern */
-            background-image: url('img/app-logo.png'); /* Uses your logo */
+            background-image: url('img/app-logo.png');
             background-repeat: repeat;
-            background-size: 100px 100px; /* Adjust spacing of logos */
-            
-            /* Diagonal Rotation & Subtle Opacity */
+            background-size: 100px 100px;
             transform: rotate(-20deg);
-            opacity: 0.04; /* Very faint (5%) */
+            opacity: 0.04;
             pointer-events: none;
-            filter: grayscale(100%) brightness(1.5); /* Makes it look like a watermark */
+            filter: grayscale(100%) brightness(1.5);
         }
 
         /* --- MAIN CARD --- */
@@ -63,8 +59,6 @@
             text-align: center;
             position: relative;
             z-index: 10;
-            
-            /* The "Pop Out" Card Style */
             background: var(--card-bg);
             backdrop-filter: blur(20px);
             -webkit-backdrop-filter: blur(20px);
@@ -72,7 +66,6 @@
             border-radius: 24px;
             padding: 40px 30px;
             box-shadow: 0 25px 60px -10px rgba(0, 0, 0, 0.6);
-            
             animation: popIn 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
 
@@ -92,7 +85,7 @@
             color: white;
         }
 
-        p { color: #94a3b8; font-size: 14px; margin: 0 0 30px 0; line-height: 1.6; }
+        p { color: var(--text-muted); font-size: 14px; margin: 0 0 30px 0; line-height: 1.6; }
 
         /* --- COUNTDOWN TIMER --- */
         .countdown-wrapper {
@@ -115,7 +108,6 @@
         .t-num { font-size: 20px; font-weight: 700; color: var(--brand); display: block; }
         .t-label { font-size: 9px; color: #64748b; text-transform: uppercase; letter-spacing: 1px; margin-top: 4px; }
 
-        /* Pending State */
         #timer-placeholder {
             display: none;
             font-size: 15px; font-weight: 500; color: #e2e8f0;
@@ -163,8 +155,53 @@
         }
         .btn-contact { background: rgba(37, 211, 102, 0.1); color: #25D366; border: 1px solid rgba(37, 211, 102, 0.3); }
         .btn-vendor { background: rgba(255, 255, 255, 0.05); color: white; border: 1px solid var(--border); }
-        
         .btn:active { transform: scale(0.96); }
+
+        /* --- NEW: INFO LINKS GRID --- */
+        .info-links-title {
+            font-size: 12px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin: 25px 0 15px;
+            position: relative;
+        }
+        .info-links-title::before, .info-links-title::after {
+            content: ""; position: absolute; top: 50%; width: 30px; height: 1px; background: var(--border);
+        }
+        .info-links-title::before { left: 20%; }
+        .info-links-title::after { right: 20%; }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .info-card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 15px 5px;
+            text-decoration: none;
+            color: #ccc;
+            transition: transform 0.2s, background 0.2s;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .info-card:hover {
+            background: rgba(255, 255, 255, 0.08);
+            transform: translateY(-3px);
+            color: white;
+            border-color: var(--brand);
+        }
+
+        .info-card i { font-size: 18px; color: var(--brand); }
+        .info-card span { font-size: 10px; font-weight: 500; }
 
         /* --- INSTALL LINK --- */
         #install-container { display: none; margin-top: 15px; }
@@ -228,6 +265,27 @@
             </button>
         </div>
 
+        <div class="info-links-title">Learn More</div>
+        
+        <div class="info-grid">
+            <a href="about-us/index.html" class="info-card">
+                <i class="fas fa-info-circle"></i>
+                <span>About</span>
+            </a>
+            <a href="faq/index.html" class="info-card">
+                <i class="fas fa-question-circle"></i>
+                <span>FAQ</span>
+            </a>
+            <a href="safety/index.html" class="info-card">
+                <i class="fas fa-shield-alt"></i>
+                <span>Safety</span>
+            </a>
+            <a href="t&c/index.html" class="info-card">
+                <i class="fas fa-file-contract"></i>
+                <span>T&C</span>
+            </a>
+        </div>
+
         <div id="install-container">
             <div id="install-btn" class="install-link">
                 <i class="fas fa-download"></i> Install App
@@ -240,11 +298,7 @@
         // ============================================
         // 🛑 STEP 1: SET YOUR LAUNCH DATE HERE
         // ============================================
-        // Leave empty "" to show "Launch Window: 22 Feb - 27 Feb"
-        // When ready, put date like: "Feb 25, 2026 18:00:00"
-        
         const launchDateString = "Mar 1, 2026 18:00:00"; 
-
         // ============================================
 
         const timerActive = document.getElementById('timer-active');
@@ -252,13 +306,11 @@
 
         function startTimer() {
             if (!launchDateString) {
-                // No date selected yet -> Show Placeholder
                 timerActive.style.display = 'none';
                 timerPlaceholder.style.display = 'block';
                 return;
             }
 
-            // Date IS selected -> Show Timer
             timerPlaceholder.style.display = 'none';
             timerActive.style.display = 'flex';
 
@@ -287,7 +339,6 @@
             }, 1000);
         }
 
-        // Initialize Timer
         startTimer();
 
         // --- VENDOR & APP UTILS ---
