@@ -229,7 +229,6 @@
             if(!term) {
                 filteredList = allCategoryItems; // Reset to random list
             } else {
-                // If searching, we show matches (no random shuffle here needed)
                 filteredList = allCategoryItems.filter(p => (p.name || p.Name).toLowerCase().includes(term));
             }
             // Reset Rendering
@@ -252,10 +251,15 @@
                 const suspendedVendors = new Set();
                 suspendedSnap.forEach(doc => { if(doc.data().status === "suspended") suspendedVendors.add(doc.id); });
 
-                const vendorRes = await fetch(`${apiRoot}/Vendors`);
-                const vendors = await vendorRes.json();
+                // ✅ UPDATED: Fetch BOTH Vendor Sheets
+                const [v1, v2] = await Promise.all([
+                    fetch(`${apiRoot}/Vendors`).then(res => res.json().catch(() => [])),
+                    fetch(`${apiRoot}/Vendors_v2`).then(res => res.json().catch(() => []))
+                ]);
+                const allVendors = [...(Array.isArray(v1)?v1:[]), ...(Array.isArray(v2)?v2:[])];
+
                 const phoneBook = {};
-                vendors.forEach(v => {
+                allVendors.forEach(v => {
                     const vID = v.vendor_id || v.Vendor_ID;
                     const vPhone = v.whatsapp || v.Whatsapp;
                     if(vID) phoneBook[vID] = String(vPhone).replace(/[^0-9]/g, '');
@@ -313,7 +317,6 @@
         nextItems.forEach(p => {
             const pName = p.name || p.Name;
             const pPrice = p.price || p.Price;
-            // 🆕 GET DESCRIPTION
             const pDesc = p.description || p.Description || "No additional details."; 
             const pVendor = p.vendor_id || p.Vendor_ID;
             const pImage = p.image || p.Image;
@@ -339,7 +342,6 @@
             
             const btnText = isSold ? "Sold" : "Get Item";
             const btnStyle = isSold ? "background:#777; pointer-events:none;" : "";
-            // 🆕 BUTTON now opens Modal
             const btnAction = isSold ? "" : `openDetailModal('${safeNameJS}', '${safePrice}', '${safeDescJS}', '${pVendor}', '${pCond}', '${p.phone}')`;
 
             const condBadge = (!isSold && pCond === "New") ? `<span style="background:#00b894; color:white; font-size:9px; padding:2px 5px; border-radius:4px; position:absolute; top:10px; left:10px; z-index:10;">NEW</span>` : '';
@@ -373,7 +375,6 @@
         }
     }
 
-    // 🆕 FUNCTION TO OPEN MODAL
     window.openDetailModal = function(title, price, desc, vendor, cond, phone) {
         document.getElementById('m-title').innerText = title;
         document.getElementById('m-price').innerText = price;
