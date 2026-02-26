@@ -39,9 +39,8 @@
   <link rel="stylesheet" href="asset/style.css">
   
   <link rel="icon" href="img/app-logo.png" type="image/png" sizes="192x192">
-    <link rel="apple-touch-icon" href="img/app-logo.png">
-    <link rel="icon" href="favicon.ico" type="image/x-icon">
-
+  <link rel="apple-touch-icon" href="img/app-logo.png">
+  <link rel="icon" href="favicon.ico" type="image/x-icon">
 
   <style>
       /* Hide content until loaded */
@@ -68,7 +67,7 @@
       #load-more-btn:active { transform: scale(0.95); }
       #load-more-container { text-align: center; width: 100%; margin-bottom: 40px; }
 
-      /* --- 🆕 TEXT & MODAL STYLES --- */
+      /* TEXT & MODAL STYLES */
       .ad-title {
           white-space: normal !important;
           line-height: 1.3;
@@ -93,7 +92,7 @@
           position: relative;
       }
 
-      /* --- SKELETON LOADING STYLES --- */
+      /* SKELETON LOADING STYLES */
       .skeleton-pulse {
           animation: skeleton-loading 1.5s infinite ease-in-out;
           background-color: #eee;
@@ -142,6 +141,16 @@
       .sk-text-short { width: 40%; height: 15px; background: #eee; border-radius: 4px; animation: skeleton-loading 1.5s infinite linear; }
       .sk-text-long { width: 90%; height: 15px; background: #eee; border-radius: 4px; animation: skeleton-loading 1.5s infinite linear; }
       .sk-btn { width: 100%; height: 30px; margin-top: auto; background: #eee; border-radius: 6px; animation: skeleton-loading 1.5s infinite linear; }
+      
+      /* --- 🆕 MODERN FOOTER --- */
+      .modern-footer {
+          background: #fff; padding: 30px 20px; text-align: center; margin-top: 40px;
+          border-top: 1px solid #eee; display: flex; flex-direction: column; align-items: center; gap: 10px;
+      }
+      .footer-logo { height: 24px; opacity: 0.8; margin-bottom: 5px; }
+      .footer-text { color: #888; font-size: 13px; margin: 0; }
+      .footer-credit { font-size: 12px; color: #aaa; margin-top: 5px; }
+      .footer-credit a { color: #2d8eff; text-decoration: none; font-weight: 600; }
 
       /* --- DARK MODE FIXES --- */
       body.dark-mode .sk-container,
@@ -160,6 +169,7 @@
       body.dark-mode .modal-sheet { background: #1e1e1e !important; color: white; }
       body.dark-mode .ad-desc-preview { color: #aaa; }
       body.dark-mode #m-desc { color: #ccc !important; }
+      body.dark-mode .modern-footer { background: #111; border-color: #222; }
   </style>
 </head>
 <body data-page="vendor-profile">
@@ -222,8 +232,7 @@
                 </span>
             </div>
 
-            <p id="p-desc" class="business-description">
-                </p>
+            <p id="p-desc" class="business-description"></p>
 
             <div style="font-size: 12px; color: #555; margin: 10px 0; display: flex; align-items: center; justify-content: center; gap: 8px;">
                 <span><i class="far fa-clock" style="color:#2d8eff;"></i> <span id="p-hours">Checking...</span></span>
@@ -269,14 +278,23 @@
         <h2 class="products-title">Items from this Store</h2>
         
         <div class="trending-grid" id="vendor-grid">
-            </div>
+        </div>
 
         <div id="load-more-container" style="display: none;">
             <button id="load-more-btn" onclick="renderBatch()">Load More</button>
         </div>
-    </div>
-
-    <div id="detail-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:3000; justify-content:center; align-items:end;">
+        
+        <div id="explore-more-section" style="display:none; margin-top: 50px; padding-top: 20px; border-top: 2px dashed #eee;">
+            <h3 style="text-align: center; margin-bottom: 20px; font-size: 18px; color: #555;">
+                <i class="fas fa-compass" style="color: #2d8eff;"></i> Explore More Items
+            </h3>
+            <div class="trending-grid" id="explore-grid"></div>
+            
+            <a href="items/index.html" class="chat-btn" style="display: flex; justify-content: center; align-items: center; gap: 8px; width: 200px; margin: 25px auto; padding: 12px; background: #2d8eff; color: white; border-radius: 30px; font-size: 14px; font-weight: bold; text-decoration: none; box-shadow: 0 4px 15px rgba(45, 142, 255, 0.3); transition: transform 0.2s;">
+                <i class="fas fa-shopping-bag"></i> View All Market Items
+            </a>
+        </div>
+    </div> <div id="detail-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:3000; justify-content:center; align-items:end;">
         <div class="modal-sheet">
             <div style="display:flex; justify-content:space-between; align-items:start;">
                 <h3 id="m-title" style="margin:0; font-size:18px; width:90%; line-height:1.3;">...</h3>
@@ -305,11 +323,8 @@
         <a href="index.html" class="chat-btn" style="display:inline-block; margin-top:10px; background:#2d8eff;">Go Home</a>
     </div>
 
-    <footer class="site-footer">
-        <p style="margin-top:20px; color:#777; font-size: 12px;">
-    &copy; 2026 All rights reserved. Powered by 
-    <a href="https://brightsitedev.tech" target="_blank" style="color:#2d8eff; text-decoration:none; font-weight:bold;">Brightsitedev</a>
-</p>
+    <footer class="modern-footer">
+        <p class="footer-credit">© 2026 Powered by <a href="https://brightsitedev.tech" target="_blank">Brightsitedev</a></p>
     </footer>
   </div>
 
@@ -339,6 +354,7 @@
     let currentUserEmail = null; 
     let pageVendorEmail = null; 
     let currentVendorPhone = "";
+    let currentVendorID = null;
     
     // --- PAGINATION VARIABLES ---
     let allVendorProducts = []; 
@@ -357,6 +373,15 @@
             .replace(/>/g, "&gt;")
             .replace(/"/g, "&quot;")
             .replace(/'/g, "&#039;");
+    }
+
+    // Fisher-Yates Shuffle
+    function shuffleArray(array) {
+        for (let i = array.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [array[i], array[j]] = [array[j], array[i]];
+        }
+        return array;
     }
 
     onAuthStateChanged(auth, async (user) => {
@@ -386,15 +411,14 @@
         let vendorID = params.get('vendor');
         if(vendorID) {
             vendorID = vendorID.trim();
+            currentVendorID = vendorID; 
             loadProfile(vendorID);
         } else {
             showError("Missing Vendor ID", "The link is broken. No ID found.");
         }
     });
 
-    // --- 🔵 UPDATED: DUAL SHEET FETCH ---
     function loadProfile(id) {
-        // First check if suspended in Firestore
         getDoc(doc(db, "vendor_status", id)).then(docSnap => {
             if (docSnap.exists() && docSnap.data().status === "suspended") {
                 document.getElementById('profile-skeleton').style.display = 'none'; 
@@ -403,22 +427,17 @@
                 return;
             }
 
-            // Fetch BOTH sheets simultaneously
             Promise.all([
                 fetch(`${apiRoot}/Vendors`).then(res => res.json()),
-                fetch(`${apiRoot}/Vendors_v2`).then(res => res.json().catch(() => [])) // Catch empty V2
+                fetch(`${apiRoot}/Vendors_v2`).then(res => res.json().catch(() => []))
             ])
             .then(([vendors1, vendors2]) => {
-                // Merge Data
                 const allVendors = [...vendors1, ...vendors2];
-                
-                // Find vendor in the combined list
                 const v = allVendors.find(item => (item.vendor_id || item.Vendor_ID) === id);
                 
                 if(!v) { 
                     showError("Vendor Not Found", `ID "${id}" does not exist.`); 
                 } else {
-                    // Check if verify is FALSE (from V2 sheet logic)
                     const isVerified = String(v.verified || v.Verified || "").toLowerCase().trim();
                     if(isVerified === "false") {
                         showError("Pending Approval", "This vendor profile is awaiting verification.");
@@ -434,7 +453,7 @@
                     const rawPhone = v.whatsapp || v.Whatsapp || "";
                     currentVendorPhone = String(rawPhone).replace(/[^0-9]/g, '');
                     
-                    loadProducts(id); 
+                    loadProducts(id, allVendors); 
                 }
             })
             .catch(err => { 
@@ -481,14 +500,16 @@
         }
     }
 
-    async function loadProducts(id) {
+    async function loadProducts(id, allVendorsList) {
         fetch(`${apiRoot}/Products`)
         .then(res => res.json())
         .then(async (sheetData) => {
-            const firestoreProducts = await loadVendorFirestoreItems(id);
+            const firestoreProducts = await loadVendorFirestoreItems();
             const allProducts = [...sheetData, ...firestoreProducts];
             
+            // Separate this vendor's products from the rest
             allVendorProducts = allProducts.filter(p => (p.vendor_id || p.Vendor_ID) === id);
+            const otherVendorProducts = allProducts.filter(p => (p.vendor_id || p.Vendor_ID) !== id);
             
             const grid = document.getElementById('vendor-grid');
             grid.innerHTML = ""; 
@@ -496,10 +517,11 @@
             if(allVendorProducts.length === 0) { 
                 grid.innerHTML = "<p style='width:100%; text-align:center; padding:20px; color:#777;'>No items listed yet.</p>"; 
                 document.getElementById('load-more-container').style.display = 'none';
-                return; 
+            } else {
+                renderBatch();
             }
-            
-            renderBatch();
+
+            renderExploreMore(otherVendorProducts, allVendorsList);
         });
     }
 
@@ -517,12 +539,12 @@
             const pCategory = p.category || p.Category; 
             const pImage = p.image || p.Image;
             const pStatus = p.status || p.Status || "Active"; 
-            const isFeatured = p.is_featured === "true"; 
+            const isFeatured = String(p.is_featured).toLowerCase() === "true"; 
             const pDesc = p.description || p.Description || "No additional details.";
             
             const pID = p.id || (p.vendor_id + "-" + pName).replace(/\s+/g, '-').toLowerCase();
             let pImg = pImage || "logo-blue.png"; 
-            if (!pImg.startsWith('http')) pImg = `img/${pImg}`;
+            if (!String(pImg).startsWith('http')) pImg = `img/${pImg}`;
             
             const isSaved = savedItemIds.has(pID); 
             const heartClass = isSaved ? 'fas' : 'far'; 
@@ -532,14 +554,15 @@
             const opacity = isSold ? 'opacity:0.6;' : '';
             let badge = '';
             if (isSold) badge = '<span style="background:red; color:white; font-size:9px; padding:2px 5px; position:absolute; top:10px; left:10px; border-radius:4px; z-index:10;">SOLD</span>';
-            else if (isFeatured) badge = '<span style="background:#f1c40f; color:white; font-size:9px; padding:2px 5px; position:absolute; top:10px; left:10px; border-radius:4px; z-index:10; font-weight:bold;">⭐ Sponsored</span>';
+            else if (isFeatured) badge = '<span style="background:#f1c40f; color:white; font-size:9px; padding:2px 5px; position:absolute; top:10px; left:10px; border-radius:4px; z-index:10; font-weight:bold;">⭐ Featured</span>';
 
-            const safeNameJS = pName.replace(/'/g, "\\'").replace(/"/g, "&quot;");
-            const safeDescJS = pDesc.replace(/'/g, "\\'").replace(/"/g, "&quot;").replace(/\n/g, " ");
+            const safeNameJS = String(pName).replace(/'/g, "\\'").replace(/"/g, "&quot;");
+            const safeDescJS = String(pDesc).replace(/'/g, "\\'").replace(/"/g, "&quot;").replace(/\n/g, " ");
+            const safeCatJS = String(pCategory || "General").replace(/'/g, "\\'").replace(/"/g, "&quot;");
 
             const btnText = isSold ? "Sold" : "Get Item";
             const btnStyle = isSold ? "background:#777; pointer-events:none;" : "";
-            const btnAction = isSold ? "" : `openDetailModal('${safeNameJS}', '${escapeHTML(pPrice)}', '${safeDescJS}', '${escapeHTML(pCategory)}')`;
+            const btnAction = isSold ? "" : `openDetailModal('${safeNameJS}', '${escapeHTML(pPrice)}', '${safeDescJS}', '${safeCatJS}', '${currentVendorPhone}')`;
 
             grid.innerHTML += `
             <div class="ad-card" style="position:relative; ${opacity}">
@@ -568,21 +591,70 @@
         }
     }
 
-    window.openDetailModal = function(title, price, desc, category) {
+    // 🔴 EXPLORE MORE LOGIC (Intact)
+    function renderExploreMore(otherProducts, allVendorsList) {
+        if(otherProducts.length === 0) return;
+        
+        document.getElementById('explore-more-section').style.display = 'block';
+        const exploreGrid = document.getElementById('explore-grid');
+        exploreGrid.innerHTML = "";
+
+        const phoneBook = {};
+        allVendorsList.forEach(v => {
+            const vID = v.vendor_id || v.Vendor_ID;
+            const vPhone = v.whatsapp || v.Whatsapp;
+            if(vID) phoneBook[vID] = String(vPhone).replace(/[^0-9]/g, '');
+        });
+
+        let activeOthers = otherProducts.filter(p => (p.status || p.Status) !== "Sold");
+        let randomSelection = shuffleArray(activeOthers).slice(0, 6);
+
+        randomSelection.forEach(p => {
+            const pName = p.name || p.Name; 
+            const pPrice = p.price || p.Price; 
+            const pVendor = p.vendor_id || p.Vendor_ID;
+            const pImage = p.image || p.Image;
+            const pDesc = p.description || p.Description || "No additional details.";
+            
+            const pCat = p.category || p.Category || "General";
+            const pPhone = phoneBook[pVendor] || ADMIN_PHONE;
+            
+            let pImg = pImage || "logo-blue.png"; 
+            if (!String(pImg).startsWith('http')) pImg = `img/${pImg}`;
+
+            const safeNameJS = String(pName).replace(/'/g, "\\'").replace(/"/g, "&quot;");
+            const safeDescJS = String(pDesc).replace(/'/g, "\\'").replace(/"/g, "&quot;").replace(/\n/g, " ");
+            const safeCatJS = String(pCat).replace(/'/g, "\\'").replace(/"/g, "&quot;");
+
+            exploreGrid.innerHTML += `
+            <div class="ad-card" style="position:relative;">
+                <img class="ad-img" src="${pImg}" onerror="this.src='img/logo-blue.png'">
+                <div class="ad-info">
+                    <div class="ad-price">${escapeHTML(pPrice)}</div>
+                    <div class="ad-title">${escapeHTML(pName)}</div>
+                    <div class="ad-location">Vendor: ${pVendor}</div>
+                    <button onclick="openDetailModal('${safeNameJS}', '${escapeHTML(pPrice)}', '${safeDescJS}', '${safeCatJS}', '${pPhone}')" class="chat-btn" style="width:100%; margin-top:5px; border:none; cursor:pointer;">Get Item</button>
+                </div>
+            </div>`;
+        });
+    }
+
+    window.openDetailModal = function(title, price, desc, category, phone) {
         document.getElementById('m-title').innerText = title;
         document.getElementById('m-price').innerText = price;
         document.getElementById('m-desc').innerText = desc;
         document.getElementById('m-category').innerText = "Category: " + category;
         
         const waMsg = encodeURIComponent(`Hi, I saw "${title}" on AFIT Market (Price: ${price}). Is it available?`);
-        document.getElementById('m-btn').href = `https://wa.me/${currentVendorPhone}?text=${waMsg}`;
+        const targetPhone = phone || currentVendorPhone;
+        document.getElementById('m-btn').href = `https://wa.me/${targetPhone}?text=${waMsg}`;
         
         document.getElementById('detail-modal').style.display = 'flex';
     };
 
-    async function loadVendorFirestoreItems(vid) {
+    async function loadVendorFirestoreItems() {
         try {
-            const q = query(collection(db, "products"), where("vendor_id", "==", vid));
+            const q = query(collection(db, "products"));
             const snapshot = await getDocs(q);
             return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         } catch(e) { console.error("Firestore Error:", e); return []; }
