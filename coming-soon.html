@@ -157,7 +157,7 @@
         .btn-vendor { background: rgba(255, 255, 255, 0.05); color: white; border: 1px solid var(--border); }
         .btn:active { transform: scale(0.96); }
 
-        /* --- NEW: INFO LINKS GRID --- */
+        /* --- INFO LINKS GRID --- */
         .info-links-title {
             font-size: 12px;
             color: var(--text-muted);
@@ -205,12 +205,45 @@
 
         /* --- INSTALL LINK --- */
         #install-container { display: none; margin-top: 15px; }
-        .install-link { color: #64748b; font-size: 12px; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; cursor: pointer; padding: 8px 15px; border-radius: 20px; background: rgba(0,0,0,0.2); }
+        .install-link { color: #64748b; font-size: 12px; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; cursor: pointer; padding: 8px 15px; border-radius: 20px; background: rgba(0,0,0,0.2); border: 1px solid var(--border); }
         .install-link:hover { color: white; background: rgba(255,255,255,0.05); }
+
+        /* --- 🟢 MAGIC LINK INSTALL PROMPT --- */
+        #magic-install-overlay {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(2, 6, 23, 0.95); backdrop-filter: blur(10px); z-index: 9999;
+            justify-content: center; align-items: center; padding: 20px;
+        }
+        .magic-card {
+            background: var(--card-bg); width: 100%; max-width: 350px; border-radius: 24px;
+            padding: 40px 20px; text-align: center; box-shadow: 0 20px 50px rgba(0,0,0,0.8);
+            border: 1px solid var(--border);
+            animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        .magic-card img { width: 80px; margin-bottom: 15px; filter: drop-shadow(0 4px 10px rgba(45,142,255,0.3)); }
+        .magic-card h2 { margin: 0 0 10px; font-size: 22px; color: white; }
+        .magic-card p { font-size: 14px; color: var(--text-muted); margin-bottom: 25px; line-height: 1.5; }
+        .btn-magic-install {
+            background: var(--brand); color: white; border: none; padding: 15px; width: 100%;
+            border-radius: 30px; font-weight: bold; font-size: 16px; cursor: pointer;
+            box-shadow: 0 4px 15px rgba(45,142,255,0.3); transition: transform 0.2s;
+        }
+        .btn-magic-install:active { transform: scale(0.95); }
+        .btn-magic-skip { background: none; border: none; color: var(--text-muted); font-size: 13px; margin-top: 15px; cursor: pointer; text-decoration: underline; }
 
     </style>
 </head>
 <body>
+
+    <div id="magic-install-overlay">
+        <div class="magic-card">
+            <img src="img/logo-blue.png" alt="AFIT Market">
+            <h2>Get the Full Experience!</h2>
+            <p>Install the AFIT Market app on your phone for faster browsing, offline access, and instant updates.</p>
+            <button id="btn-magic-install" class="btn-magic-install">Install App Now</button>
+            <button class="btn-magic-skip" onclick="document.getElementById('magic-install-overlay').style.display='none'">Continue to website</button>
+        </div>
+    </div>
 
     <div class="bg-watermark"></div>
 
@@ -348,24 +381,53 @@
             else if (code) alert("⛔ Access Denied");
         }
 
+        // --- 🔵 PWA INSTALLATION SYSTEM (WITH MAGIC LINK) ---
         let deferredPrompt;
         const installContainer = document.getElementById('install-container');
         const installBtn = document.getElementById('install-btn');
 
+        // Check if the URL has ?action=install
+        const urlParams = new URLSearchParams(window.location.search);
+        const isMagicLink = urlParams.get('action') === 'install';
+
         window.addEventListener('beforeinstallprompt', (e) => {
+            console.log('App is installable...');
             e.preventDefault();
             deferredPrompt = e;
-            if (!/iPad|iPhone|iPod/.test(navigator.userAgent)) {
-                installContainer.style.display = 'block';
+            
+            // If they clicked the magic link on WhatsApp, show the big forced overlay immediately
+            if (isMagicLink) {
+                document.getElementById('magic-install-overlay').style.display = 'flex';
+            } else {
+                // Otherwise, show the normal small button at the bottom (excluding iOS devices which don't support it this way)
+                if (!/iPad|iPhone|iPod/.test(navigator.userAgent)) {
+                    installContainer.style.display = 'block';
+                }
             }
         });
 
-        installBtn.addEventListener('click', async () => {
-            if (deferredPrompt) {
-                deferredPrompt.prompt();
-                deferredPrompt = null;
-                installContainer.style.display = 'none';
+        const triggerAppInstall = async () => {
+            if (!deferredPrompt) {
+                alert("App is already installed or your browser doesn't support installation (Try using Chrome).");
+                return;
             }
+            deferredPrompt.prompt();
+            const { outcome } = await deferredPrompt.userChoice;
+            console.log(`User response to install: ${outcome}`);
+            deferredPrompt = null;
+            
+            installContainer.style.display = 'none';
+            document.getElementById('magic-install-overlay').style.display = 'none';
+        };
+
+        // Attach triggers to both the standard button and the magic overlay button
+        installBtn.addEventListener('click', triggerAppInstall);
+        document.getElementById('btn-magic-install').addEventListener('click', triggerAppInstall);
+
+        window.addEventListener('appinstalled', () => {
+            console.log('App was successfully installed');
+            installContainer.style.display = 'none';
+            document.getElementById('magic-install-overlay').style.display = 'none';
         });
     </script>
 </body>
