@@ -155,6 +155,28 @@
         border-color: #2d8eff;
         color: #2d8eff;
       }
+      #magic-install-overlay {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.85); backdrop-filter: blur(10px); z-index: 9999;
+            justify-content: center; align-items: center; padding: 20px;
+        }
+        .magic-card {
+            background: white; width: 100%; max-width: 350px; border-radius: 24px;
+            padding: 40px 20px; text-align: center; box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+            animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        .magic-card img { width: 80px; margin-bottom: 15px; filter: drop-shadow(0 4px 10px rgba(45,142,255,0.3)); }
+        .magic-card h2 { margin: 0 0 10px; font-size: 22px; color: #1e293b; }
+        .magic-card p { font-size: 14px; color: #64748b; margin-bottom: 25px; line-height: 1.5; }
+        .btn-magic-install {
+            background: #2d8eff; color: white; border: none; padding: 15px; width: 100%;
+            border-radius: 30px; font-weight: bold; font-size: 16px; cursor: pointer;
+            box-shadow: 0 4px 15px rgba(45,142,255,0.3); transition: transform 0.2s;
+        }
+        .btn-magic-install:active { transform: scale(0.95); }
+        .btn-magic-skip { background: none; border: none; color: #94a3b8; font-size: 13px; margin-top: 15px; cursor: pointer; text-decoration: underline; }
+        body.dark-mode .magic-card { background: #1e293b; }
+        body.dark-mode .magic-card h2 { color: white; }
   </style>
   
 </head>
@@ -295,6 +317,16 @@
 </p>
     </footer>
 
+    <div id="magic-install-overlay">
+        <div class="magic-card">
+            <img src="img/logo-blue.png" alt="AFIT Market">
+            <h2>Get the Full Experience!</h2>
+            <p>Install the AFIT Market app on your phone for faster browsing, offline access, and instant updates.</p>
+            <button id="btn-magic-install" class="btn-magic-install">Install App Now</button>
+            <button class="btn-magic-skip" onclick="document.getElementById('magic-install-overlay').style.display='none'">Continue to website</button>
+        </div>
+    </div>
+
     <div id="promo-modal" class="modal-overlay">
       <div class="modal-content">
         <span class="close-modal">&times;</span>
@@ -406,18 +438,29 @@
     let globalPhoneBook = {}; 
     let suspendedVendors = new Set(); 
 
-    // --- 🔵 PWA INSTALLATION SYSTEM ---
+
+    // --- 🔵 PWA INSTALLATION SYSTEM (WITH MAGIC LINK) ---
     let deferredPrompt;
     
+    // Check if the URL has ?action=install
+    const urlParams = new URLSearchParams(window.location.search);
+    const isMagicLink = urlParams.get('action') === 'install';
+
     window.addEventListener('beforeinstallprompt', (e) => {
         console.log('App is installable...');
         e.preventDefault();
         deferredPrompt = e;
         
-        setTimeout(() => {
-            const popup = document.getElementById('install-popup');
-            if(popup) popup.style.display = 'block';
-        }, 4000);
+        // If they clicked the magic link on WhatsApp, show the big forced overlay immediately
+        if (isMagicLink) {
+            document.getElementById('magic-install-overlay').style.display = 'flex';
+        } else {
+            // Otherwise, show the normal small popup after 4 seconds
+            setTimeout(() => {
+                const popup = document.getElementById('install-popup');
+                if(popup) popup.style.display = 'block';
+            }, 4000);
+        }
 
         const footerBtn = document.getElementById('manual-install-btn');
         if(footerBtn) footerBtn.style.display = 'inline-block';
@@ -425,25 +468,33 @@
 
     const triggerAppInstall = async () => {
         if (!deferredPrompt) {
-            alert("App is already installed or your browser doesn't support installation.");
+            alert("App is already installed or your browser doesn't support installation (Try using Chrome or Safari).");
             return;
         }
         deferredPrompt.prompt();
         const { outcome } = await deferredPrompt.userChoice;
         console.log(`User response to install: ${outcome}`);
         deferredPrompt = null;
+        
+        // Hide all prompts
         document.getElementById('install-popup').style.display = 'none';
         document.getElementById('manual-install-btn').style.display = 'none';
+        document.getElementById('magic-install-overlay').style.display = 'none';
     };
 
+    // Attach the trigger to all 3 install buttons
     document.getElementById('install-btn').addEventListener('click', triggerAppInstall);
     document.getElementById('manual-install-btn').addEventListener('click', triggerAppInstall);
+    const magicBtn = document.getElementById('btn-magic-install');
+    if(magicBtn) magicBtn.addEventListener('click', triggerAppInstall);
     
     window.addEventListener('appinstalled', () => {
         console.log('App was successfully installed');
         document.getElementById('install-popup').style.display = 'none';
         document.getElementById('manual-install-btn').style.display = 'none';
+        document.getElementById('magic-install-overlay').style.display = 'none';
     });
+
     // --- 🔴 END INSTALLATION SYSTEM ---
 
     setupMainSearch();
