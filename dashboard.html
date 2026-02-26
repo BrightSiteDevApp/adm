@@ -521,7 +521,6 @@
         }
     };
 
-    // --- SECURED POST/UPDATE ITEM ---
     document.getElementById('btn-submit').addEventListener('click', async () => {
         if (!isEditing && currentCount >= maxItems) { alert("Limit Reached!"); return; }
 
@@ -545,7 +544,6 @@
         try {
             let finalImageUrl = currentImageURL;
 
-            // ✅ FIXED: Compress Image Before Upload (Fixes iPhone HEIC Issue)
             if (fileInput.files.length > 0) {
                 const compressedBlob = await compressImage(fileInput.files[0]);
                 
@@ -563,7 +561,8 @@
                 const itemRef = doc(db, "products", editDocID);
                 await updateDoc(itemRef, {
                     name: name, price: formattedPrice, description: desc, 
-                    category: cat, condition: condition, image: finalImageUrl
+                    category: cat, condition: condition, image: finalImageUrl,
+                    owner_uid: auth.currentUser.uid // ✅ AUTO-REPAIRS OLD ITEMS!
                 });
                 alert("Item Updated!");
             } else {
@@ -593,7 +592,10 @@
         const newStatus = currentStatus === "Sold" ? "Active" : "Sold";
         if(!confirm(`Mark as ${newStatus}?`)) return;
         try {
-            await updateDoc(doc(db, "products", docID), { status: newStatus });
+            await updateDoc(doc(db, "products", docID), { 
+                status: newStatus,
+                owner_uid: auth.currentUser.uid // ✅ AUTO-REPAIRS OLD ITEMS!
+            });
             loadMyItems(currentVendorID);
         } catch(e) { alert("Error: " + e.message); }
     };
