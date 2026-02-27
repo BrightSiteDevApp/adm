@@ -414,6 +414,12 @@
     import { getFirestore, doc, setDoc, deleteDoc, collection, getDocs, query, getDoc, where } 
     from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
+    import { getAuth, onAuthStateChanged, signInWithPopup, GoogleAuthProvider, getAdditionalUserInfo } 
+from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+
+import { getFirestore, doc, setDoc, deleteDoc, collection, getDocs, query, getDoc, where, addDoc } 
+from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
     const firebaseConfig = {
         apiKey: "AIzaSyA1eQbrJpH9OtDNDN7z9oTFTRSAE7vCFbg",
         authDomain: "afit-market-auth.firebaseapp.com",
@@ -431,14 +437,14 @@
     let savedItemIds = new Set();
     const sheetID = "1SvVUbEnDgqgw2Z_M1ShQkzyFTsnnS6n8mTs7UMXVvF4";
     const apiRoot = `https://opensheet.elk.sh/${sheetID}`;
-    const ADMIN_PHONE = "2348144516127"; 
+    const ADMIN_PHONE = "2349153375488"; 
     let allProducts = [];
     let allVendors = [];
     let globalPhoneBook = {}; 
     let suspendedVendors = new Set(); 
 
-    // --- 🟢 NEW LOCAL STORAGE CACHING SYSTEM (10 MINUTE TTL) ---
-    const CACHE_TTL = 10 * 60 * 1000; // 10 minutes in milliseconds
+    // --- 🟢 NEW LOCAL STORAGE CACHING SYSTEM (1 MINUTE TTL) ---
+    const CACHE_TTL = 1 * 60 * 1000; // 1 minutes in milliseconds
 
     function getCachedData(key) {
         const cached = localStorage.getItem(key);
@@ -561,13 +567,45 @@
         }
     });
 
-    document.getElementById('popup-google-btn').addEventListener('click', () => {
-        signInWithPopup(auth, provider)
-            .then((result) => {
-                document.getElementById('login-modal').style.display = 'none';
-                sessionStorage.setItem('loginPopupDismissed', 'true');
-            }).catch((error) => { alert("Login failed: " + error.message); });
-    });
+   document.getElementById('popup-google-btn').addEventListener('click', async () => {
+    try {
+        // 1. Sign the user in
+        const result = await signInWithPopup(auth, provider);
+        document.getElementById('login-modal').style.display = 'none';
+        sessionStorage.setItem('loginPopupDismissed', 'true');
+
+        // 2. Check if this is a brand new account
+        const additionalInfo = getAdditionalUserInfo(result);
+        if (additionalInfo && additionalInfo.isNewUser) {
+            console.log("New user detected! Preparing welcome email...");
+            
+            // 3. Save the email request to Firestore
+            await addDoc(collection(db, "mail"), {
+                to: result.user.email,
+                message: {
+                    subject: "Welcome to AFIT Market! 🎉",
+                    html: `
+                        <div style="font-family: Arial, sans-serif; color: #333; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eaeaea; border-radius: 10px;">
+                            <h2 style="color: #0056b3;">Welcome to AFIT Market! 🎓</h2>
+                            <p>Hi ${result.user.displayName || "there"},</p>
+                            <p>We are absolutely thrilled to have you here! You can now:</p>
+                            <ul>
+                                <li>❤️ Save your favorite items to your wishlist</li>
+                                <li>💬 Contact campus vendors directly on WhatsApp</li>
+                                <li>📢 Post public requests for items you need to buy</li>
+                            </ul>
+                            <p>Happy hunting!</p>
+                            <p><strong>- The AFIT Market Team</strong></p>
+                        </div>
+                    `
+                }
+            });
+            console.log("Welcome email sent to database!");
+        }
+    } catch (error) {
+        alert("Login failed: " + error.message);
+    }
+});
 
     async function initData() {
         try {
