@@ -365,6 +365,34 @@
     const apiRoot = `https://opensheet.elk.sh/${sheetID}`;
     const ADMIN_PHONE = "2348144516127"; 
 
+    // --- 🟢 SHARED LOCAL STORAGE CACHING SYSTEM (10 MIN TTL) ---
+    const CACHE_TTL = 10 * 60 * 1000; 
+
+    function getCachedData(key) {
+        const cached = localStorage.getItem(key);
+        if (!cached) return null;
+        const parsed = JSON.parse(cached);
+        if (Date.now() - parsed.timestamp > CACHE_TTL) {
+            localStorage.removeItem(key); 
+            return null;
+        }
+        return parsed.data; 
+    }
+
+    function setCachedData(key, data) {
+        localStorage.setItem(key, JSON.stringify({
+            timestamp: Date.now(),
+            data: data
+        }));
+    }
+    
+    // 🎁 BONUS: Vendor can clear cache to see new uploads instantly
+    window.clearProductCache = function() {
+        localStorage.removeItem('cache_firestore_products');
+        alert("Cache cleared! Refresh the page to see your newest uploads.");
+    };
+    // --- 🟢 END CACHING SYSTEM ---
+
     function escapeHTML(str) {
         if (!str) return "";
         return String(str)
@@ -400,7 +428,10 @@
     function checkOwner() {
         if (currentUserEmail && pageVendorEmail && currentUserEmail === pageVendorEmail) {
             const manageBtn = document.getElementById('btn-manage');
-            if(manageBtn) manageBtn.style.display = 'block';
+            if(manageBtn) {
+                manageBtn.style.display = 'block';
+                // Add the clear cache function to the manage button or create a new one nearby if you want
+            }
         }
     }
 
@@ -419,47 +450,64 @@
     });
 
     function loadProfile(id) {
-        getDoc(doc(db, "vendor_status", id)).then(docSnap => {
-            if (docSnap.exists() && docSnap.data().status === "suspended") {
-                document.getElementById('profile-skeleton').style.display = 'none'; 
-                document.getElementById('profile-content').style.display = 'none';
-                document.getElementById('error-message').style.display = 'block';
-                return;
-            }
-
-            Promise.all([
-                fetch(`${apiRoot}/Vendors`).then(res => res.json()),
-                fetch(`${apiRoot}/Vendors_v2`).then(res => res.json().catch(() => []))
-            ])
-            .then(([vendors1, vendors2]) => {
-                const allVendors = [...vendors1, ...vendors2];
-                const v = allVendors.find(item => (item.vendor_id || item.Vendor_ID) === id);
-                
-                if(!v) { 
-                    showError("Vendor Not Found", `ID "${id}" does not exist.`); 
-                } else {
-                    const isVerified = String(v.verified || v.Verified || "").toLowerCase().trim();
-                    if(isVerified === "false") {
-                        showError("Pending Approval", "This vendor profile is awaiting verification.");
-                        return;
-                    }
-
-                    renderVendor(v, id);
-                    if (v.Email) { pageVendorEmail = v.Email.toLowerCase().trim(); checkOwner(); }
-                    
-                    document.getElementById('profile-skeleton').style.display = 'none';
-                    document.getElementById('profile-content').style.display = 'block';
-
-                    const rawPhone = v.whatsapp || v.Whatsapp || "";
-                    currentVendorPhone = String(rawPhone).replace(/[^0-9]/g, '');
-                    
-                    loadProducts(id, allVendors); 
+        // ✅ CACHE ADDED: Suspended Vendors
+        let suspendedData = getCachedData('cache_suspended_vendors');
+        
+        if (suspendedData && suspendedData.includes(id)) {
+             showSuspendedError();
+             return;
+        } else if (!suspendedData) {
+            getDoc(doc(db, "vendor_status", id)).then(docSnap => {
+                if (docSnap.exists() && docSnap.data().status === "suspended") {
+                    showSuspendedError();
+                    return;
                 }
-            })
-            .catch(err => { 
-                console.error("Fetch Error:", err); 
-                showError("Connection Error", "Check your internet connection."); 
+                fetchVendorDetails(id);
             });
+        } else {
+            fetchVendorDetails(id);
+        }
+    }
+    
+    function showSuspendedError() {
+        document.getElementById('profile-skeleton').style.display = 'none'; 
+        document.getElementById('profile-content').style.display = 'none';
+        document.getElementById('error-message').style.display = 'block';
+    }
+
+    function fetchVendorDetails(id) {
+        Promise.all([
+            fetch(`${apiRoot}/Vendors`).then(res => res.json()),
+            fetch(`${apiRoot}/Vendors_v2`).then(res => res.json().catch(() => []))
+        ])
+        .then(([vendors1, vendors2]) => {
+            const allVendors = [...vendors1, ...vendors2];
+            const v = allVendors.find(item => (item.vendor_id || item.Vendor_ID) === id);
+            
+            if(!v) { 
+                showError("Vendor Not Found", `ID "${id}" does not exist.`); 
+            } else {
+                const isVerified = String(v.verified || v.Verified || "").toLowerCase().trim();
+                if(isVerified === "false") {
+                    showError("Pending Approval", "This vendor profile is awaiting verification.");
+                    return;
+                }
+
+                renderVendor(v, id);
+                if (v.Email) { pageVendorEmail = v.Email.toLowerCase().trim(); checkOwner(); }
+                
+                document.getElementById('profile-skeleton').style.display = 'none';
+                document.getElementById('profile-content').style.display = 'block';
+
+                const rawPhone = v.whatsapp || v.Whatsapp || "";
+                currentVendorPhone = String(rawPhone).replace(/[^0-9]/g, '');
+                
+                loadProducts(id, allVendors); 
+            }
+        })
+        .catch(err => { 
+            console.error("Fetch Error:", err); 
+            showError("Connection Error", "Check your internet connection."); 
         });
     }
 
@@ -653,10 +701,22 @@
     };
 
     async function loadVendorFirestoreItems() {
+        // ✅ CACHE ADDED: Firestore Products (Shared across all pages)
+        let cachedProducts = getCachedData('cache_firestore_products');
+        
+        if (cachedProducts) {
+            console.log("Loaded Firebase products from shared cache (Profile Page)");
+            return cachedProducts;
+        }
+
         try {
+            console.log("Fetching fresh products from Firebase (Profile Page)");
             const q = query(collection(db, "products"));
             const snapshot = await getDocs(q);
-            return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            
+            setCachedData('cache_firestore_products', data);
+            return data;
         } catch(e) { console.error("Firestore Error:", e); return []; }
     }
 

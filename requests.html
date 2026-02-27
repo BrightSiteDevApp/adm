@@ -248,7 +248,7 @@
         </div>
     </div>
 
-  <script type="module">
+ <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
         import { getFirestore, collection, addDoc, getDocs, query, where, orderBy, deleteDoc, doc, limit, startAfter } 
@@ -287,6 +287,28 @@
         let lastVisibleDoc = null;
         let isFetching = false;
         const BATCH_SIZE = 10;
+
+        // --- 🟢 SHARED VENDOR CACHING SYSTEM (30 MIN TTL) ---
+        const CACHE_TTL_VENDORS = 30 * 60 * 1000; 
+
+        function getCachedData(key) {
+            const cached = localStorage.getItem(key);
+            if (!cached) return null;
+            const parsed = JSON.parse(cached);
+            if (Date.now() - parsed.timestamp > CACHE_TTL_VENDORS) {
+                localStorage.removeItem(key); 
+                return null;
+            }
+            return parsed.data; 
+        }
+
+        function setCachedData(key, data) {
+            localStorage.setItem(key, JSON.stringify({
+                timestamp: Date.now(),
+                data: data
+            }));
+        }
+        // --- 🟢 END CACHING SYSTEM ---
 
         // 🛡️ XSS SANITIZATION HELPER
         function escapeHTML(str) {
@@ -344,11 +366,18 @@
 
         async function checkIfVendor(email) {
             try {
-                const [v1, v2] = await Promise.all([
-                    fetch(`${API_ROOT}/Vendors`).then(res => res.json()),
-                    fetch(`${API_ROOT}/Vendors_v2`).then(res => res.json().catch(() => []))
-                ]);
-                const allVendors = [...v1, ...v2];
+                // ✅ Check Cache First!
+                let allVendors = getCachedData('cache_sheet_vendors');
+
+                if (!allVendors) {
+                    const [v1, v2] = await Promise.all([
+                        fetch(`${API_ROOT}/Vendors`).then(res => res.json()),
+                        fetch(`${API_ROOT}/Vendors_v2`).then(res => res.json().catch(() => []))
+                    ]);
+                    allVendors = [...v1, ...v2];
+                    setCachedData('cache_sheet_vendors', allVendors);
+                }
+
                 return allVendors.some(v => {
                     const vEmail = getSmartValue(v, 'Email');
                     return vEmail && vEmail.toLowerCase().trim() === email.toLowerCase().trim();
@@ -465,10 +494,14 @@
 
         // 🔴 SUBMIT FUNCTION WITH SPAM PROTECTION 🔴
         window.submitRequest = async function() {
-            const title = document.getElementById('req-title').value;
-            const budget = document.getElementById('req-budget').value;
-            const phone = document.getElementById('req-phone').value;
+            const titleInput = document.getElementById('req-title');
+            const budgetInput = document.getElementById('req-budget');
+            const phoneInput = document.getElementById('req-phone');
             const categorySelect = document.getElementById('req-category');
+            
+            const title = titleInput.value;
+            const budget = budgetInput.value;
+            const phone = phoneInput.value;
             const category = categorySelect ? categorySelect.value : "";
             const btn = document.querySelector('.chat-btn');
 
@@ -539,69 +572,84 @@
                 // Update Timers
                 localStorage.setItem('last_req_time', now.toString());
 
-                // 4. Fetch Vendors with Error Check
-                let v1 = [], v2 = [];
+                // 4. Fetch Vendors with Cache Check
+                let allVendors = getCachedData('cache_sheet_vendors');
                 let sheetError = false;
 
-                try {
-                    [v1, v2] = await Promise.all([
-                        fetch(`${API_ROOT}/Vendors`).then(res => { if(!res.ok) throw new Error(); return res.json(); }),
-                        fetch(`${API_ROOT}/Vendors_v2`).then(res => { if(!res.ok) throw new Error(); return res.json(); })
-                    ]);
-                } catch(e) { sheetError = true; }
-
-                const allVendors = [...(Array.isArray(v1)?v1:[]), ...(Array.isArray(v2)?v2:[])];
+                if (!allVendors) {
+                    try {
+                        const [v1, v2] = await Promise.all([
+                            fetch(`${API_ROOT}/Vendors`).then(res => { if(!res.ok) throw new Error(); return res.json(); }),
+                            fetch(`${API_ROOT}/Vendors_v2`).then(res => { if(!res.ok) throw new Error(); return res.json(); })
+                        ]);
+                        allVendors = [...(Array.isArray(v1)?v1:[]), ...(Array.isArray(v2)?v2:[])];
+                        setCachedData('cache_sheet_vendors', allVendors);
+                    } catch(e) { sheetError = true; allVendors = []; }
+                }
                 
                 if(allVendors.length === 0 && sheetError) {
                     alert("Request Saved! (But vendors not notified due to network).");
-                    location.reload();
-                    return;
-                }
-
-                // 5. Send Email
-                const targetCat = category.toLowerCase();
-                const filteredVendors = allVendors.filter(v => {
-                    const c = getSmartValue(v, 'Category');
-                    const e = getSmartValue(v, 'Email');
-                    if(!c || !e) return false;
-                    return c.toLowerCase().split(',').map(x=>x.trim()).includes(targetCat);
-                });
-
-                const emailSet = new Set(filteredVendors.map(v => getSmartValue(v, 'Email').trim()));
-                const vendorEmails = Array.from(emailSet).join(',');
-
-                if(vendorEmails.length > 0) {
-                    const emailPromise = emailjs.send(
-                        EMAILJS_SERVICE_ID, 
-                        EMAILJS_TEMPLATE_ID, 
-                        {
-                            request_title: title,
-                            request_budget: budget,
-                            request_category: category,
-                            user_phone: phone,
-                            bcc_emails: vendorEmails
-                        },
-                        EMAILJS_PUBLIC_KEY
-                    );
-
-                    const timeoutPromise = new Promise((_, reject) => 
-                        setTimeout(() => reject(new Error("Email connection timed out")), 20000)
-                    );
-
-                    await Promise.race([emailPromise, timeoutPromise]);
-                    alert(`Success! Request posted and ${emailSet.size} vendors notified.`);
                 } else {
-                    alert("Request Posted! (No vendors matched this category yet).");
+                    // 5. Send Email
+                    const targetCat = category.toLowerCase();
+                    const filteredVendors = allVendors.filter(v => {
+                        const c = getSmartValue(v, 'Category');
+                        const e = getSmartValue(v, 'Email');
+                        if(!c || !e) return false;
+                        return c.toLowerCase().split(',').map(x=>x.trim()).includes(targetCat);
+                    });
+
+                    const emailSet = new Set(filteredVendors.map(v => getSmartValue(v, 'Email').trim()));
+                    const vendorEmails = Array.from(emailSet).join(',');
+
+                    if(vendorEmails.length > 0) {
+                        const emailPromise = emailjs.send(
+                            EMAILJS_SERVICE_ID, 
+                            EMAILJS_TEMPLATE_ID, 
+                            {
+                                request_title: title,
+                                request_budget: budget,
+                                request_category: category,
+                                user_phone: phone,
+                                bcc_emails: vendorEmails
+                            },
+                            EMAILJS_PUBLIC_KEY
+                        );
+
+                        const timeoutPromise = new Promise((_, reject) => 
+                            setTimeout(() => reject(new Error("Email connection timed out")), 20000)
+                        );
+
+                        await Promise.race([emailPromise, timeoutPromise]);
+                        alert(`Success! Request posted and ${emailSet.size} vendors notified.`);
+                    } else {
+                        alert("Request Posted! (No vendors matched this category yet).");
+                    }
                 }
 
+                // ✅ CLEANUP (NO MORE RELOADS!)
                 closeModal();
-                location.reload(); 
+                titleInput.value = '';
+                budgetInput.value = '';
+                phoneInput.value = '';
+                if(categorySelect) categorySelect.value = '';
+                
+                btn.innerText = "Post Request";
+                btn.disabled = false;
+
+                // Refresh the feed instantly in the background
+                resetAndLoad(currentMode);
 
             } catch (err) {
                 console.error("Full Error Object:", err);
                 const errorMessage = err.text || err.message || "Unknown error";
                 alert("Request Posted! (Note: Email notification failed: " + errorMessage + ")");
-                location.reload();
+                
+                // Still cleanup even on email error so they see their post
+                closeModal();
+                btn.innerText = "Post Request";
+                btn.disabled = false;
+                resetAndLoad(currentMode);
             }
         };
 
@@ -609,7 +657,10 @@
             if(!confirm("Delete this request? This will allow you to post a new one.")) return;
             try {
                 await deleteDoc(doc(db, "public_requests", docID));
-                location.reload();
+                
+                // ✅ REFRESH INSTANTLY (NO MORE RELOADS!)
+                resetAndLoad(currentMode);
+
             } catch(e) { alert("Error deleting."); }
         }
 

@@ -193,8 +193,7 @@
   </div>
 
   <script src="../asset/script.js"></script>
-
-  <script type="module">
+<script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
     import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
     import { getFirestore, collection, addDoc, updateDoc, deleteDoc, doc, getDocs, query, orderBy, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
@@ -218,6 +217,34 @@
     
     // Track if we are editing an existing review
     let editingReviewId = null;
+
+    // --- 🟢 30-MINUTE LOCAL STORAGE CACHING SYSTEM ---
+    const CACHE_TTL = 30 * 60 * 1000; // 30 minutes in milliseconds
+
+    function getCachedData(key) {
+        const cached = localStorage.getItem(key);
+        if (!cached) return null;
+        const parsed = JSON.parse(cached);
+        if (Date.now() - parsed.timestamp > CACHE_TTL) {
+            localStorage.removeItem(key); 
+            return null;
+        }
+        return parsed.data; 
+    }
+
+    function setCachedData(key, data) {
+        localStorage.setItem(key, JSON.stringify({
+            timestamp: Date.now(),
+            data: data
+        }));
+    }
+
+    // Function to wipe caches when the user makes a change
+    function invalidateReviewCaches() {
+        localStorage.removeItem('cache_all_reviews'); // This page's cache
+        localStorage.removeItem('cache_reviews');     // The Home page's cache
+    }
+    // --- 🟢 END CACHING SYSTEM ---
 
     onAuthStateChanged(auth, (user) => {
         if (user) {
@@ -326,6 +353,9 @@
                 alert("Review submitted! It will appear as 'Pending' until approved.");
             }
 
+            // Wipe cache so the user instantly sees their pending/updated review
+            invalidateReviewCaches();
+
             closeReviewModal();
             loadReviews(); 
 
@@ -344,6 +374,10 @@
         
         try {
             await deleteDoc(doc(db, "reviews", id));
+            
+            // Wipe cache so the review instantly disappears from their screen
+            invalidateReviewCaches();
+            
             loadReviews();
         } catch(e) {
             alert("Error deleting review.");
@@ -356,15 +390,25 @@
         const container = document.getElementById('all-reviews-container');
         
         try {
-            const q = query(collection(db, "reviews"), orderBy("createdAt", "desc"));
-            const snapshot = await getDocs(q);
-            
+            // Check cache first
+            let rawReviewData = getCachedData('cache_all_reviews');
+
+            if (!rawReviewData) {
+                console.log("Fetching fresh reviews from Firebase");
+                const q = query(collection(db, "reviews"), orderBy("createdAt", "desc"));
+                const snapshot = await getDocs(q);
+                rawReviewData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                
+                // Save to cache
+                setCachedData('cache_all_reviews', rawReviewData);
+            } else {
+                console.log("Loaded reviews from 30-minute local cache");
+            }
+
             allReviews = [];
             
-            snapshot.forEach(doc => {
-                const data = doc.data();
-                data.id = doc.id;
-                
+            // Filter the data (whether from cache or fresh fetch)
+            rawReviewData.forEach(data => {
                 // Show if Approved OR if it belongs to current user
                 if (data.status === 'approved') {
                     allReviews.push(data);
@@ -440,6 +484,6 @@
             renderReviews(filtered);
         }
     }
-  </script>
+</script>
 </body>
 </html>

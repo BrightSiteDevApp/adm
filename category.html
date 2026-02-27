@@ -180,6 +180,28 @@
     const INITIAL_LOAD = 30;
     const LOAD_STEP = 20;
 
+    // --- 🟢 SHARED LOCAL STORAGE CACHING SYSTEM (10 MIN TTL) ---
+    const CACHE_TTL = 10 * 60 * 1000; 
+
+    function getCachedData(key) {
+        const cached = localStorage.getItem(key);
+        if (!cached) return null;
+        const parsed = JSON.parse(cached);
+        if (Date.now() - parsed.timestamp > CACHE_TTL) {
+            localStorage.removeItem(key); 
+            return null;
+        }
+        return parsed.data; 
+    }
+
+    function setCachedData(key, data) {
+        localStorage.setItem(key, JSON.stringify({
+            timestamp: Date.now(),
+            data: data
+        }));
+    }
+    // --- 🟢 END CACHING SYSTEM ---
+
     // --- UTILS ---
     function escapeHTML(str) {
         if (!str) return "";
@@ -212,10 +234,22 @@
     });
 
     async function loadFirestoreProducts() {
+        // ✅ CACHE ADDED: Firestore Products (Shared with Home & Items pages)
+        let cachedProducts = getCachedData('cache_firestore_products');
+        
+        if (cachedProducts) {
+            console.log("Loaded Firebase products from shared cache (Category Page)");
+            return cachedProducts;
+        }
+
         try {
+            console.log("Fetching fresh products from Firebase (Category Page)");
             const q = query(collection(db, "products")); 
             const snapshot = await getDocs(q);
-            return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            
+            setCachedData('cache_firestore_products', data);
+            return data;
         } catch(e) { return []; }
     }
 
@@ -247,11 +281,20 @@
             document.getElementById('page-title').innerText = displayTitle;
             
             try {
-                const suspendedSnap = await getDocs(collection(db, "vendor_status"));
-                const suspendedVendors = new Set();
-                suspendedSnap.forEach(doc => { if(doc.data().status === "suspended") suspendedVendors.add(doc.id); });
+                // ✅ CACHE ADDED: Suspended Vendors
+                let suspendedData = getCachedData('cache_suspended_vendors');
+                
+                if (!suspendedData) {
+                    const suspendedSnap = await getDocs(collection(db, "vendor_status"));
+                    suspendedData = [];
+                    suspendedSnap.forEach(doc => { 
+                        if(doc.data().status === "suspended") suspendedData.push(doc.id); 
+                    });
+                    setCachedData('cache_suspended_vendors', suspendedData);
+                }
+                const suspendedVendors = new Set(suspendedData);
 
-                // ✅ UPDATED: Fetch BOTH Vendor Sheets
+                // Fetch BOTH Vendor Sheets
                 const [v1, v2] = await Promise.all([
                     fetch(`${apiRoot}/Vendors`).then(res => res.json().catch(() => [])),
                     fetch(`${apiRoot}/Vendors_v2`).then(res => res.json().catch(() => []))
@@ -267,7 +310,7 @@
 
                 const sheetProductsRes = await fetch(`${apiRoot}/Products`);
                 const sheetProducts = await sheetProductsRes.json();
-                const firestoreProducts = await loadFirestoreProducts();
+                const firestoreProducts = await loadFirestoreProducts(); // Now uses cache
 
                 let combined = [...sheetProducts, ...firestoreProducts];
                 
@@ -410,7 +453,7 @@
             } else {
                 icon.classList.replace('fas', 'far'); icon.style.color = '#777';
             }
-        });
+        }); 
     }
 </script>
 </body>

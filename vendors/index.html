@@ -91,25 +91,56 @@
     const sheetID = "1SvVUbEnDgqgw2Z_M1ShQkzyFTsnnS6n8mTs7UMXVvF4";
     const apiRoot = `https://opensheet.elk.sh/${sheetID}`;
 
+    // --- 🟢 SHARED LOCAL STORAGE CACHING SYSTEM (30 MIN TTL) ---
+    const CACHE_TTL = 30 * 60 * 1000; 
+
+    function getCachedData(key) {
+        const cached = localStorage.getItem(key);
+        if (!cached) return null;
+        const parsed = JSON.parse(cached);
+        if (Date.now() - parsed.timestamp > CACHE_TTL) {
+            localStorage.removeItem(key); 
+            return null;
+        }
+        return parsed.data; 
+    }
+
+    function setCachedData(key, data) {
+        localStorage.setItem(key, JSON.stringify({
+            timestamp: Date.now(),
+            data: data
+        }));
+    }
+    // --- 🟢 END CACHING SYSTEM ---
+
     document.addEventListener("DOMContentLoaded", async () => {
         try {
-            // 1. Get Suspended List from Firestore
-            const suspendedSnap = await getDocs(collection(db, "vendor_status"));
-            const suspendedVendors = new Set();
-            suspendedSnap.forEach(doc => {
-                if (doc.data().status === "suspended") {
-                    suspendedVendors.add(doc.id);
-                }
-            });
+            // 1. Get Suspended List (From Cache or Firestore)
+            let suspendedData = getCachedData('cache_suspended_vendors');
+            
+            if (!suspendedData) {
+                const suspendedSnap = await getDocs(collection(db, "vendor_status"));
+                suspendedData = [];
+                suspendedSnap.forEach(doc => {
+                    if (doc.data().status === "suspended") {
+                        suspendedData.push(doc.id);
+                    }
+                });
+                setCachedData('cache_suspended_vendors', suspendedData);
+            }
+            const suspendedVendors = new Set(suspendedData);
 
-            // 2. Fetch BOTH Sheets (Original & V2)
-            const [data1, data2] = await Promise.all([
-                fetch(`${apiRoot}/Vendors`).then(res => res.json()),
-                fetch(`${apiRoot}/Vendors_v2`).then(res => res.json().catch(() => [])) // Catch error if empty
-            ]);
+            // 2. Fetch BOTH Sheets (From Cache or API)
+            let allVendors = getCachedData('cache_sheet_vendors');
 
-            // 3. Merge Data
-            const allVendors = [...data1, ...data2];
+            if (!allVendors) {
+                const [data1, data2] = await Promise.all([
+                    fetch(`${apiRoot}/Vendors`).then(res => res.json()),
+                    fetch(`${apiRoot}/Vendors_v2`).then(res => res.json().catch(() => []))
+                ]);
+                allVendors = [...data1, ...data2];
+                setCachedData('cache_sheet_vendors', allVendors);
+            }
             
             const container = document.getElementById('all-vendors-container');
             container.innerHTML = "";
@@ -172,6 +203,5 @@
         }
     });
 </script>
-
 </body>
 </html>

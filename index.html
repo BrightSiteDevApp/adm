@@ -411,7 +411,6 @@
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
     import { getAuth, onAuthStateChanged, signInWithPopup, GoogleAuthProvider } 
     from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-    // ✅ ADDED "where" and "limit" to imports
     import { getFirestore, doc, setDoc, deleteDoc, collection, getDocs, query, getDoc, where } 
     from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
@@ -438,11 +437,31 @@
     let globalPhoneBook = {}; 
     let suspendedVendors = new Set(); 
 
+    // --- 🟢 NEW LOCAL STORAGE CACHING SYSTEM (10 MINUTE TTL) ---
+    const CACHE_TTL = 10 * 60 * 1000; // 10 minutes in milliseconds
+
+    function getCachedData(key) {
+        const cached = localStorage.getItem(key);
+        if (!cached) return null;
+        const parsed = JSON.parse(cached);
+        if (Date.now() - parsed.timestamp > CACHE_TTL) {
+            localStorage.removeItem(key); // Expired, delete it
+            return null;
+        }
+        return parsed.data; // Valid, return the data
+    }
+
+    function setCachedData(key, data) {
+        localStorage.setItem(key, JSON.stringify({
+            timestamp: Date.now(),
+            data: data
+        }));
+    }
+    // --- 🟢 END CACHING SYSTEM ---
+
 
     // --- 🔵 PWA INSTALLATION SYSTEM (WITH MAGIC LINK) ---
     let deferredPrompt;
-    
-    // Check if the URL has ?action=install
     const urlParams = new URLSearchParams(window.location.search);
     const isMagicLink = urlParams.get('action') === 'install';
 
@@ -451,11 +470,9 @@
         e.preventDefault();
         deferredPrompt = e;
         
-        // If they clicked the magic link on WhatsApp, show the big forced overlay immediately
         if (isMagicLink) {
             document.getElementById('magic-install-overlay').style.display = 'flex';
         } else {
-            // Otherwise, show the normal small popup after 4 seconds
             setTimeout(() => {
                 const popup = document.getElementById('install-popup');
                 if(popup) popup.style.display = 'block';
@@ -476,13 +493,11 @@
         console.log(`User response to install: ${outcome}`);
         deferredPrompt = null;
         
-        // Hide all prompts
         document.getElementById('install-popup').style.display = 'none';
         document.getElementById('manual-install-btn').style.display = 'none';
         document.getElementById('magic-install-overlay').style.display = 'none';
     };
 
-    // Attach the trigger to all 3 install buttons
     document.getElementById('install-btn').addEventListener('click', triggerAppInstall);
     document.getElementById('manual-install-btn').addEventListener('click', triggerAppInstall);
     const magicBtn = document.getElementById('btn-magic-install');
@@ -494,21 +509,31 @@
         document.getElementById('manual-install-btn').style.display = 'none';
         document.getElementById('magic-install-overlay').style.display = 'none';
     });
-
     // --- 🔴 END INSTALLATION SYSTEM ---
+
 
     setupMainSearch();
     loadAds(); 
     initData();
     loadAnnouncement(); 
-    loadReviews(); // ✅ CALL THE NEW REVIEWS FUNCTION
+    loadReviews(); 
 
     async function loadAnnouncement() {
         try {
-            const docSnap = await getDoc(doc(db, "settings", "global_alert"));
-            if(docSnap.exists() && docSnap.data().active) {
+            // ✅ CACHE ADDED: Global Alert
+            let alertData = getCachedData('cache_global_alert');
+            
+            if (!alertData) {
+                const docSnap = await getDoc(doc(db, "settings", "global_alert"));
+                if(docSnap.exists()) {
+                    alertData = docSnap.data();
+                    setCachedData('cache_global_alert', alertData);
+                }
+            }
+
+            if(alertData && alertData.active) {
                 const banner = document.getElementById('global-announcement');
-                document.getElementById('announce-text').innerText = docSnap.data().message;
+                document.getElementById('announce-text').innerText = alertData.message;
                 banner.style.display = 'block';
             }
         } catch(e) { console.error("Banner error:", e); }
@@ -546,27 +571,32 @@
 
     async function initData() {
         try {
-            const suspendedSnap = await getDocs(collection(db, "vendor_status"));
-            suspendedSnap.forEach(doc => { if (doc.data().status === "suspended") suspendedVendors.add(doc.id); });
+            // ✅ CACHE ADDED: Suspended Vendors
+            let suspendedData = getCachedData('cache_suspended_vendors');
+            
+            if (!suspendedData) {
+                const suspendedSnap = await getDocs(collection(db, "vendor_status"));
+                suspendedData = [];
+                suspendedSnap.forEach(doc => { 
+                    if (doc.data().status === "suspended") suspendedData.push(doc.id); 
+                });
+                setCachedData('cache_suspended_vendors', suspendedData);
+            }
+            
+            suspendedData.forEach(id => suspendedVendors.add(id));
 
-            // ✅ FETCH BOTH SHEETS & MERGE
             const [vendors1, vendors2] = await Promise.all([
                 fetch(`${apiRoot}/Vendors`).then(res => res.json()),
                 fetch(`${apiRoot}/Vendors_v2`).then(res => res.json().catch(() => []))
             ]);
 
-            // Combine
             const combinedVendors = [...vendors1, ...vendors2];
 
-            // Filter
             allVendors = combinedVendors.filter(v => {
                 const vid = v.vendor_id || v.Vendor_ID;
                 const isSuspended = suspendedVendors.has(vid);
-                
-                // Check Verified (FALSE in V2 means invisible)
                 const verifyStatus = String(v.verified || v.Verified || "").toLowerCase().trim();
                 const isHidden = verifyStatus === "false";
-
                 return !isSuspended && !isHidden;
             });
 
@@ -581,7 +611,7 @@
             
             const productsRes = await fetch(`${apiRoot}/Products`);
             const sheetProducts = await productsRes.json();
-            const firestoreProducts = await loadFirestoreProducts();
+            const firestoreProducts = await loadFirestoreProducts(); // Now uses cache inside
             
             let combined = [...sheetProducts, ...firestoreProducts];
             allProducts = combined.filter(p => !suspendedVendors.has(p.vendor_id || p.Vendor_ID));
@@ -608,41 +638,53 @@
     }
 
     async function loadFirestoreProducts() {
+        // ✅ CACHE ADDED: Firestore Products
+        let cachedProducts = getCachedData('cache_firestore_products');
+        
+        if (cachedProducts) {
+            console.log("Loaded Firebase products from local cache");
+            return cachedProducts;
+        }
+
         try {
+            console.log("Fetching fresh products from Firebase");
             const q = query(collection(db, "products")); 
             const snapshot = await getDocs(q);
-            return snapshot.docs.map(doc => ({
+            const data = snapshot.docs.map(doc => ({
                 id: doc.id, 
                 ...doc.data()
             }));
+            
+            setCachedData('cache_firestore_products', data); // Save for next time
+            return data;
         } catch(e) { return []; }
     }
 
-    // --- ✅ NEW FIRESTORE REVIEWS LOGIC ---
     async function loadReviews() {
         const container = document.getElementById('reviews-slider');
         if (!container) return;
 
         try {
-            // Fetch reviews where status is approved
-            const q = query(collection(db, "reviews"), where("status", "==", "approved"));
-            const snapshot = await getDocs(q);
+            // ✅ CACHE ADDED: Reviews
+            let reviewsData = getCachedData('cache_reviews');
 
-            let reviewsData = [];
-            snapshot.forEach(doc => {
-                reviewsData.push(doc.data());
-            });
+            if (!reviewsData) {
+                const q = query(collection(db, "reviews"), where("status", "==", "approved"));
+                const snapshot = await getDocs(q);
+                reviewsData = [];
+                snapshot.forEach(doc => {
+                    reviewsData.push(doc.data());
+                });
+                setCachedData('cache_reviews', reviewsData);
+            }
 
             if (reviewsData.length > 0) {
                 container.innerHTML = ""; 
-                // Shuffle and pick 5
                 const shuffled = shuffle(reviewsData).slice(0, 5);
 
                 shuffled.forEach(r => {
-                    // Use FontAwesome stars
                     const starCount = r.rating || 5;
                     const starString = '<i class="fas fa-star" style="color:#FFD700;"></i>'.repeat(starCount);
-
                     let img = r.image || "img/person.png";
                     if (!img.startsWith('http') && !img.startsWith('img/')) img = `img/${img}`;
 
@@ -665,7 +707,6 @@
             console.error("Error loading reviews:", e);
         }
     }
-    // --------------------------------------
 
     window.toggleSave = async function(id, name, price, image, vendor) {
         const user = auth.currentUser;
@@ -858,8 +899,6 @@
 
     function shuffle(array) { return array.sort(() => 0.5 - Math.random()); }
     
-    // --- OLD REVIEWS CODE REMOVED ---
-
     function setupMainSearch() {
         const searchInput = document.getElementById('main-search');
         const searchType = document.getElementById('search-type');
