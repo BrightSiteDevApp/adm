@@ -91,8 +91,8 @@
     const sheetID = "1SvVUbEnDgqgw2Z_M1ShQkzyFTsnnS6n8mTs7UMXVvF4";
     const apiRoot = `https://opensheet.elk.sh/${sheetID}`;
 
-    // --- 🟢 SHARED LOCAL STORAGE CACHING SYSTEM (30 MIN TTL) ---
-    const CACHE_TTL = 30 * 60 * 1000; 
+    // --- 🟢 SHARED LOCAL STORAGE CACHING SYSTEM (1 MIN TTL) ---
+    const CACHE_TTL = 1 * 60 * 1000; 
 
     function getCachedData(key) {
         const cached = localStorage.getItem(key);

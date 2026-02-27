@@ -598,7 +598,7 @@
                     );
 
                     const timeoutPromise = new Promise((_, reject) => 
-                        setTimeout(() => reject(new Error("Email connection timed out")), 20000)
+                        setTimeout(() => reject(new Error("Email connection timed out")), 30000)
                     );
 
                     await Promise.race([emailPromise, timeoutPromise]);

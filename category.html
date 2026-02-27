@@ -171,7 +171,7 @@
     let savedItemIds = new Set();
     const sheetID = "1SvVUbEnDgqgw2Z_M1ShQkzyFTsnnS6n8mTs7UMXVvF4";
     const apiRoot = `https://opensheet.elk.sh/${sheetID}`;
-    const ADMIN_PHONE = "2348144516127"; 
+    const ADMIN_PHONE = "2349153375488"; 
 
     // --- PAGINATION VARS ---
     let allCategoryItems = []; 
@@ -180,8 +180,8 @@
     const INITIAL_LOAD = 30;
     const LOAD_STEP = 20;
 
-    // --- 🟢 SHARED LOCAL STORAGE CACHING SYSTEM (10 MIN TTL) ---
-    const CACHE_TTL = 10 * 60 * 1000; 
+    // --- 🟢 SHARED LOCAL STORAGE CACHING SYSTEM (1 MIN TTL) ---
+    const CACHE_TTL = 1 * 60 * 1000; 
 
     function getCachedData(key) {
         const cached = localStorage.getItem(key);

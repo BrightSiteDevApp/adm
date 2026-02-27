@@ -155,10 +155,16 @@
         </div>
     </div>
 
-    <script type="module">
+  <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getAuth, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged } 
+        
+        // 1. Added getAdditionalUserInfo
+        import { getAuth, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged, getAdditionalUserInfo } 
         from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+        
+        // 2. Added Firestore imports
+        import { getFirestore, collection, addDoc } 
+        from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyA1eQbrJpH9OtDNDN7z9oTFTRSAE7vCFbg",
@@ -171,6 +177,7 @@
 
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
+        const db = getFirestore(app); // Initialize Database
         const provider = new GoogleAuthProvider();
 
         const loginView = document.getElementById('login-view');
@@ -182,11 +189,39 @@
         const userName = document.getElementById('user-name');
         const userEmail = document.getElementById('user-email');
 
-        // 1. HANDLE LOGIN
-        btnLogin.addEventListener('click', () => {
-            signInWithPopup(auth, provider)
-                .then((result) => { console.log("Logged in"); })
-                .catch((error) => { alert("Login failed: " + error.message); });
+        // 1. HANDLE LOGIN (Updated with Welcome Email)
+        btnLogin.addEventListener('click', async () => {
+            try {
+                const result = await signInWithPopup(auth, provider);
+                console.log("Logged in");
+
+                // Check if new user and send email silently
+                const additionalInfo = getAdditionalUserInfo(result);
+                if (additionalInfo && additionalInfo.isNewUser) {
+                    await addDoc(collection(db, "mail"), {
+                        to: result.user.email,
+                        message: {
+                            subject: "Welcome to AFIT Digital Market! 🎉",
+                            html: `
+                                <div style="font-family: Arial, sans-serif; color: #333; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eaeaea; border-radius: 10px;">
+                                    <h2 style="color: #0056b3;">Welcome to AFIT Market! 🎓</h2>
+                                    <p>Hi ${result.user.displayName || "there"},</p>
+                                    <p>We are absolutely thrilled to have you here! You can now:</p>
+                                    <ul>
+                                        <li>❤️ Save your favorite items to your wishlist</li>
+                                        <li>💬 Contact campus vendors directly on WhatsApp</li>
+                                        <li>📢 Post public requests for items you need to buy</li>
+                                    </ul>
+                                    <p>Happy hunting!</p>
+                                    <p><strong>- The AFIT Digital Market Team</strong></p>
+                                </div>
+                            `
+                        }
+                    });
+                }
+            } catch (error) {
+                alert("Login failed: " + error.message);
+            }
         });
 
         // 2. HANDLE LOGOUT
@@ -211,6 +246,5 @@
             }
         });
     </script>
-
 </body>
 </html>

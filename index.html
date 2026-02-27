@@ -153,7 +153,7 @@
       body.dark-mode .see-all-btn-large {
         background: #2a2a2a;
         border-color: #2d8eff;
-        color: #2d8eff;
+        color: #2d8eff; 
       }
       #magic-install-overlay {
             display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
@@ -581,7 +581,7 @@
             await addDoc(collection(db, "mail"), {
                 to: result.user.email,
                 message: {
-                    subject: "Welcome to AFIT Market! 🎉",
+                    subject: "Welcome to AFIT Digital Market! 🎉",
                     html: `
                         <div style="font-family: Arial, sans-serif; color: #333; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eaeaea; border-radius: 10px;">
                             <h2 style="color: #0056b3;">Welcome to AFIT Market! 🎓</h2>
@@ -593,7 +593,7 @@
                                 <li>📢 Post public requests for items you need to buy</li>
                             </ul>
                             <p>Happy hunting!</p>
-                            <p><strong>- The AFIT Market Team</strong></p>
+                            <p><strong>- The AFIT Digital Market Team</strong></p>
                         </div>
                     `
                 }
