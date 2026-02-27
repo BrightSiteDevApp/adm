@@ -247,8 +247,7 @@
             </button>
         </div>
     </div>
-
-  <script type="module">
+<script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
         import { getFirestore, collection, addDoc, getDocs, query, where, orderBy, deleteDoc, doc, limit, startAfter } 
@@ -493,10 +492,14 @@
                     return;
                 }
 
-                // 🛑 2. CHECK TIME COOLDOWN (Client-side deterrence)
+                // 🛑 2. CHECK TIME COOLDOWN (Account-specific deterrence)
                 const now = Date.now();
-                const lastPostTime = localStorage.getItem('last_req_time');
-                const cooldownEnd = localStorage.getItem('cooldown_end');
+                // Append the user's unique ID to the storage keys so it only affects this specific account
+                const userLastReqKey = `last_req_time_${currentUser.uid}`;
+                const userCooldownKey = `cooldown_end_${currentUser.uid}`;
+
+                const lastPostTime = localStorage.getItem(userLastReqKey);
+                const cooldownEnd = localStorage.getItem(userCooldownKey);
 
                 // If user is in the "2 Hour Jail"
                 if(cooldownEnd && now < parseInt(cooldownEnd)) {
@@ -518,8 +521,8 @@
 
                 // If this is their 2nd request (activeCount will be 1 before adding this one), set the 2hr lock
                 if(activeCount === 1) {
-                    // Set 2 hour lock from NOW
-                    localStorage.setItem('cooldown_end', (now + (2 * 60 * 60 * 1000)).toString());
+                    // Set 2 hour lock from NOW for this specific user
+                    localStorage.setItem(userCooldownKey, (now + (2 * 60 * 60 * 1000)).toString());
                 }
 
                 // ✅ PROCEED TO POST
@@ -536,8 +539,8 @@
                     timestamp: new Date()
                 });
 
-                // Update Timers
-                localStorage.setItem('last_req_time', now.toString());
+                // Update Timers for this specific user
+                localStorage.setItem(userLastReqKey, now.toString());
 
                 // 4. Fetch Vendors with Error Check
                 let v1 = [], v2 = [];
@@ -559,15 +562,25 @@
                 }
 
                 // 5. Send Email
+                if (typeof emailjs === 'undefined') {
+                    throw new Error("Email service is blocked by an adblocker or your internet is offline.");
+                }
+
                 const targetCat = category.toLowerCase();
                 const filteredVendors = allVendors.filter(v => {
                     const c = getSmartValue(v, 'Category');
                     const e = getSmartValue(v, 'Email');
                     if(!c || !e) return false;
-                    return c.toLowerCase().split(',').map(x=>x.trim()).includes(targetCat);
+                    // Safely cast to string to prevent crashes
+                    return String(c).toLowerCase().split(',').map(x=>x.trim()).includes(targetCat);
                 });
 
-                const emailSet = new Set(filteredVendors.map(v => getSmartValue(v, 'Email').trim()));
+                // Extract valid emails only
+                const emailSet = new Set(
+                    filteredVendors
+                        .map(v => String(getSmartValue(v, 'Email')).trim())
+                        .filter(email => email.includes('@') && email.includes('.')) 
+                );
                 const vendorEmails = Array.from(emailSet).join(',');
 
                 if(vendorEmails.length > 0) {
@@ -609,6 +622,12 @@
             if(!confirm("Delete this request? This will allow you to post a new one.")) return;
             try {
                 await deleteDoc(doc(db, "public_requests", docID));
+                
+                // Optional: Clear their cooldown if they delete a request so they aren't stuck
+                if (currentUser) {
+                    localStorage.removeItem(`cooldown_end_${currentUser.uid}`);
+                }
+                
                 location.reload();
             } catch(e) { alert("Error deleting."); }
         }
