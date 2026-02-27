@@ -409,16 +409,14 @@
     }
 
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import { getAuth, onAuthStateChanged, signInWithPopup, GoogleAuthProvider } 
-    from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-    import { getFirestore, doc, setDoc, deleteDoc, collection, getDocs, query, getDoc, where } 
-    from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-
+    
+    // ✅ CLEANED UP AUTH IMPORT
     import { getAuth, onAuthStateChanged, signInWithPopup, GoogleAuthProvider, getAdditionalUserInfo } 
-from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-
-import { getFirestore, doc, setDoc, deleteDoc, collection, getDocs, query, getDoc, where, addDoc } 
-from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+    from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+    
+    // ✅ CLEANED UP FIRESTORE IMPORT
+    import { getFirestore, doc, setDoc, deleteDoc, collection, getDocs, query, getDoc, where, addDoc } 
+    from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
     const firebaseConfig = {
         apiKey: "AIzaSyA1eQbrJpH9OtDNDN7z9oTFTRSAE7vCFbg",
