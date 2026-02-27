@@ -167,6 +167,19 @@
             <div id="product-results" class="product-grid"></div>
         </div>
 
+        <h4 class="section-title"><i class="fas fa-exchange-alt"></i> Ownership Transfer</h4>
+        <div class="admin-card" style="border-left: 5px solid #34495e;">
+            <p style="margin:0 0 10px; color:#555;">Transfer product edit/delete access to a vendor's new email.</p>
+            <div class="search-group">
+                <input type="text" id="transfer-vendor-id" class="admin-input" placeholder="Vendor ID (e.g. V001)">
+                <input type="email" id="transfer-new-email" class="admin-input" placeholder="New Account Email">
+            </div>
+            <button onclick="transferOwnership()" class="btn-action" style="background:#34495e; color:white; width:100%;">
+                <i class="fas fa-sync-alt"></i> Transfer Ownership
+            </button>
+            <div id="transfer-status" style="margin-top:10px; font-size:13px; font-weight:bold; text-align:center;"></div>
+        </div>
+
         <h4 class="section-title"><i class="fas fa-ticket-alt"></i> Ticket Center</h4>
         <div class="admin-card" style="border-left: 5px solid #00b894;">
             <p style="margin:0 0 10px; color:#555;">Manage profile update requests from vendors.</p>
@@ -480,6 +493,62 @@
         };
 
 
+        // ================= OWNERSHIP TRANSFER =================
+        window.transferOwnership = async function() {
+            const vid = document.getElementById('transfer-vendor-id').value.trim().toUpperCase();
+            const newEmail = document.getElementById('transfer-new-email').value.trim().toLowerCase();
+            const statusDiv = document.getElementById('transfer-status');
+
+            if(!vid || !newEmail) {
+                alert("Please provide both the Vendor ID and the New Email.");
+                return;
+            }
+
+            if(!confirm(`Are you sure you want to transfer all products for ${vid} to ${newEmail}?`)) return;
+
+            statusDiv.style.color = "#2d8eff";
+            statusDiv.innerText = "Scanning database and transferring ownership...";
+
+            try {
+                // 1. Find all products belonging to this vendor
+                const q = query(collection(db, "products"), where("vendor_id", "==", vid));
+                const snapshot = await getDocs(q);
+
+                if (snapshot.empty) {
+                    statusDiv.style.color = "red";
+                    statusDiv.innerText = `No products found for Vendor ID: ${vid}`;
+                    return;
+                }
+
+                // 2. Update every product with the new owner_email
+                let updateCount = 0;
+                const updatePromises = [];
+
+                snapshot.forEach(productDoc => {
+                    const docRef = doc(db, "products", productDoc.id);
+                    // Add the new email as the secure owner
+                    updatePromises.push(updateDoc(docRef, { owner_email: newEmail }));
+                    updateCount++;
+                });
+
+                // Wait for all updates to finish
+                await Promise.all(updatePromises);
+
+                statusDiv.style.color = "#00b894";
+                statusDiv.innerText = `✅ Success! Transferred ${updateCount} products to ${newEmail}.`;
+                
+                // Clear inputs
+                document.getElementById('transfer-vendor-id').value = "";
+                document.getElementById('transfer-new-email').value = "";
+
+            } catch (error) {
+                console.error(error);
+                statusDiv.style.color = "red";
+                statusDiv.innerText = "Error transferring ownership. Check console.";
+            }
+        };
+
+        
         // ================= TICKET MANAGER =================
         window.openTicketManager = function() {
             document.getElementById('ticketManagerModal').style.display = 'block';
