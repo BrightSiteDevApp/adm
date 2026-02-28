@@ -7,7 +7,6 @@
         const isAdmin = localStorage.getItem('adm_dev_mode');
 
         if (urlParams.get('access') === 'vendor') {
-            // Added ../ to go back to main folder
             window.location.href = '../dashboard.html'; 
             return; 
         } 
@@ -19,7 +18,6 @@
         }
 
         if (!isAdmin) {
-            // Added ../ to go back to main folder
             window.location.href = '../coming-soon.html'; 
         }
     })(); 
@@ -130,7 +128,7 @@
             display: flex; 
             justify-content: center;
             width: 100%;
-            margin: 0 0 80px 0; /* 80px bottom margin for nav bar */
+            margin: 0 0 40px 0; 
         }
         
         /* LOAD MORE BUTTON: Blue & Centered */
@@ -196,11 +194,12 @@
         body.dark-mode .ad-price { color: #2d8eff; } 
         body.dark-mode .ad-title { color: #ccc; }
         
-        /* Dark Mode Skeleton */
+        /* Dark Mode Skeleton & Footer */
         body.dark-mode .sk-card { background: #2a2a2a; }
         body.dark-mode .skeleton {
             background: linear-gradient(110deg, #333 8%, #444 18%, #333 33%);
         }
+        body.dark-mode .site-footer { border-top: 1px solid #333; }
     </style>
 </head>
 <body>
@@ -248,6 +247,13 @@
         <div id="load-more-container">
             <button id="load-more-btn">Load More</button>
         </div>
+
+        <footer class="site-footer" style="margin-top: 20px; text-align: center; padding: 20px; color: #777; font-size: 12px;">
+            <p style="margin-top:10px; color:#777; font-size: 12px;">
+                &copy; 2026 All rights reserved. Powered by 
+                <a href="https://brightsitedev.tech" target="_blank" style="color:#2d8eff; text-decoration:none; font-weight:bold;">Brightsitedev</a>
+            </p>
+        </footer>
 
     </div>
 
@@ -392,10 +398,20 @@
         document.getElementById('load-more-btn').addEventListener('click', handleLoadMore);
         
         // Filter Listeners
-        document.getElementById('item-search').addEventListener('input', () => applyFilters(true));
+        const itemSearchInput = document.getElementById('item-search');
+        
+        itemSearchInput.addEventListener('input', () => applyFilters(true));
+        
+        // NEW: Close keyboard when "Enter" is pressed
+        itemSearchInput.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault(); // Stop any default jumps
+                this.blur();        // Closes the mobile keyboard!
+            }
+        });
+
         document.getElementById('filter-price').addEventListener('change', () => applyFilters(true));
         document.getElementById('filter-condition').addEventListener('change', () => applyFilters(true));
-
         // Initial Skeleton
         renderSkeletons('all-items-container', 8);
 
@@ -519,7 +535,7 @@
 
         if (itemsToShow.length < totalMatches) {
             loadBtn.style.display = 'block';
-            loadBtn.innerText = `Load ${Math.min(LOAD_STEP, totalMatches - itemsToShow.length)} More`;
+          loadBtn.innerText = "Load More"; // <-- Changed this line!
         } else {
             loadBtn.style.display = 'none';
         }
