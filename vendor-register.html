@@ -189,6 +189,57 @@
         }
         .support-btn:active { transform: scale(0.95); }
 
+        /* --- POPUP STYLES --- */
+        .popup-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.7); z-index: 2000;
+            display: flex; align-items: center; justify-content: center; padding: 20px;
+            box-sizing: border-box;
+        }
+        .popup-content {
+            background: white; padding: 30px 20px; border-radius: 16px;
+            text-align: center; max-width: 400px; width: 100%;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            animation: zoomIn 0.3s ease;
+        }
+        @keyframes zoomIn { from { transform: scale(0.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+        .popup-icon { font-size: 40px; color: #f39c12; margin-bottom: 15px; }
+        .popup-content h3 { margin: 0 0 10px; color: #333; font-size: 20px; }
+        .popup-content p { font-size: 13px; color: #555; line-height: 1.5; margin-bottom: 15px; }
+        .whatsapp-admin-btn {
+            display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+            background: #25D366; color: white; padding: 12px; border-radius: 30px;
+            text-decoration: none; font-weight: bold; font-size: 14px; margin-bottom: 20px; 
+            width: 100%; box-sizing: border-box; box-shadow: 0 4px 10px rgba(37, 211, 102, 0.3);
+        }
+        .close-popup-btn {
+            background: #2d8eff; color: white; border: none; padding: 12px;
+            border-radius: 30px; font-weight: bold; width: 100%; cursor: pointer;
+        }
+
+        /* --- DARK MODE FIXES --- */
+        body.dark-mode { background: #121212; color: #eee; }
+        body.dark-mode .header { background: #1e1e1e !important; box-shadow: 0 2px 10px rgba(0,0,0,0.5) !important; }
+        body.dark-mode .header span, body.dark-mode .header a { color: #eee !important; }
+        body.dark-mode .reg-container, body.dark-mode .bank-card, body.dark-mode .popup-content { 
+            background: #1e1e1e; box-shadow: 0 4px 20px rgba(0,0,0,0.3); 
+        }
+        body.dark-mode .bank-card { border-color: #f39c12; }
+        body.dark-mode .form-label, body.dark-mode .bank-title, body.dark-mode h2, body.dark-mode .popup-content h3 { color: #eee !important; }
+        body.dark-mode p { color: #bbb !important; }
+        body.dark-mode .form-input, body.dark-mode .acct-box, body.dark-mode .file-upload-box { 
+            background: #2a2a2a; border-color: #444; color: #eee; 
+        }
+        body.dark-mode .form-input:focus { border-color: #2d8eff; }
+        body.dark-mode .acct-num { color: #fff; }
+        body.dark-mode .form-section-title { border-bottom-color: #333; }
+        body.dark-mode .cat-label { background: #2a2a2a; color: #bbb; }
+        body.dark-mode .cat-option:checked + .cat-label { background: rgba(45, 142, 255, 0.2); border-color: #2d8eff; color: #2d8eff; }
+        body.dark-mode .warning-text { background: rgba(214, 48, 49, 0.1); }
+        body.dark-mode .flyer-section { border-color: #333; }
+        body.dark-mode .support-section { border-top-color: #333; }
+        body.dark-mode .terms-box { color: #bbb; }
+
         @media (max-width: 480px) {
             .reg-container { padding: 20px; width: 95%; }
             .time-grid { grid-template-columns: 1fr; gap: 10px; }
@@ -197,6 +248,28 @@
     </style>
 </head>
 <body>
+
+    <script>
+        if (localStorage.getItem('theme') === 'dark') {
+            document.body.classList.add('dark-mode');
+        }
+    </script>
+
+    <div id="notice-popup" class="popup-overlay">
+        <div class="popup-content">
+            <i class="fas fa-exclamation-circle popup-icon"></i>
+            <h3>Important Notice</h3>
+            <p>Before you register, make sure you have paid to the account provided on the page and upload the receipt. Also, upload all information and make sure it is correct.</p>
+            <p style="color: #ff4757; font-weight: bold;">If you fill the form without a successful payment, your registration will not be attended to.</p>
+            <p>If you have any questions, contact admin for assistance:</p>
+            
+            <a href="https://wa.me/2348144516127?text=Hi%20Admin,%20I%20need%20help%20with%20vendor%20registration." class="whatsapp-admin-btn" target="_blank">
+                <i class="fab fa-whatsapp"></i> Chat with Admin
+            </a>
+            
+            <button class="close-popup-btn" onclick="document.getElementById('notice-popup').style.display='none'">I Understand & Agree</button>
+        </div>
+    </div>
 
     <div class="header">
         <a href="index.html" class="back-btn" style="text-decoration: none; color: #333; display: flex; align-items: center; gap: 5px; font-size: 14px; font-weight: 600;">
@@ -348,9 +421,9 @@
                 <div id="uploadStatus2" class="upload-status">Uploading...</div>
             </div>
 
-            <div class="terms-box">
+            <div class="terms-box" style="display:flex; align-items:flex-start; gap:10px;">
                 <input type="checkbox" id="terms_check" required style="margin-top:2px;">
-                <label for="terms_check">
+                <label for="terms_check" style="font-size:12px; line-height:1.4;">
                     I confirm that I have made the payment for the selected plan and the details provided are accurate.
                 </label>
             </div>
