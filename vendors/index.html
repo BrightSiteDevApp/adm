@@ -187,14 +187,46 @@
             });
 
             // Search functionality
+           // Search functionality
             const searchInput = document.getElementById('vendor-search');
+            
+            // 1. Inject a hidden "No Vendor Found" message at the end of the grid
+            container.innerHTML += `
+                <div id="no-vendor-msg" style="display:none; grid-column: 1/-1; text-align: center; padding: 50px 20px; color: #999;">
+                    <i class="fas fa-search" style="font-size: 40px; margin-bottom: 15px; opacity: 0.3;"></i>
+                    <h3 style="font-size: 16px; color: inherit; margin: 0;">No vendor found</h3>
+                    <p style="font-size: 12px; margin-top: 5px;">Check the spelling or try a different Vendor ID.</p>
+                </div>
+            `;
+
             if (searchInput) {
                 searchInput.addEventListener('input', (e) => {
                     const query = e.target.value.toLowerCase().trim();
+                    let hasVisible = false; // Track if we find any matches
+                    
                     document.querySelectorAll('.vendor-card').forEach(card => {
                         const text = card.innerText.toLowerCase();
-                        card.style.display = text.includes(query) ? "" : "none";
+                        if (text.includes(query)) {
+                            card.style.display = "";
+                            hasVisible = true; // We found at least one!
+                        } else {
+                            card.style.display = "none";
+                        }
                     });
+
+                    // 2. Show or hide the "No vendor found" message
+                    const noMsg = document.getElementById('no-vendor-msg');
+                    if (noMsg) {
+                        noMsg.style.display = hasVisible ? "none" : "block";
+                    }
+                });
+
+                // Close mobile keyboard when "Enter/Search" is pressed
+                searchInput.addEventListener('keydown', function(e) {
+                    if (e.key === 'Enter') {
+                        e.preventDefault(); // Stop any default jumps
+                        this.blur();        // Closes the keyboard!
+                    }
                 });
             }
         } catch (err) {
