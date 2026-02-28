@@ -741,8 +741,22 @@
         errorBox.querySelector('p').innerText = msg;
     }
     
-    window.shareVendor = function() {
-        if (navigator.share) { navigator.share({ title: document.title, url: window.location.href }); } else { alert("Link copied!"); }
+   window.shareVendor = function() {
+        // 1. Build the clean, short URL using the vendor ID
+        const shortUrl = `${window.location.origin}/v/?${currentVendorID}`;
+        
+        // 2. Share the short URL!
+        if (navigator.share) { 
+            navigator.share({ 
+                title: document.title, 
+                url: shortUrl 
+            }); 
+        } else { 
+            // Fallback for desktop browsers: Copy the short link to clipboard
+            navigator.clipboard.writeText(shortUrl).then(() => {
+                alert("Short link copied to clipboard!"); 
+            });
+        }
     }
 
     window.toggleSave = async function(id, name, price, image, vendor) {
@@ -771,5 +785,5 @@
         });
     }
 </script>
-</body>
+</body> 
 </html>
