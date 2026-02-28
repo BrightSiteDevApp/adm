@@ -184,17 +184,50 @@
 
         .blog-modal-content { border-radius: 20px; }
 
-        /* Dark Mode Updates */
+        /* --- SKELETON LOADING UI --- */
+        @keyframes skeleton-loading {
+            0% { background-position: -200px 0; }
+            100% { background-position: calc(200px + 100%) 0; }
+        }
+
+        .skeleton-blog-card {
+            background: white;
+            border-radius: 16px;
+            overflow: hidden;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+            border: 1px solid #f0f0f0;
+        }
+
+        .sk-shimmer {
+            background: #eee;
+            background-image: linear-gradient(90deg, #eee, #f5f5f5, #eee);
+            background-size: 200px 100%;
+            animation: skeleton-loading 1.5s infinite linear;
+        }
+
+        .sk-img-large { width: 100%; height: 180px; }
+        .sk-content { padding: 15px; }
+        .sk-meta { width: 30%; height: 12px; margin-bottom: 15px; border-radius: 4px; }
+        .sk-title { width: 80%; height: 20px; margin-bottom: 10px; border-radius: 4px; }
+        .sk-text { width: 100%; height: 14px; margin-bottom: 8px; border-radius: 4px; }
+        .sk-text-short { width: 60%; height: 14px; margin-bottom: 15px; border-radius: 4px; }
+        .sk-action { width: 100%; height: 40px; border-radius: 20px; margin-top: 15px; }
+
+
+        /* --- DARK MODE FIXES --- */
         body.dark-mode { background: #121212; }
         
-        body.dark-mode .blog-header-modern { 
-            background: #1e1e1e; 
-        }
+        body.dark-mode .header { background: #1e1e1e !important; box-shadow: 0 2px 10px rgba(0,0,0,0.5) !important; }
+        body.dark-mode .header span, body.dark-mode .header a { color: #eee !important; }
+
+        body.dark-mode .blog-header-modern { background: #1e1e1e; }
         body.dark-mode .blog-search-input { background: #2d3436; border-color: #444; color: white; }
         
         body.dark-mode .modern-blog-card { background: #1e1e1e; border-color: #333; }
         body.dark-mode .modern-title { color: #dfe6e9; }
         body.dark-mode .modern-snippet { color: #b2bec3; }
+        body.dark-mode .action-row { border-top-color: #333; }
         body.dark-mode .like-pill { background: #2d3436; color: #dfe6e9; }
         body.dark-mode .like-pill.active { background: #d63031; color: white; }
         
@@ -203,16 +236,22 @@
         body.dark-mode .modal-text { color: #ddd; }
         body.dark-mode .modal-text a { color: #74b9ff; } 
         body.dark-mode .site-footer { background: #1e1e1e; border-top: 1px solid #333; }
+
+        /* Dark Mode Skeletons */
+        body.dark-mode .skeleton-blog-card { background: #1e1e1e; border-color: #333; box-shadow: none; }
+        body.dark-mode .sk-shimmer {
+            background-color: #333;
+            background-image: linear-gradient(90deg, #333, #444, #333);
+        }
     </style>
 </head>
 <body>
 
-<div id="preloader">
-    <div class="loader-content">
-        <img src="../img/logo-blue.png" alt="Loading..." class="loader-logo">
-        <div class="loading-bar"></div>
-    </div>
-</div>
+<script>
+    if (localStorage.getItem('theme') === 'dark') {
+        document.body.classList.add('dark-mode');
+    }
+</script>
 
 <div class="app-container">
     
@@ -235,7 +274,27 @@
     </div>
 
     <div class="blog-list" id="blog-container" style="padding: 0 15px;">
+        <div class="skeleton-blog-card">
+            <div class="sk-shimmer sk-img-large"></div>
+            <div class="sk-content">
+                <div class="sk-shimmer sk-meta"></div>
+                <div class="sk-shimmer sk-title"></div>
+                <div class="sk-shimmer sk-text"></div>
+                <div class="sk-shimmer sk-text-short"></div>
+                <div class="sk-shimmer sk-action"></div>
+            </div>
         </div>
+        <div class="skeleton-blog-card">
+            <div class="sk-shimmer sk-img-large"></div>
+            <div class="sk-content">
+                <div class="sk-shimmer sk-meta"></div>
+                <div class="sk-shimmer sk-title"></div>
+                <div class="sk-shimmer sk-text"></div>
+                <div class="sk-shimmer sk-text-short"></div>
+                <div class="sk-shimmer sk-action"></div>
+            </div>
+        </div>
+    </div>
 
     <div id="no-posts-msg" style="text-align: center; margin-top: 60px; color: #999; display:none;">
         <i class="fas fa-search" style="font-size: 50px; margin-bottom: 15px; opacity: 0.3;"></i>
@@ -303,13 +362,13 @@
     async function loadBlogs() {
         const container = document.getElementById('blog-container');
         const noMsg = document.getElementById('no-posts-msg');
-        const preloader = document.getElementById('preloader');
 
         try {
             const q = query(collection(db, "blogs"), orderBy("timestamp", "desc"));
             const snapshot = await getDocs(q);
 
-            container.innerHTML = "";
+            container.innerHTML = ""; // This instantly wipes out the skeleton cards
+            
             if(snapshot.empty) {
                 noMsg.style.display = 'block';
                 document.getElementById('no-posts-text').innerText = "No Updates Yet";
@@ -355,8 +414,7 @@
             }
         } catch (e) {
             console.error(e);
-        } finally {
-            if(preloader) preloader.style.display = 'none';
+            container.innerHTML = "<p style='text-align:center; padding:20px;'>Failed to load blogs.</p>";
         }
     }
 
