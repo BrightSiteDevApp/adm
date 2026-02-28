@@ -257,8 +257,10 @@
         // Setup Load More
         document.getElementById('load-more-btn').addEventListener('click', renderNextBatch);
         
-        // Setup Search Listener
-        document.getElementById('cat-search').addEventListener('input', (e) => {
+       // Setup Search Listener
+        const catSearchInput = document.getElementById('cat-search');
+        
+        catSearchInput.addEventListener('input', (e) => {
             const term = e.target.value.toLowerCase();
             if(!term) {
                 filteredList = allCategoryItems; // Reset to random list
@@ -270,6 +272,19 @@
             document.getElementById('category-grid').innerHTML = "";
             document.getElementById('result-count').innerText = `${filteredList.length} items found`;
             renderNextBatch();
+        });
+
+      // NEW: Bulletproof mobile keyboard close
+        catSearchInput.addEventListener('keyup', function(e) {
+            if (e.key === 'Enter' || e.keyCode === 13) {
+                e.preventDefault();
+                this.blur(); // Forces keyboard to close
+            }
+        });
+
+        // Some mobile keyboards use a special "search" event instead of Enter
+        catSearchInput.addEventListener('search', function(e) {
+             this.blur();
         });
 
         const params = new URLSearchParams(window.location.search);
