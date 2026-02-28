@@ -209,9 +209,17 @@
                 <button onclick="document.getElementById('blogManagerModal').style.display='none'" style="border:none; background:none; font-size:24px; cursor:pointer;">&times;</button>
             </div>
             <div style="background:#f9f9f9; padding:15px; border-radius:10px; margin-bottom:20px;">
-                <h4 id="blogFormTitle" style="margin-top:0;">Create New Post</h4>
+               <h4 id="blogFormTitle" style="margin-top:0;">Create New Post</h4>
                 <input type="hidden" id="editBlogId">
                 <input type="text" id="blogTitle" class="admin-input" placeholder="Title" style="margin-bottom:10px; width:100%; box-sizing:border-box;">
+                
+                <select id="blogCategory" class="admin-input" style="margin-bottom:10px; width:100%; box-sizing:border-box; background: white;">
+                    <option value="News">News</option>
+                    <option value="Gossip">🔥 Gossip</option>
+                    <option value="Academics">📚 Academics</option>
+                    <option value="Events">🎉 Events</option>
+                </select>
+
                 <textarea id="blogSnippet" class="admin-input" placeholder="Snippet" style="margin-bottom:10px; width:100%; box-sizing:border-box; height:60px;"></textarea>
                 <textarea id="blogContent" class="admin-input" placeholder="Content" style="margin-bottom:10px; width:100%; box-sizing:border-box; height:150px;"></textarea>
                 <input type="file" id="blogImageFile" accept="image/*">
@@ -672,10 +680,11 @@
         }
         
         // ... (Keep existing Blog Save/Edit/Delete functions from previous code if needed, they are standard) ...
-        window.saveBlog = async function() {
+       window.saveBlog = async function() {
             const btn = document.getElementById('saveBlogBtn');
             const fileInput = document.getElementById('blogImageFile');
             const title = document.getElementById('blogTitle').value;
+            const category = document.getElementById('blogCategory').value; // 🆕 Grab Category
             const snippet = document.getElementById('blogSnippet').value;
             const content = document.getElementById('blogContent').value;
             const editId = document.getElementById('editBlogId').value;
@@ -697,7 +706,8 @@
                 } catch(e) { console.error(e); }
             }
 
-            const blogData = { title, snippet, content, searchKeywords: title.toLowerCase().split(" "), timestamp: serverTimestamp() };
+            // 🆕 Added category to the database object
+            const blogData = { title, category, snippet, content, searchKeywords: title.toLowerCase().split(" "), timestamp: serverTimestamp() };
             if(imageUrl) blogData.image = imageUrl;
             if(!editId && !imageUrl) blogData.image = "https://afitdgm.store/img/logo-blue.png";
             if(!editId) blogData.likes = [];
@@ -716,6 +726,7 @@
             if(docSnap.exists()) {
                 const data = docSnap.data();
                 document.getElementById('blogTitle').value = data.title;
+                document.getElementById('blogCategory').value = data.category || "News"; // 🆕 Load Category
                 document.getElementById('blogSnippet').value = data.snippet;
                 document.getElementById('blogContent').value = data.content;
                 document.getElementById('editBlogId').value = id;
@@ -724,11 +735,14 @@
                 document.getElementById('cancelEditBtn').style.display = 'block';
             }
         }
+        
         window.deleteBlog = async function(id) {
             if(confirm("Delete post?")) { await deleteDoc(doc(db, "blogs", id)); loadAdminBlogs(); }
         }
+        
         window.resetBlogForm = function() {
             document.getElementById('blogTitle').value = "";
+            document.getElementById('blogCategory').value = "News"; // 🆕 Reset to default
             document.getElementById('blogSnippet').value = "";
             document.getElementById('blogContent').value = "";
             document.getElementById('editBlogId').value = "";

@@ -24,15 +24,21 @@
             z-index: 1000;
             align-items: center;
             justify-content: center;
+            backdrop-filter: blur(5px);
         }
         .modal-content {
             background: white;
             padding: 20px;
-            border-radius: 15px;
+            border-radius: 20px;
             width: 90%;
             max-width: 400px;
             position: relative;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        @keyframes popIn {
+            0% { transform: scale(0.9); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
         }
         .close-modal {
             position: absolute;
@@ -48,73 +54,95 @@
             margin: 15px 0;
         }
         .star-rating-input i {
-            font-size: 24px;
-            color: #ddd;
+            font-size: 28px;
+            color: #eee;
             cursor: pointer;
-            transition: color 0.2s;
+            transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
-        .star-rating-input i.active {
-            color: #FFD700;
-        }
+        .star-rating-input i:active { transform: scale(0.8); }
+        .star-rating-input i.active { color: #FFD700; text-shadow: 0 0 10px rgba(255, 215, 0, 0.5); }
+        
         textarea {
             width: 100%;
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 10px;
+            padding: 15px;
+            border: 1px solid #eee;
+            border-radius: 12px;
             resize: none;
-            height: 100px;
+            height: 120px;
             font-family: inherit;
             margin-top: 10px;
+            background: #f9f9f9;
+            outline: none;
+            box-sizing: border-box;
+            transition: border-color 0.3s;
         }
+        textarea:focus { border-color: #2d8eff; background: white; }
+
         .submit-btn {
             width: 100%;
             background: var(--primary-blue, #007bff);
             color: white;
-            padding: 12px;
+            padding: 15px;
             border: none;
-            border-radius: 20px;
+            border-radius: 30px;
             margin-top: 15px;
             font-weight: bold;
+            font-size: 15px;
             cursor: pointer;
-            transition: background 0.3s;
+            transition: all 0.3s;
+            box-shadow: 0 4px 15px rgba(45, 142, 255, 0.3);
         }
-        .submit-btn:hover {
-            opacity: 0.9;
-        }
+        .submit-btn:active { transform: scale(0.96); }
+
         .pending-tag {
             background: #ffeeba;
             color: #856404;
             padding: 2px 8px;
             border-radius: 10px;
-            font-size: 10px;
+            font-size: 9px;
             margin-left: 5px;
             font-weight: bold;
             vertical-align: middle;
         }
         
-        /* User Action Buttons (Edit/Delete) */
+        /* Review Date */
+        .review-date { font-size: 10px; color: #aaa; margin-top: 2px; }
+
+        /* User Action Buttons */
         .user-actions {
             display: flex;
             gap: 15px;
-            margin-left: auto; /* Push to right */
+            margin-left: auto;
         }
-        .action-icon {
-            font-size: 14px;
-            cursor: pointer;
-            color: #999;
-            transition: color 0.2s;
-        }
+        .action-icon { font-size: 14px; cursor: pointer; color: #ccc; transition: color 0.2s; }
         .action-icon:hover { color: var(--primary-blue, #007bff); }
         .action-delete:hover { color: #ff4757; }
+
+        /* Skeletons */
+        .sk-shimmer {
+            background: #eee;
+            background-image: linear-gradient(90deg, #eee, #f5f5f5, #eee);
+            background-size: 200px 100%;
+            animation: skeleton-loading 1.5s infinite linear;
+        }
+        @keyframes skeleton-loading {
+            0% { background-position: -200px 0; }
+            100% { background-position: calc(200px + 100%) 0; }
+        }
+
+        /* Dark Mode Fixes */
+        body.dark-mode .modal-content { background: #1e1e1e; }
+        body.dark-mode textarea { background: #2d3436; border-color: #444; color: white; }
+        body.dark-mode .review-card { background: #1e1e1e; border-color: #333; }
+        body.dark-mode .review-name { color: #eee; }
+        body.dark-mode .review-text { color: #bbb; }
+        body.dark-mode .sk-shimmer { background-color: #333; background-image: linear-gradient(90deg, #333, #444, #333); }
     </style>
 </head>
 <body>
-    <div id="preloader">
-        <div class="loader-content">
-            <img src="../img/logo-blue.png" alt="Loading..." class="loader-logo">
-            <div class="loading-bar"></div>
-        </div>
-    </div>
+  <script>
+    if (localStorage.getItem('theme') === 'dark') document.body.classList.add('dark-mode');
+  </script>
 
   <div class="app-container">
     
@@ -129,7 +157,7 @@
         <h2 class="content-title">What Students Say</h2>
         <p style="color:#777; font-size:13px; margin-bottom:20px;">Real feedback from the AFIT community.</p>
 
-        <div class="filter-scroll" style="display:flex; gap:8px; overflow-x:auto; padding-bottom:15px; margin-bottom:10px;">
+        <div class="filter-scroll" style="display:flex; gap:8px; overflow-x:auto; padding-bottom:15px; margin-bottom:10px; scrollbar-width: none;">
             <button class="filter-btn active" onclick="filterReviews('all', this)">All</button>
             <button class="filter-btn" onclick="filterReviews(5, this)">5 <i class="fas fa-star" style="color:#FFD700; font-size:10px;"></i></button>
             <button class="filter-btn" onclick="filterReviews(4, this)">4 <i class="fas fa-star" style="color:#FFD700; font-size:10px;"></i></button>
@@ -139,21 +167,12 @@
         </div>
 
         <div id="all-reviews-container" style="display: flex; flex-direction: column; gap: 15px;">
-            <div class="skeleton-card" style="width: 100%;">
-                <div style="display:flex; gap:10px; margin-bottom:10px;">
-                    <div class="skeleton sk-img" style="width:40px; height:40px;"></div>
-                    <div style="flex:1;">
-                        <div class="skeleton sk-text-short" style="width:60%; margin-bottom:5px;"></div>
-                        <div class="skeleton sk-text-short" style="width:30%;"></div>
-                    </div>
-                </div>
-                <div class="skeleton sk-text-long"></div>
             </div>
-        </div>
         
-        <div style="margin-top: 30px; text-align: center;">
-            <p style="margin-bottom:10px; font-size:12px; color:#555;">Have an experience to share?</p>
-            <button onclick="openReviewModal()" style="border:none; cursor:pointer; display:inline-block; padding:10px 20px; background:var(--primary-blue, #007bff); color:white; border-radius:20px; font-size:12px; font-weight:bold;">Write a Review</button>
+        <div style="margin-top: 40px; text-align: center; padding: 20px; background: #f9f9f9; border-radius: 15px;">
+            <div style="font-size: 40px; margin-bottom: 10px;">✍️</div>
+            <p style="margin-bottom:15px; font-size:13px; color:#555; font-weight: bold;">Have an experience to share?</p>
+            <button onclick="openReviewModal()" style="border:none; cursor:pointer; display:inline-block; padding:12px 30px; background:var(--primary-blue, #007bff); color:white; border-radius:30px; font-size:13px; font-weight:bold; box-shadow: 0 4px 10px rgba(0,123,255,0.3); transition: transform 0.2s;">Write a Review</button>
         </div>
 
     </div>
@@ -161,7 +180,7 @@
     <div id="reviewModal" class="modal-overlay">
         <div class="modal-content">
             <span class="close-modal" onclick="closeReviewModal()">&times;</span>
-            <h3 id="modalTitle" style="text-align:center; color: #333;">Rate your experience</h3>
+            <h3 id="modalTitle" style="text-align:center; color: #333; margin-top: 10px;">Rate your experience</h3>
             
             <div class="star-rating-input" id="starInput">
                 <i class="fas fa-star" data-val="1"></i>
@@ -171,8 +190,8 @@
                 <i class="fas fa-star" data-val="5"></i>
             </div>
             
-            <textarea id="reviewText" placeholder="Tell us what you bought and how it went..."></textarea>
-            <p id="reviewError" style="color:red; font-size:11px; text-align:center; display:none; margin-top:5px;"></p>
+            <textarea id="reviewText" placeholder="Tell us what you bought and how the vendor treated you..."></textarea>
+            <p id="reviewError" style="color:#ff4757; font-size:12px; text-align:center; display:none; margin-top:10px; font-weight: bold;"></p>
             <button class="submit-btn" onclick="submitReview()">Submit Review</button>
         </div>
     </div>
@@ -214,12 +233,58 @@
     let currentUser = null;
     let allReviews = [];
     let selectedRating = 0;
-    
-    // Track if we are editing an existing review
     let editingReviewId = null;
 
-    // --- 🟢 30-MINUTE LOCAL STORAGE CACHING SYSTEM ---
-    const CACHE_TTL = 30 * 60 * 1000; // 30 minutes in milliseconds
+    // --- XSS PROTECTION ---
+    function escapeHTML(str) {
+        if (!str) return "";
+        return String(str).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+    }
+
+    // --- FORMAT DATE ---
+    function timeAgo(dateInput) {
+        if (!dateInput) return "Recently";
+        
+        // Handle Firebase Timestamp or JS Date
+        const date = dateInput.seconds ? new Date(dateInput.seconds * 1000) : new Date(dateInput);
+        const seconds = Math.floor((new Date() - date) / 1000);
+
+        let interval = seconds / 31536000;
+        if (interval > 1) return Math.floor(interval) + " years ago";
+        interval = seconds / 2592000;
+        if (interval > 1) return Math.floor(interval) + " months ago";
+        interval = seconds / 86400;
+        if (interval > 1) return Math.floor(interval) + " days ago";
+        interval = seconds / 3600;
+        if (interval > 1) return Math.floor(interval) + " hours ago";
+        interval = seconds / 60;
+        if (interval > 1) return Math.floor(interval) + " minutes ago";
+        return Math.floor(seconds) + " seconds ago";
+    }
+
+    // --- SKELETON INJECTOR ---
+    function renderSkeletons() {
+        const container = document.getElementById('all-reviews-container');
+        let html = '';
+        for(let i=0; i<4; i++) {
+            html += `
+            <div class="review-card" style="width: 100%; border:none; box-shadow:none;">
+                <div style="display:flex; gap:10px; margin-bottom:15px;">
+                    <div class="sk-shimmer" style="width:40px; height:40px; border-radius:50%;"></div>
+                    <div style="flex:1;">
+                        <div class="sk-shimmer" style="width:50%; height:12px; margin-bottom:8px; border-radius:4px;"></div>
+                        <div class="sk-shimmer" style="width:30%; height:10px; border-radius:4px;"></div>
+                    </div>
+                </div>
+                <div class="sk-shimmer" style="width:100%; height:12px; margin-bottom:8px; border-radius:4px;"></div>
+                <div class="sk-shimmer" style="width:80%; height:12px; border-radius:4px;"></div>
+            </div>`;
+        }
+        container.innerHTML = html;
+    }
+
+    // --- CACHING SYSTEM ---
+    const CACHE_TTL = 30 * 60 * 1000; 
 
     function getCachedData(key) {
         const cached = localStorage.getItem(key);
@@ -233,24 +298,21 @@
     }
 
     function setCachedData(key, data) {
-        localStorage.setItem(key, JSON.stringify({
-            timestamp: Date.now(),
-            data: data
-        }));
+        localStorage.setItem(key, JSON.stringify({ timestamp: Date.now(), data: data }));
     }
 
-    // Function to wipe caches when the user makes a change
     function invalidateReviewCaches() {
-        localStorage.removeItem('cache_all_reviews'); // This page's cache
-        localStorage.removeItem('cache_reviews');     // The Home page's cache
+        localStorage.removeItem('cache_all_reviews'); 
+        localStorage.removeItem('cache_reviews'); 
     }
-    // --- 🟢 END CACHING SYSTEM ---
 
     onAuthStateChanged(auth, (user) => {
-        if (user) {
-            currentUser = user;
-        }
+        if (user) currentUser = user;
         loadReviews();
+    });
+
+    document.addEventListener("DOMContentLoaded", () => {
+        renderSkeletons(); // Show immediately while Firebase checks auth/cache
     });
 
     // --- MODAL FUNCTIONS ---
@@ -260,7 +322,6 @@
             return;
         }
         
-        // Check limit ONLY if creating new
         if (!editingReviewId) {
             const myReviews = allReviews.filter(r => r.uid === currentUser.uid);
             if(myReviews.length >= 2) {
@@ -270,9 +331,9 @@
         }
         
         document.getElementById('reviewModal').style.display = 'flex';
+        document.body.style.overflow = 'hidden'; // Stop background scrolling
     }
 
-    // Called when user clicks "Edit" icon
     window.openEditModal = function(id, text, rating) {
         editingReviewId = id;
         document.getElementById('modalTitle').innerText = "Edit your review";
@@ -280,18 +341,19 @@
         selectedRating = rating;
         updateStars();
         document.getElementById('reviewModal').style.display = 'flex';
+        document.body.style.overflow = 'hidden';
     }
 
     window.closeReviewModal = function() {
         document.getElementById('reviewModal').style.display = 'none';
+        document.body.style.overflow = 'auto';
         
-        // Reset Form
         selectedRating = 0;
         editingReviewId = null;
         updateStars();
         document.getElementById('reviewText').value = "";
         document.getElementById('reviewError').style.display = 'none';
-        document.getElementById('modalTitle').innerText = "Rate your experience"; // Reset title
+        document.getElementById('modalTitle').innerText = "Rate your experience"; 
     }
 
     document.querySelectorAll('#starInput i').forEach(star => {
@@ -309,9 +371,9 @@
         });
     }
 
-    // --- SUBMIT (CREATE OR EDIT) ---
+    // --- SUBMIT LOGIC ---
     window.submitReview = async function() {
-        const text = document.getElementById('reviewText').value;
+        const text = document.getElementById('reviewText').value.trim();
         const errorMsg = document.getElementById('reviewError');
         
         if(selectedRating === 0) {
@@ -320,7 +382,7 @@
             return;
         }
         if(text.length < 5) {
-            errorMsg.innerText = "Review text is too short.";
+            errorMsg.innerText = "Review text is too short. Please add more detail.";
             errorMsg.style.display = 'block';
             return;
         }
@@ -331,16 +393,14 @@
 
         try {
             if (editingReviewId) {
-                // ✅ UPDATE EXISTING
                 await updateDoc(doc(db, "reviews", editingReviewId), {
                     rating: selectedRating,
                     review: text,
-                    status: "pending", // Force re-approval on edit
+                    status: "pending", 
                     updatedAt: serverTimestamp()
                 });
                 alert("Review updated! It is now pending approval.");
             } else {
-                // ✅ CREATE NEW
                 await addDoc(collection(db, "reviews"), {
                     uid: currentUser.uid,
                     name: currentUser.displayName || "Student",
@@ -353,15 +413,15 @@
                 alert("Review submitted! It will appear as 'Pending' until approved.");
             }
 
-            // Wipe cache so the user instantly sees their pending/updated review
             invalidateReviewCaches();
-
             closeReviewModal();
+            renderSkeletons(); // Show loading again
             loadReviews(); 
 
         } catch (e) {
             console.error("Error submitting review: ", e);
-            alert("Error. Please try again.");
+            errorMsg.innerText = "Connection error. Please try again.";
+            errorMsg.style.display = 'block';
         }
         
         submitBtn.innerText = "Submit Review";
@@ -374,10 +434,8 @@
         
         try {
             await deleteDoc(doc(db, "reviews", id));
-            
-            // Wipe cache so the review instantly disappears from their screen
             invalidateReviewCaches();
-            
+            renderSkeletons();
             loadReviews();
         } catch(e) {
             alert("Error deleting review.");
@@ -387,29 +445,29 @@
 
     // --- LOAD REVIEWS ---
     async function loadReviews() {
-        const container = document.getElementById('all-reviews-container');
-        
         try {
-            // Check cache first
             let rawReviewData = getCachedData('cache_all_reviews');
 
             if (!rawReviewData) {
-                console.log("Fetching fresh reviews from Firebase");
                 const q = query(collection(db, "reviews"), orderBy("createdAt", "desc"));
                 const snapshot = await getDocs(q);
-                rawReviewData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
                 
-                // Save to cache
+                // Keep the timestamp intact for the timeAgo function
+                rawReviewData = snapshot.docs.map(doc => {
+                    const data = doc.data();
+                    return { 
+                        id: doc.id, 
+                        ...data,
+                        _timestamp: data.createdAt ? data.createdAt.seconds : null
+                    };
+                });
+                
                 setCachedData('cache_all_reviews', rawReviewData);
-            } else {
-                console.log("Loaded reviews from 30-minute local cache");
-            }
+            } 
 
             allReviews = [];
             
-            // Filter the data (whether from cache or fresh fetch)
             rawReviewData.forEach(data => {
-                // Show if Approved OR if it belongs to current user
                 if (data.status === 'approved') {
                     allReviews.push(data);
                 } else if (currentUser && data.uid === currentUser.uid) {
@@ -421,7 +479,7 @@
 
         } catch (e) {
             console.error("Error loading reviews:", e);
-            if(allReviews.length === 0) container.innerHTML = "<p style='text-align:center; color:#999; padding:20px;'>No reviews yet. Be the first!</p>";
+            document.getElementById('all-reviews-container').innerHTML = "<p style='text-align:center; color:#999; padding:20px;'>Failed to load reviews.</p>";
         }
     }
 
@@ -430,7 +488,7 @@
         container.innerHTML = "";
 
         if(data.length === 0) {
-            container.innerHTML = "<p style='text-align:center; color:#999; padding:20px;'>No reviews yet. Be the first!</p>";
+            container.innerHTML = "<p style='text-align:center; color:#999; padding:40px 20px; background:white; border-radius:15px;'><i class='far fa-comment-dots' style='font-size:30px; margin-bottom:10px; color:#ddd;'></i><br>No reviews yet.<br>Be the first to share your experience!</p>";
             return;
         }
 
@@ -440,35 +498,40 @@
             
             let pendingBadge = "";
             if(r.status === 'pending') {
-                pendingBadge = `<span class="pending-tag">PENDING</span>`;
+                pendingBadge = `<span class="pending-tag">PENDING APPROVAL</span>`;
             }
 
-            // ✅ CHECK IF THIS IS MY REVIEW TO SHOW ICONS
+            const displayDate = timeAgo(r.createdAt || {seconds: r._timestamp});
+
             let actionButtons = "";
             if (currentUser && r.uid === currentUser.uid) {
-                // Escape quotes for the onclick function
-                const safeReview = r.review.replace(/'/g, "\\'").replace(/"/g, '&quot;');
+                const safeReviewForJS = String(r.review).replace(/'/g, "\\'").replace(/"/g, '&quot;');
                 actionButtons = `
                     <div class="user-actions">
-                        <i class="fas fa-edit action-icon" onclick="openEditModal('${r.id}', '${safeReview}', ${r.rating})"></i>
-                        <i class="fas fa-trash action-icon action-delete" onclick="deleteMyReview('${r.id}')"></i>
+                        <i class="fas fa-edit action-icon" onclick="openEditModal('${r.id}', '${safeReviewForJS}', ${r.rating})" title="Edit"></i>
+                        <i class="fas fa-trash action-icon action-delete" onclick="deleteMyReview('${r.id}')" title="Delete"></i>
                     </div>
                 `;
             }
 
+            // XSS Protection for display
+            const safeNameHTML = escapeHTML(r.name);
+            const safeReviewHTML = escapeHTML(r.review);
+
             container.innerHTML += `
-            <div class="review-card" style="width: 100%;"> 
+            <div class="review-card" style="width: 100%; border-radius: 15px;"> 
                 <div class="review-header" style="display:flex; justify-content:space-between; align-items:flex-start;">
-                    <div style="display:flex; gap:10px;">
-                        <img src="${r.image}" class="review-img" alt="User" onerror="this.src='../img/person.png'">
+                    <div style="display:flex; gap:12px;">
+                        <img src="${r.image}" class="review-img" alt="User" onerror="this.src='../img/person.png'" style="width:45px; height:45px; border-radius:50%; object-fit:cover;">
                         <div>
-                            <div class="review-name">${r.name} ${pendingBadge}</div>
-                            <div class="stars" style="font-size:10px;">${starString}</div>
+                            <div class="review-name" style="font-weight:bold; font-size:14px;">${safeNameHTML} ${pendingBadge}</div>
+                            <div class="stars" style="font-size:10px; margin:2px 0;">${starString}</div>
+                            <div class="review-date">${displayDate}</div>
                         </div>
                     </div>
                     ${actionButtons}
                 </div>
-                <div class="review-text" style="margin-top:5px;">"${r.review}"</div>
+                <div class="review-text" style="margin-top:12px; line-height:1.5; font-size:14px; color:#555;">"${safeReviewHTML}"</div>
             </div>`;
         });
     }
