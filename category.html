@@ -257,21 +257,46 @@
         // Setup Load More
         document.getElementById('load-more-btn').addEventListener('click', renderNextBatch);
         
-       // Setup Search Listener
+       // --- UPGRADED LOCAL FUZZY SEARCH (Category Specific) ---
         const catSearchInput = document.getElementById('cat-search');
-        
+        let searchTimeout;
+
         catSearchInput.addEventListener('input', (e) => {
-            const term = e.target.value.toLowerCase();
-            if(!term) {
-                filteredList = allCategoryItems; // Reset to random list
-            } else {
-                filteredList = allCategoryItems.filter(p => (p.name || p.Name).toLowerCase().includes(term));
+            clearTimeout(searchTimeout);
+            
+            searchTimeout = setTimeout(() => {
+                const term = e.target.value.toLowerCase().trim();
+                
+                if(!term) {
+                    filteredList = allCategoryItems; // Reset to random list
+                } else {
+                    // Smart local search: Check name AND description
+                    filteredList = allCategoryItems.filter(p => {
+                        const name = String(p.name || p.Name || "").toLowerCase();
+                        const desc = String(p.description || p.Description || "").toLowerCase();
+                        return name.includes(term) || desc.includes(term);
+                    });
+                }
+                
+                // Reset Rendering
+                currentCount = 0;
+                document.getElementById('category-grid').innerHTML = "";
+                document.getElementById('result-count').innerText = `${filteredList.length} items found`;
+                renderNextBatch();
+            }, 300); // 300ms Debounce to prevent jumping
+        });
+
+        // Bulletproof mobile keyboard close
+        catSearchInput.addEventListener('keyup', function(e) {
+            if (e.key === 'Enter' || e.keyCode === 13) {
+                e.preventDefault();
+                this.blur(); // Forces keyboard to close
             }
-            // Reset Rendering
-            currentCount = 0;
-            document.getElementById('category-grid').innerHTML = "";
-            document.getElementById('result-count').innerText = `${filteredList.length} items found`;
-            renderNextBatch();
+        });
+
+        // Some mobile keyboards use a special "search" event instead of Enter
+        catSearchInput.addEventListener('search', function(e) {
+             this.blur();
         });
 
       // NEW: Bulletproof mobile keyboard close
@@ -286,7 +311,7 @@
         catSearchInput.addEventListener('search', function(e) {
              this.blur();
         });
-
+ 
         const params = new URLSearchParams(window.location.search);
         let category = params.get('cat');
 

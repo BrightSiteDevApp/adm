@@ -30,11 +30,14 @@
      <link rel="icon" href="../img/app-logo.png" type="image/png" sizes="192x192">
     <link rel="apple-touch-icon" href="../img/app-logo.png">
     <link rel="icon" href="../favicon.ico" type="image/x-icon">
+    
+    <script src="https://cdn.jsdelivr.net/npm/algoliasearch@4/dist/algoliasearch-lite.umd.js"></script>
+
     <style>
         /* --- 1. ESSENTIAL GRID STYLES --- */
         .trending-grid {
             display: grid;
-            grid-template-columns: repeat(2, 1fr); /* 2 columns by default */
+            grid-template-columns: repeat(2, 1fr); 
             gap: 15px;
             padding: 15px;
             padding-bottom: 20px; 
@@ -310,6 +313,11 @@
     const auth = getAuth(app);
     const db = getFirestore(app);
 
+    // --- 🚀 ALGOLIA INITIALIZATION ---
+    // PASTE YOUR KEYS HERE! Use the SEARCH-ONLY API Key.
+    const algoliaClient = algoliasearch('IQSHEYK1XF', 'b78824ffc8318be2ef8c725cf902386a');
+    const algoliaIndex = algoliaClient.initIndex('afit_products');
+
     let savedItemIds = new Set();
     
     // --- GLOBAL VARIABLES ---
@@ -397,21 +405,29 @@
     document.addEventListener("DOMContentLoaded", async () => {
         document.getElementById('load-more-btn').addEventListener('click', handleLoadMore);
         
-        // Filter Listeners
+        // --- 🚀 UPGRADED SEARCH LISTENERS WITH DEBOUNCE ---
         const itemSearchInput = document.getElementById('item-search');
+        let searchTimeout;
+
+        itemSearchInput.addEventListener('input', () => {
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(() => {
+                applyFilters(true);
+            }, 300); // 300ms Debounce
+        });
         
-        itemSearchInput.addEventListener('input', () => applyFilters(true));
-        
-        // NEW: Close keyboard when "Enter" is pressed
-        itemSearchInput.addEventListener('keydown', function(e) {
-            if (e.key === 'Enter') {
-                e.preventDefault(); // Stop any default jumps
-                this.blur();        // Closes the mobile keyboard!
+        // Bulletproof Mobile Keyboard Close
+        itemSearchInput.addEventListener('keyup', function(e) {
+            if (e.key === 'Enter' || e.keyCode === 13) {
+                e.preventDefault(); 
+                this.blur();        
             }
         });
+        itemSearchInput.addEventListener('search', function() { this.blur(); });
 
         document.getElementById('filter-price').addEventListener('change', () => applyFilters(true));
         document.getElementById('filter-condition').addEventListener('change', () => applyFilters(true));
+        
         // Initial Skeleton
         renderSkeletons('all-items-container', 8);
 
@@ -460,7 +476,6 @@
                 console.log("Loaded Firebase products from shared cache");
             }
 
-            // Map the raw data (whether cached or fresh) to include numericPrice and phone
             const firestoreItems = firestoreRaw.map(data => {
                 const vID = data.vendor_id || data.Vendor_ID;
                 return { 
@@ -489,12 +504,10 @@
         const loadBtn = document.getElementById('load-more-btn');
         const skeletonContainer = document.getElementById('loading-more-skeletons');
 
-        // 1. Hide Button, Show Skeletons
         loadBtn.style.display = 'none';
         skeletonContainer.style.display = 'grid'; 
         renderSkeletons('loading-more-skeletons', 4); 
 
-        // 2. Simulate Network Delay (1.5 seconds)
         setTimeout(() => {
             clearSkeletons('loading-more-skeletons');
             currentDisplayCount += LOAD_STEP;
@@ -502,7 +515,8 @@
         }, 1500); 
     }
 
-    function applyFilters(resetCount = false) {
+    // --- 🚀 UPGRADED APPLY FILTERS WITH ALGOLIA ---
+    async function applyFilters(resetCount = false) {
         if(resetCount) currentDisplayCount = INITIAL_DISPLAY;
         if(currentDisplayCount === 0) currentDisplayCount = INITIAL_DISPLAY;
 
@@ -511,10 +525,31 @@
         const condFilter = document.getElementById('filter-condition').value;
         const loadBtn = document.getElementById('load-more-btn');
 
-        let filteredItems = masterItemList.filter(p => {
-            const name = (p.name || p.Name).toLowerCase();
-            if(term && !name.includes(term)) return false;
+        let baseList = masterItemList;
 
+        // If they searched something, use Algolia!
+        if (term) {
+            try {
+                // Ask Algolia for matches (pulls up to 100 hits to account for filters)
+                const { hits } = await algoliaIndex.search(term, { hitsPerPage: 100 });
+                const hitIds = new Set(hits.map(h => h.objectID));
+                
+                // Cross-reference Algolia hits with our local master list so filters stay intact
+                baseList = masterItemList.filter(p => {
+                    const rawID = p.id || (p.vendor_id + "-" + p.name).replace(/\s+/g, '-').toLowerCase().replace(/'/g, "").replace(/"/g, "");
+                    const nameMatch = (p.name || p.Name).toLowerCase().includes(term);
+                    
+                    // Show it if Algolia found it (Firestore) OR if local search finds it (Google Sheets backup)
+                    return hitIds.has(p.id) || hitIds.has(rawID) || nameMatch;
+                });
+            } catch (error) {
+                console.error("Algolia error, falling back to local search:", error);
+                baseList = masterItemList.filter(p => (p.name || p.Name).toLowerCase().includes(term));
+            }
+        }
+
+        // Apply Price & Condition Dropdowns
+        let filteredItems = baseList.filter(p => {
             const pCond = p.condition || p.Condition || "Used";
             if(condFilter !== 'all' && pCond.toLowerCase() !== condFilter.toLowerCase()) return false;
 
@@ -535,7 +570,7 @@
 
         if (itemsToShow.length < totalMatches) {
             loadBtn.style.display = 'block';
-          loadBtn.innerText = "Load More"; // <-- Changed this line!
+            loadBtn.innerText = "Load More"; 
         } else {
             loadBtn.style.display = 'none';
         }
@@ -543,8 +578,6 @@
 
     function renderCustomGrid(items) {
         const container = document.getElementById('all-items-container');
-        
-        // Ensure container is visible
         container.style.display = 'grid'; 
 
         if(items.length === 0) {

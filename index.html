@@ -64,6 +64,7 @@
     gtag('js', new Date());
     gtag('config', 'G-70VSGR5WBW');
   </script>
+  <script src="https://cdn.jsdelivr.net/npm/algoliasearch@4/dist/algoliasearch-lite.umd.js"></script>
 
   <style>
       /* Text Wrapping Fix */
@@ -498,6 +499,11 @@
     let allVendors = [];
     let globalPhoneBook = {}; 
     let suspendedVendors = new Set(); 
+
+    // --- 🚀 ALGOLIA SEARCH ENGINE SETUP ---
+    // PASTE YOUR KEYS HERE! Use the SEARCH-ONLY API Key, not the Admin Key.
+    const algoliaClient = algoliasearch('IQSHEYK1XF', 'b78824ffc8318be2ef8c725cf902386a');
+    const algoliaIndex = algoliaClient.initIndex('afit_products');
 
     // --- 🟢 NEW LOCAL STORAGE CACHING SYSTEM (1 MINUTE TTL) ---
     const CACHE_TTL = 1 * 60 * 1000; // 1 minutes in milliseconds
@@ -1021,29 +1027,45 @@
 
     function shuffle(array) { return array.sort(() => 0.5 - Math.random()); }
     
-    function setupMainSearch() {
+   function setupMainSearch() {
         const searchInput = document.getElementById('main-search');
         const searchType = document.getElementById('search-type');
+        let searchTimeout; // <-- 1. We create a timer variable
         
         if(searchInput) {
-            searchInput.addEventListener('input', (e) => {
-                const query = e.target.value.toLowerCase().trim();
-                const type = searchType.value; 
-                if(query === "") {
-                    initData();
-                    return;
-                }
-                if (type === 'product') {
-                    renderItems(allProducts.filter(p => (p.name || p.Name).toLowerCase().includes(query)));
-                } else if (type === 'vendor') {
-                    renderVendors(allVendors.filter(v => (v.business_name || v.Business_Name).toLowerCase().includes(query)));
-                }
+            searchInput.addEventListener('input', (e) => { 
+                // 2. Clear the timer if they are still typing!
+                clearTimeout(searchTimeout); 
+                
+                // 3. Wait 300 milliseconds before firing the search
+                searchTimeout = setTimeout(async () => {
+                    const query = e.target.value.toLowerCase().trim();
+                    const type = searchType.value; 
+                    
+                    if(query === "") {
+                        initData(); 
+                        return;
+                    }
+                    
+                    if (type === 'product') {
+                        try {
+                            const { hits } = await algoliaIndex.search(query);
+                            renderItems(hits); 
+                        } catch (err) {
+                            console.error("Algolia search error:", err);
+                            renderItems(allProducts.filter(p => (p.name || p.Name).toLowerCase().includes(query)));
+                        }
+                    } else if (type === 'vendor') {
+                        renderVendors(allVendors.filter(v => (v.business_name || v.Business_Name).toLowerCase().includes(query)));
+                    }
+                }, 300); // <-- Wait 0.3 seconds
             });
 
-            searchInput.addEventListener('keydown', (e) => {
-                if (e.key === 'Enter') {
+            // Bulletproof Mobile Keyboard Close
+            searchInput.addEventListener('keyup', function(e) {
+                if (e.key === 'Enter' || e.keyCode === 13) {
                     e.preventDefault(); 
-                    searchInput.blur(); 
+                    this.blur(); 
                     
                     const type = searchType.value;
                     if(type === 'product') {
@@ -1053,9 +1075,12 @@
                     }
                 }
             });
+            
+            searchInput.addEventListener('search', function(e) {
+                 this.blur();
+            });
         }
     }
-
     function renderItems(data) {
         const itemGrid = document.getElementById("home-items-grid");
         if(!itemGrid) return;
