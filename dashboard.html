@@ -420,10 +420,11 @@
                         document.getElementById('view-count').innerText = "0";
                     }
 
-                } else {
-                    alert(`Access Denied: The email "${user.email}" is not registered as a Vendor.\n\nYou will be logged out now. Please sign in with the correct Vendor email.`);
-                    await signOut(auth);
-                    window.location.href = "login.html";
+              } else {
+                    // We removed the signOut() command! 
+                    // Now, they stay logged in as a normal student, but are just kicked off the dashboard.
+                    alert(`Access Denied: The email "${user.email}" is not registered as a Vendor.\n\nRedirecting you back to the main market.`);
+                    window.location.href = "index.html"; 
                 }
 
             } catch (err) { 

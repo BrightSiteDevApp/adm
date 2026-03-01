@@ -152,7 +152,16 @@
       .sk-text-long { width: 90%; height: 15px; background: #eee; border-radius: 4px; animation: skeleton-loading 1.5s infinite linear; }
       .sk-btn { width: 100%; height: 30px; margin-top: auto; background: #eee; border-radius: 6px; animation: skeleton-loading 1.5s infinite linear; }
       
-      /* --- 🆕 MODERN FOOTER --- */
+      /* 🚀 NEW: MINI VENDOR CARDS 🚀 */
+      .mini-vendor-card { 
+          background: white; padding: 15px 10px; border-radius: 15px; text-align: center; 
+          box-shadow: 0 4px 10px rgba(0,0,0,0.04); border: 1px solid #eee; cursor: pointer; transition: transform 0.2s; 
+      }
+      .mini-vendor-card:active { transform: scale(0.95); }
+      .mini-vendor-img { width: 60px; height: 60px; border-radius: 50%; object-fit: cover; margin-bottom: 8px; border: 2px solid #f0f0f0; background:#eee;}
+      .mini-vendor-name { font-size: 13px; font-weight: 800; color: #333; display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden; line-height: 1.2;}
+
+      /* --- MODERN FOOTER --- */
       .modern-footer {
           background: #fff; padding: 30px 20px; text-align: center; margin-top: 40px;
           border-top: 1px solid #eee; display: flex; flex-direction: column; align-items: center; gap: 10px;
@@ -164,23 +173,25 @@
 
       /* --- DARK MODE FIXES --- */
       body.dark-mode .sk-container,
-      body.dark-mode .skeleton-card {
-          background: #222; border: 1px solid #333; box-shadow: none;
-      }
+      body.dark-mode .skeleton-card { background: #222; border: 1px solid #333; box-shadow: none; }
       body.dark-mode .skeleton-pulse,
       body.dark-mode .sk-img-rect,
       body.dark-mode .sk-text-short,
       body.dark-mode .sk-text-long,
       body.dark-mode .sk-btn,
-      body.dark-mode #load-more-btn {
-          background-color: #333;
-          background-image: linear-gradient(90deg, #333, #444, #333);
-      }
+      body.dark-mode #load-more-btn { background-color: #333; background-image: linear-gradient(90deg, #333, #444, #333); }
       body.dark-mode .modal-sheet { background: #1e1e1e !important; color: white; }
       body.dark-mode .ad-desc-preview { color: #aaa; }
       body.dark-mode #m-desc { color: #ccc !important; }
       body.dark-mode .modern-footer { background: #111; border-color: #222; }
       body.dark-mode .desc-box { background: #333 !important; color: #ddd; }
+      
+      /* Dark Mode for Error & Mini Vendors */
+      body.dark-mode #err-title { color: #eee !important; }
+      body.dark-mode #err-msg { color: #aaa !important; }
+      body.dark-mode .mini-vendor-card { background: #1e1e1e; border-color: #333; box-shadow: none; }
+      body.dark-mode .mini-vendor-img { border-color: #333; }
+      body.dark-mode .mini-vendor-name { color: #eee; }
   </style>
 </head>
 <body data-page="vendor-profile">
@@ -305,6 +316,19 @@
                 <i class="fas fa-shopping-bag"></i> View All Market Items
             </a>
         </div>
+
+        <div id="more-vendors-section" style="display:none; margin-top: 40px; padding: 20px 14px 0; border-top: 2px dashed #eee;">
+            <h3 style="text-align: center; margin-bottom: 20px; font-size: 18px; color: #555;">
+                <i class="fas fa-store" style="color: #9c27b0;"></i> Discover More Vendors
+            </h3>
+            <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px;" id="more-vendors-grid">
+                </div>
+            
+            <a href="vendors/" class="chat-btn" style="display: flex; justify-content: center; align-items: center; gap: 8px; width: 200px; margin: 25px auto; padding: 12px; background: #9c27b0; color: white; border-radius: 30px; font-size: 14px; font-weight: bold; text-decoration: none; box-shadow: 0 4px 15px rgba(156, 39, 176, 0.3); transition: transform 0.2s;">
+                <i class="fas fa-users"></i> View All Vendors
+            </a>
+        </div>
+
     </div> 
     
     <div id="detail-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:3000; justify-content:center; align-items:end;">
@@ -329,11 +353,17 @@
         </div>
     </div>
 
-    <div id="error-message" style="display:none; text-align:center; padding:50px;">
-        <i class="fas fa-exclamation-circle" style="font-size:40px; color:#ccc;"></i>
-        <h3 style="margin-top:10px; color:#555;">Vendor Not Found</h3>
-        <p style="color:#888;">This vendor ID does not exist.</p>
-        <a href="index.html" class="chat-btn" style="display:inline-block; margin-top:10px; background:#2d8eff;">Go Home</a>
+    <div id="error-message" style="display:none; text-align:center; padding:60px 20px;">
+        <i class="fas fa-store-slash" style="font-size:50px; color:#ccc; margin-bottom:15px;"></i>
+        <h3 id="err-title" style="margin:0 0 10px; color:#333; font-size:22px;">Vendor Not Found</h3>
+        <p id="err-msg" style="color:#777; font-size:14px; margin-bottom:30px; line-height:1.5;">This vendor ID does not exist.</p>
+        
+        <div style="display:flex; flex-direction:column; gap:12px; align-items:center;">
+            <a href="vendors/" class="chat-btn" style="width:220px; padding:15px; background:#2d8eff; color:white; border-radius:30px; text-decoration:none; font-size:15px; font-weight:bold; box-shadow:0 4px 15px rgba(45,142,255,0.3);">
+                <i class="fas fa-search"></i> Browse Vendors
+            </a>
+            <a href="index.html" style="color:#888; font-size:14px; text-decoration:none; font-weight:600; margin-top:10px;">Go Home</a>
+        </div>
     </div>
 
     <footer class="modern-footer">
@@ -465,7 +495,8 @@
             currentVendorID = vendorID; 
             loadProfile(vendorID);
         } else {
-            showError("Missing Vendor ID", "The link is broken. No ID found.");
+            // 🚀 NEW: Shows Browse Vendors button if link is empty!
+            showError("No Store Selected", "You arrived here without selecting a vendor. Click below to discover amazing shops on campus!");
         }
     });
 
@@ -490,9 +521,7 @@
     }
     
     function showSuspendedError() {
-        document.getElementById('profile-skeleton').style.display = 'none'; 
-        document.getElementById('profile-content').style.display = 'none';
-        document.getElementById('error-message').style.display = 'block';
+        showError("Shop Suspended", "This vendor profile has been temporarily suspended by the Admin.");
     }
 
     function fetchVendorDetails(id) {
@@ -505,11 +534,11 @@
             const v = allVendors.find(item => (item.vendor_id || item.Vendor_ID) === id);
             
             if(!v) { 
-                showError("Vendor Not Found", `ID "${id}" does not exist.`); 
+                showError("Vendor Not Found", `The shop ID "${id}" does not exist.`); 
             } else {
                 const isVerified = String(v.verified || v.Verified || "").toLowerCase().trim();
                 if(isVerified === "false") {
-                    showError("Pending Approval", "This vendor profile is awaiting verification.");
+                    showError("Pending Approval", "This vendor profile is currently awaiting verification.");
                     return;
                 }
 
@@ -524,29 +553,65 @@
                 
                 loadProducts(id, allVendors); 
 
-                // 🚀 NEW: TRACK THE STORE VIEW SILENTLY
+                // 🚀 TRIGGER NEW: MORE VENDORS
+                renderMoreVendors(allVendors);
+
                 trackStoreView(id);
             }
         })
         .catch(err => { 
             console.error("Fetch Error:", err); 
-            showError("Connection Error", "Check your internet connection."); 
+            showError("Connection Error", "Check your internet connection and try again."); 
         });
     }
 
-    // 🚀 NEW: The Smart Tracker Function
+    // 🚀 NEW: RENDER MINI VENDORS FUNCTION 🚀
+    function renderMoreVendors(allVendorsList) {
+        const grid = document.getElementById('more-vendors-grid');
+        const section = document.getElementById('more-vendors-section');
+        
+        // Filter out current vendor, unverified vendors, and get fresh suspended list
+        let suspendedData = getCachedData('cache_suspended_vendors') || [];
+        
+        const otherVendors = allVendorsList.filter(v => {
+            const vID = v.vendor_id || v.Vendor_ID;
+            const isVerified = String(v.verified || v.Verified || "").toLowerCase().trim();
+            const isSuspended = suspendedData.includes(vID);
+            return vID !== currentVendorID && isVerified !== "false" && !isSuspended;
+        });
+
+        if(otherVendors.length === 0) return;
+
+        section.style.display = 'block';
+        grid.innerHTML = "";
+
+        // Pick 4 random vendors
+        const randomVendors = shuffleArray(otherVendors).slice(0, 4);
+
+        randomVendors.forEach(v => {
+            const vName = v.business_name || v.Business_Name || v.name || v.Name || "Vendor";
+            const vID = v.vendor_id || v.Vendor_ID;
+            let vImg = v.image || v.Image || "img/person.png";
+            if (!vImg.startsWith('http')) vImg = `img/${vImg}`;
+
+            const safeName = escapeHTML(vName);
+
+            grid.innerHTML += `
+            <div class="mini-vendor-card" onclick="window.location.href='profile.html?vendor=${vID}'">
+                <img src="${vImg}" class="mini-vendor-img" onerror="this.src='img/person.png'">
+                <div class="mini-vendor-name">${safeName}</div>
+                <div style="font-size:10px; color:#2d8eff; margin-top:5px; font-weight:bold;">View Shop <i class="fas fa-chevron-right" style="font-size:8px;"></i></div>
+            </div>`;
+        });
+    }
+
     function trackStoreView(vendorId) {
-        // Look in local storage to see when this student last visited this specific vendor
         const viewedStores = JSON.parse(localStorage.getItem('viewed_stores') || "{}");
         const now = Date.now();
-        const TTL = 24 * 60 * 60 * 1000; // 24-hour cooldown
+        const TTL = 24 * 60 * 60 * 1000; 
 
-        // If they haven't visited in 24 hours, add +1 to Firebase!
         if (!viewedStores[vendorId] || (now - viewedStores[vendorId] > TTL)) {
-            // Cost: 1 Write. Uses a special 'merge' so it creates the doc if it doesn't exist yet.
             setDoc(doc(db, "vendor_stats", vendorId), { views: increment(1) }, { merge: true }).catch(console.error);
-            
-            // Update their phone memory so they don't trigger another write today
             viewedStores[vendorId] = now;
             localStorage.setItem('viewed_stores', JSON.stringify(viewedStores));
         }
@@ -762,12 +827,13 @@
         } catch(e) { console.error("Firestore Error:", e); return []; }
     }
 
+    // 🚀 UPGRADED ERROR FUNCTION 🚀
     function showError(title, msg) {
         document.getElementById('profile-skeleton').style.display = 'none'; 
         const errorBox = document.getElementById('error-message');
         errorBox.style.display = 'block';
-        errorBox.querySelector('h3').innerText = title;
-        errorBox.querySelector('p').innerText = msg;
+        document.getElementById('err-title').innerText = title;
+        document.getElementById('err-msg').innerText = msg;
     }
     
    window.shareVendor = function() {
