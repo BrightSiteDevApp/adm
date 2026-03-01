@@ -311,6 +311,7 @@
     let lastVisibleDoc = null; // For pagination
     let currentActiveCategory = "All"; // For filtering
     let activeBlogId = null; // For commenting
+    let editingCommentTime = null; // 🆕 Tracks the comment being edited
 
     onAuthStateChanged(auth, (user) => {
         currentUser = user;
@@ -505,8 +506,9 @@
         }
     }
 
+
     // 6. Comment System
-    function renderComments(commentsArray) {
+   function renderComments(commentsArray) {
         const list = document.getElementById('commentsList');
         document.getElementById('commentCount').innerText = commentsArray.length;
         list.innerHTML = "";
@@ -517,11 +519,18 @@
         }
 
         commentsArray.forEach(c => {
+            let editBtn = "";
+            // If the user wrote this comment, show the edit icon
+            if (currentUser && c.uid === currentUser.uid) {
+                const safeText = c.text.replace(/'/g, "\\'").replace(/"/g, '&quot;');
+                editBtn = `<i class="fas fa-edit" style="font-size:11px; color:#2d8eff; cursor:pointer; margin-left:8px;" onclick="startEditComment('${c.time}', '${safeText}')"></i>`;
+            }
+
             list.innerHTML += `
                 <div class="comment-card">
                     <img src="${c.userPic || '../img/person.png'}" class="comment-img">
                     <div class="comment-bubble">
-                        <div class="comment-name">${c.userName}</div>
+                        <div class="comment-name">${c.userName} ${editBtn}</div>
                         <div class="comment-text">${c.text}</div>
                     </div>
                 </div>
@@ -529,7 +538,16 @@
         });
     }
 
-    window.postComment = async function() {
+    // 🆕 Function triggered when they click the pencil icon
+    window.startEditComment = function(timeId, text) {
+        editingCommentTime = timeId;
+        const input = document.getElementById('commentInput');
+        input.value = text;
+        input.focus();
+    }
+
+
+   window.postComment = async function() {
         if (!currentUser) {
             if(confirm("Sign in with Google to comment?")) signInWithPopup(auth, provider);
             return;
@@ -539,34 +557,46 @@
         const text = input.value.trim();
         if(!text || !activeBlogId) return;
 
-        input.value = ""; // Clear input immediately
+        input.value = ""; 
         input.placeholder = "Posting...";
 
-        const newComment = {
-            uid: currentUser.uid,
-            userName: currentUser.displayName || "Student",
-            userPic: currentUser.photoURL || "../img/person.png",
-            text: text,
-            time: Date.now()
-        };
+        const blog = allFetchedBlogs.find(b => b.id === activeBlogId);
+        if(!blog) return;
 
         try {
-            // Update Firestore Array (Cost: 1 Write)
-            await updateDoc(doc(db, "blogs", activeBlogId), {
-                comments: arrayUnion(newComment)
-            });
-
-            // Update Local Array & UI
-            const blog = allFetchedBlogs.find(b => b.id === activeBlogId);
-            if(blog) {
+            if (editingCommentTime) {
+                // ✏️ EDITING EXISTING COMMENT
+                const commentIndex = blog.comments.findIndex(c => String(c.time) === String(editingCommentTime));
+                if(commentIndex > -1) {
+                    blog.comments[commentIndex].text = text; // Update the text in our local array
+                    
+                    // Overwrite the whole array in Firebase (Cost: 1 Write)
+                    await updateDoc(doc(db, "blogs", activeBlogId), { comments: blog.comments });
+                }
+                editingCommentTime = null; // Reset tracker
+            } else {
+                // 🆕 POSTING NEW COMMENT
+                const newComment = {
+                    uid: currentUser.uid,
+                    userName: currentUser.displayName || "Student",
+                    userPic: currentUser.photoURL || "../img/person.png",
+                    text: text,
+                    time: Date.now()
+                };
+                
                 if(!blog.comments) blog.comments = [];
                 blog.comments.push(newComment);
-                renderComments(blog.comments);
-                renderBlogs(); // Update the comment count on the main card
+
+                // Add to Firebase (Cost: 1 Write)
+                await updateDoc(doc(db, "blogs", activeBlogId), { comments: arrayUnion(newComment) });
             }
+
+            renderComments(blog.comments);
+            renderBlogs(); 
             input.placeholder = "Add a comment...";
+
         } catch(e) {
-            alert("Failed to post comment");
+            alert("Failed to process comment");
             input.placeholder = "Try again...";
         }
     }
@@ -605,14 +635,17 @@
         } catch(e) { console.error(e); }
     }
 
-    window.performShare = function(blogId, title, snippet) {
+   window.performShare = function(blogId, title, snippet) {
         const url = `${window.location.origin}${window.location.pathname}?post=${blogId}`;
-        const text = `*${title}*\n${snippet}\n\nRead full gist on AFIT Market:\n${url}`;
+        // Removed the URL from the text string!
+        const shareText = `*${title}*\n${snippet}\n\nRead full gist on AFIT Market:`;
         
         if (navigator.share) {
-            navigator.share({ title: "AFIT News", text: text, url: url }).catch(console.error);
+            // The phone will automatically format the text and url together perfectly once
+            navigator.share({ title: "AFIT News", text: shareText, url: url }).catch(console.error);
         } else {
-            navigator.clipboard.writeText(text).then(() => alert("Copied to clipboard!"));
+            // Fallback for desktops
+            navigator.clipboard.writeText(`${shareText}\n${url}`).then(() => alert("Copied to clipboard!"));
         }
     }
 

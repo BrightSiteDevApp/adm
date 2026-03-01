@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-     <script> 
+    <script> 
     (function() {
         const urlParams = new URLSearchParams(window.location.search);
         const isAdmin = localStorage.getItem('adm_dev_mode');
@@ -347,7 +347,7 @@
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
     import { getAuth, onAuthStateChanged, signInWithPopup, GoogleAuthProvider } 
     from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-    import { getFirestore, doc, setDoc, deleteDoc, collection, getDocs, getDoc, query, where } 
+    import { getFirestore, doc, setDoc, deleteDoc, collection, getDocs, getDoc, query, where, increment } 
     from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
     const firebaseConfig = {
@@ -443,7 +443,6 @@
             const manageBtn = document.getElementById('btn-manage');
             if(manageBtn) {
                 manageBtn.style.display = 'block';
-                // Add the clear cache function to the manage button or create a new one nearby if you want
             }
         }
     }
@@ -451,8 +450,16 @@
     document.addEventListener("DOMContentLoaded", () => {
         window.renderBatch = renderBatch;
 
-        const params = new URLSearchParams(window.location.search);
-        let vendorID = params.get('vendor');
+        // Grab the vendor ID from EITHER the old format or the new short link!
+        const urlParams = new URLSearchParams(window.location.search);
+        let vendorID = urlParams.get('vendor');
+
+        // Check for the new short link format (/v/?V005)
+        const vendorIdFromQuery = window.location.search.substring(1);
+        if (!vendorID && vendorIdFromQuery && !vendorIdFromQuery.includes('=')) {
+             vendorID = vendorIdFromQuery;
+        }
+        
         if(vendorID) {
             vendorID = vendorID.trim();
             currentVendorID = vendorID; 
@@ -516,6 +523,9 @@
                 currentVendorPhone = String(rawPhone).replace(/[^0-9]/g, '');
                 
                 loadProducts(id, allVendors); 
+
+                // 🚀 NEW: TRACK THE STORE VIEW SILENTLY
+                trackStoreView(id);
             }
         })
         .catch(err => { 
@@ -524,6 +534,25 @@
         });
     }
 
+    // 🚀 NEW: The Smart Tracker Function
+    function trackStoreView(vendorId) {
+        // Look in local storage to see when this student last visited this specific vendor
+        const viewedStores = JSON.parse(localStorage.getItem('viewed_stores') || "{}");
+        const now = Date.now();
+        const TTL = 24 * 60 * 60 * 1000; // 24-hour cooldown
+
+        // If they haven't visited in 24 hours, add +1 to Firebase!
+        if (!viewedStores[vendorId] || (now - viewedStores[vendorId] > TTL)) {
+            // Cost: 1 Write. Uses a special 'merge' so it creates the doc if it doesn't exist yet.
+            setDoc(doc(db, "vendor_stats", vendorId), { views: increment(1) }, { merge: true }).catch(console.error);
+            
+            // Update their phone memory so they don't trigger another write today
+            viewedStores[vendorId] = now;
+            localStorage.setItem('viewed_stores', JSON.stringify(viewedStores));
+        }
+    }
+
+    
     function renderVendor(v, id) {
         const vName = v.business_name || v.Business_Name || v.name || v.Name || "Unknown";
         document.title = `${vName} - Profile`;

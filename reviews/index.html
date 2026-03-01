@@ -137,6 +137,9 @@
         body.dark-mode .review-name { color: #eee; }
         body.dark-mode .review-text { color: #bbb; }
         body.dark-mode .sk-shimmer { background-color: #333; background-image: linear-gradient(90deg, #333, #444, #333); }
+        .review-promo-box { background: #f9f9f9; }
+        body.dark-mode .review-promo-box { background: #1e1e1e !important; }
+        body.dark-mode .review-promo-box p { color: #ccc !important; }
     </style>
 </head>
 <body>
@@ -169,7 +172,7 @@
         <div id="all-reviews-container" style="display: flex; flex-direction: column; gap: 15px;">
             </div>
         
-        <div style="margin-top: 40px; text-align: center; padding: 20px; background: #f9f9f9; border-radius: 15px;">
+       <div class="review-promo-box" style="margin-top: 40px; text-align: center; padding: 20px; border-radius: 15px;">
             <div style="font-size: 40px; margin-bottom: 10px;">✍️</div>
             <p style="margin-bottom:15px; font-size:13px; color:#555; font-weight: bold;">Have an experience to share?</p>
             <button onclick="openReviewModal()" style="border:none; cursor:pointer; display:inline-block; padding:12px 30px; background:var(--primary-blue, #007bff); color:white; border-radius:30px; font-size:13px; font-weight:bold; box-shadow: 0 4px 10px rgba(0,123,255,0.3); transition: transform 0.2s;">Write a Review</button>
