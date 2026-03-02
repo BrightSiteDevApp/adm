@@ -290,7 +290,7 @@
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
     import { getAuth, onAuthStateChanged, signInWithPopup, GoogleAuthProvider } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-   import { getFirestore, collection, getDocs, doc, updateDoc, arrayUnion, arrayRemove, query, orderBy, limit, startAfter, increment } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+    import { getFirestore, collection, getDocs, doc, updateDoc, arrayUnion, arrayRemove, query, orderBy, limit, startAfter, increment } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
     const firebaseConfig = {
         apiKey: "AIzaSyA1eQbrJpH9OtDNDN7z9oTFTRSAE7vCFbg",
@@ -426,14 +426,11 @@
                 const likeClass = isLiked ? 'active-like' : '';
                 const heartIcon = isLiked ? 'fas fa-heart' : 'far fa-heart';
 
-                // Safe Data Stringification for onclick injection
-                const safeBlogData = encodeURIComponent(JSON.stringify(b));
-
                 const div = document.createElement('div');
                 div.className = "modern-blog-card";
                 div.innerHTML = `
-                    <img src="${b.image}" class="blog-cover" onclick="triggerOpenBlogFromEncoded('${safeBlogData}')">
-                    <div class="blog-content-box" onclick="triggerOpenBlogFromEncoded('${safeBlogData}')">
+                    <img src="${b.image}" class="blog-cover" onclick="openBlogById('${b.id}')">
+                    <div class="blog-content-box" onclick="openBlogById('${b.id}')">
                         <div class="blog-meta">
                             <span class="cat-badge">${category}</span>
                             <span>${date}</span>
@@ -460,10 +457,12 @@
         noMsg.style.display = visibleCount === 0 ? 'block' : 'none';
     }
 
-    // 5. Open Blog & Increment Views
-    window.triggerOpenBlogFromEncoded = function(encodedData) {
-        const b = JSON.parse(decodeURIComponent(encodedData));
-        triggerOpenBlog(b);
+    // 5. Open Blog & Increment Views (🔥 NEW SAFE METHOD)
+    window.openBlogById = function(blogId) {
+        const targetBlog = allFetchedBlogs.find(b => b.id === blogId);
+        if (targetBlog) {
+            triggerOpenBlog(targetBlog);
+        }
     }
 
     function triggerOpenBlog(b) {
@@ -606,7 +605,7 @@
         if (e.key === 'Enter') postComment();
     });
 
-    // Likes & Sharing (Intact from previous logic)
+    // Likes & Sharing
     window.toggleLike = async function(blogId) {
         if (!currentUser) {
             if(confirm("Sign in with Google to like posts?")) signInWithPopup(auth, provider);
@@ -637,14 +636,11 @@
 
    window.performShare = function(blogId, title, snippet) {
         const url = `${window.location.origin}${window.location.pathname}?post=${blogId}`;
-        // Removed the URL from the text string!
         const shareText = `*${title}*\n${snippet}\n\nRead full gist on AFIT Market:`;
         
         if (navigator.share) {
-            // The phone will automatically format the text and url together perfectly once
             navigator.share({ title: "AFIT News", text: shareText, url: url }).catch(console.error);
         } else {
-            // Fallback for desktops
             navigator.clipboard.writeText(`${shareText}\n${url}`).then(() => alert("Copied to clipboard!"));
         }
     }

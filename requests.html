@@ -277,7 +277,6 @@
             </button>
         </div>
     </div>
-
 <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
@@ -320,6 +319,20 @@
         function escapeHTML(str) {
             if (!str) return "";
             return String(str).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+        }
+
+        // 🚀 NEW: AUTO-FORMAT PHONE FOR WHATSAPP
+        function formatPhoneForWA(phone) {
+            if (!phone) return "";
+            let p = String(phone).replace(/[^0-9]/g, ''); // Remove any spaces or dashes
+            
+            if (p.startsWith('0')) {
+                return '234' + p.substring(1); // Converts 090... to 23490...
+            }
+            if (p.length === 10) {
+                return '234' + p; // Catches if they just typed 90... without the zero
+            }
+            return p; // Leaves it alone if it already has 234
         }
 
         // 🆕 COLOR BADGE GENERATOR
@@ -461,7 +474,9 @@
                     const safeTitle = escapeHTML(d.title);
                     const safeCategory = escapeHTML(d.category);
                     const safeBudget = escapeHTML(d.budget);
-                    const safePhone = escapeHTML(d.phone);
+                    
+                    // 🛠️ USE THE NEW FORMATTER HERE:
+                    const waPhone = formatPhoneForWA(d.phone); 
 
                     // 🆕 Apply Dynamic Colors
                     const badgeColor = getBadgeColor(safeCategory);
@@ -476,7 +491,7 @@
                         
                         <div class="req-meta">
                             <span><i class="far fa-clock"></i> ${timeString}</span>
-                            <a href="https://wa.me/${safePhone}?text=Hi, I saw your request for '${safeTitle}' on AFIT Market." class="btn-call" target="_blank">
+                            <a href="https://wa.me/${waPhone}?text=Hi, I saw your request for '${safeTitle}' on AFIT Market." class="btn-call" target="_blank">
                                 <i class="fab fa-whatsapp" style="font-size:16px;"></i> Message
                             </a>
                         </div>
