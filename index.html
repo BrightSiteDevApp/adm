@@ -478,7 +478,7 @@
 
   <script src="asset/script.js"></script>
 
-  <script type="module">
+<script type="module">
 
     if ('serviceWorker' in navigator) {
         navigator.serviceWorker.register('sw.js')
@@ -491,7 +491,6 @@
     import { getAuth, onAuthStateChanged, signInWithPopup, GoogleAuthProvider, getAdditionalUserInfo } 
     from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
     
-    // 🚀 ADDED 'limit' to the imports for safety caps!
     import { getFirestore, doc, setDoc, deleteDoc, collection, getDocs, query, getDoc, where, addDoc, orderBy, limit } 
     from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
@@ -621,7 +620,7 @@
    initData();
    loadAnnouncement(); 
    loadReviews(); 
-   loadRecentBlogs(); // 🚀 TRIGGER THE NEW BLOG LOADER
+   loadRecentBlogs(); 
 
    async function loadAnnouncement() {
        try {
@@ -707,7 +706,6 @@
            let suspendedData = getCachedData('cache_suspended_vendors');
            
            if (!suspendedData) {
-               // 🚀 THE PRIMARY READ-SAVER FIX: Only fetch suspended vendors
                const qSuspended = query(collection(db, "vendor_status"), where("status", "==", "suspended"));
                const suspendedSnap = await getDocs(qSuspended);
                suspendedData = [];
@@ -771,6 +769,7 @@
        } catch (err) { console.error("Init Error:", err); }
    }
 
+   // 🚀 THE MAGIC SWAP: NOW READS FROM THE JSON FILE INSTEAD OF 1000 DOCS
    async function loadFirestoreProducts() {
        let cachedProducts = getCachedData('cache_firestore_products');
        
@@ -779,25 +778,28 @@
        }
 
        try {
-           // 🚀 THE SECOND READ-SAVER FIX: Added limit(1000) so we don't accidentally read millions!
-           const q = query(collection(db, "products"), limit(1000)); 
-           const snapshot = await getDocs(q);
-           const data = snapshot.docs.map(doc => ({
-               id: doc.id, 
-               ...doc.data()
-           }));
-           
-           setCachedData('cache_firestore_products', data); 
-           return data;
-       } catch(e) { return []; }
+           console.log("Fetching Master Product List (1 read only!)...");
+           const docRef = doc(db, "aggregations", "master_product_list");
+           const docSnap = await getDoc(docRef);
+
+           if (docSnap.exists()) {
+               const data = docSnap.data().items || [];
+               setCachedData('cache_firestore_products', data); 
+               return data;
+           } else {
+               console.warn("Master document not found.");
+               return [];
+           }
+       } catch(e) { 
+           console.error("Aggregation Error:", e);
+           return []; 
+       }
    }
 
- // 🚀 CRASH-PROOF BLOG LOADER 🚀
    async function loadRecentBlogs() {
         const container = document.getElementById('home-blog-grid');
         if(!container) return;
 
-        // 1. Try to read from cache safely
         try {
             let cachedBlogs = getCachedData('cache_home_blogs');
             if(cachedBlogs) {
@@ -806,7 +808,6 @@
             }
         } catch(e) { console.log("Cache empty or blocked"); }
 
-        // 2. Fetch from Firebase
         try {
             const q = query(collection(db, "blogs"), orderBy("timestamp", "desc"), limit(2));
             const snap = await getDocs(q);
@@ -816,7 +817,6 @@
                 return;
             }
             
-            // 🧹 3. CLEAN THE DATA: Strip out complex Firebase objects so Local Storage doesn't crash!
             const blogs = snap.docs.map(doc => {
                 const data = doc.data();
                 return {
@@ -829,12 +829,10 @@
                 };
             });
             
-            // 4. Save to cache safely
             try {
                 setCachedData('cache_home_blogs', blogs);
             } catch(e) { console.log("Private browsing blocked storage."); }
 
-            // 5. Render to screen
             renderHomeBlogs(blogs);
             
         } catch(e) {
@@ -843,7 +841,6 @@
         }
     }
 
-    // 🚀 THE MISSING RENDER FUNCTION 🚀
     function renderHomeBlogs(blogs) {
         const container = document.getElementById('home-blog-grid');
         container.innerHTML = "";
@@ -856,7 +853,6 @@
         blogs.forEach(b => {
             const cat = b.category || "News";
             
-            // Safe Date Formatting
             let displayDate = "Recent";
             if (b._timestamp) {
                 displayDate = new Date(b._timestamp * 1000).toLocaleDateString();
@@ -1254,5 +1250,5 @@
        });
    }
 </script>
-</body>
+</body> 
 </html>
