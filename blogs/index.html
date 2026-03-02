@@ -634,9 +634,9 @@
         } catch(e) { console.error(e); }
     }
 
-   window.performShare = function(blogId, title, snippet) {
+  window.performShare = function(blogId, title, snippet) {
         const url = `${window.location.origin}${window.location.pathname}?post=${blogId}`;
-        const shareText = `*${title}*\n${snippet}\n\nRead full gist on AFIT Market:`;
+        const shareText = `*${title}*\n${snippet}\n\nRead full gist on AFIT Digital Market and also like and drop a comment:`;
         
         if (navigator.share) {
             navigator.share({ title: "AFIT News", text: shareText, url: url }).catch(console.error);
