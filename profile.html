@@ -386,7 +386,7 @@
     const apiRoot = `https://opensheet.elk.sh/${sheetID}`;
     const ADMIN_PHONE = "2349153375488"; 
 
-    // --- 🟢 SHARED LOCAL STORAGE CACHING SYSTEM (1 MIN TTL) ---
+    // --- 🟢 SHARED LOCAL STORAGE CACHING SYSTEM (10 MIN TTL) ---
     const CACHE_TTL = 10 * 60 * 1000; 
 
     function getCachedData(key) {
@@ -473,7 +473,6 @@
             currentVendorID = vendorID; 
             loadProfile(vendorID);
         } else {
-            // 🚀 NEW: Shows Browse Vendors button if link is empty!
             showError("No Store Selected", "You arrived here without selecting a vendor. Click below to discover amazing shops on campus!");
         }
     });
@@ -785,8 +784,8 @@
         document.getElementById('detail-modal').style.display = 'flex';
     };
 
+    // 🚀 THE MAGIC SWAP: NOW READS FROM THE JSON FILE INSTEAD OF EVERY DOC
     async function loadVendorFirestoreItems() {
-        // ✅ CACHE ADDED: Firestore Products (Shared across all pages)
         let cachedProducts = getCachedData('cache_firestore_products');
         
         if (cachedProducts) {
@@ -795,14 +794,22 @@
         }
 
         try {
-            console.log("Fetching fresh products from Firebase (Profile Page)");
-            const q = query(collection(db, "products"));
-            const snapshot = await getDocs(q);
-            const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-            
-            setCachedData('cache_firestore_products', data);
-            return data;
-        } catch(e) { console.error("Firestore Error:", e); return []; }
+            console.log("Fetching Master Product List (Profile Page)...");
+            const docRef = doc(db, "aggregations", "master_product_list");
+            const docSnap = await getDoc(docRef);
+
+            if (docSnap.exists()) {
+                const data = docSnap.data().items || [];
+                setCachedData('cache_firestore_products', data);
+                return data;
+            } else {
+                console.warn("Master document not found.");
+                return [];
+            }
+        } catch(e) { 
+            console.error("Aggregation Error:", e); 
+            return []; 
+        }
     }
 
     // 🚀 UPGRADED ERROR FUNCTION 🚀
