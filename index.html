@@ -521,7 +521,7 @@
     const algoliaClient = algoliasearch('IQSHEYK1XF', 'b78824ffc8318be2ef8c725cf902386a');
     const algoliaIndex = algoliaClient.initIndex('afit_products');
 
-    const CACHE_TTL = 1 * 60 * 1000; 
+    const CACHE_TTL = 10 * 60 * 1000; 
 
     function getCachedData(key) {
         const cached = localStorage.getItem(key);

@@ -273,7 +273,7 @@
 
     <script src="../asset/script.js"></script>
 
- <script type="module">
+<script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
     import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
     import { getFirestore, doc, setDoc, deleteDoc, collection, getDocs, query, limit } 
@@ -293,7 +293,6 @@
     const db = getFirestore(app);
 
     // --- 🚀 ALGOLIA INITIALIZATION ---
-    // PASTE YOUR KEYS HERE! Use the SEARCH-ONLY API Key.
     const algoliaClient = algoliasearch('IQSHEYK1XF', 'b78824ffc8318be2ef8c725cf902386a');
     const algoliaIndex = algoliaClient.initIndex('afit_products');
 
@@ -311,8 +310,8 @@
     const apiRoot = `https://opensheet.elk.sh/${sheetID}`;
     const ADMIN_PHONE = "2349153375488"; 
 
-    // --- 🟢 SHARED LOCAL STORAGE CACHING SYSTEM (1 MIN TTL) ---
-    const CACHE_TTL = 1 * 60 * 1000; 
+    // --- 🟢 SHARED LOCAL STORAGE CACHING SYSTEM (30 MIN TTL) ---
+    const CACHE_TTL = 30 * 60 * 1000; 
 
     function getCachedData(key) {
         const cached = localStorage.getItem(key);
@@ -444,7 +443,8 @@
             
             if (!firestoreRaw) {
                 console.log("Fetching fresh products from Firebase (Items Page)");
-                const q = query(collection(db, "products"), limit(500)); 
+                // 🔥 THE FIX: Bumped limit from 500 to 2000!
+                const q = query(collection(db, "products"), limit(1000)); 
                 const snapshot = await getDocs(q);
                 firestoreRaw = snapshot.docs.map(doc => ({
                     id: doc.id, 
