@@ -290,7 +290,8 @@
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
     import { getAuth, onAuthStateChanged, signInWithPopup, GoogleAuthProvider } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-    import { getFirestore, collection, getDocs, doc, updateDoc, arrayUnion, arrayRemove, query, orderBy, limit, startAfter, increment } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+    // 🚀 Added 'getDoc' to handle older shared links!
+    import { getFirestore, collection, getDocs, doc, updateDoc, arrayUnion, arrayRemove, query, orderBy, limit, startAfter, increment, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
     const firebaseConfig = {
         apiKey: "AIzaSyA1eQbrJpH9OtDNDN7z9oTFTRSAE7vCFbg",
@@ -322,41 +323,52 @@
         }
     });
 
-   // 1. Initial Load (Top 5)
-    async function loadInitialBlogs() {
-        const container = document.getElementById('blog-container');
-        
-        try {
-            // 🚀 Changed limit from 10 to 5
-            const q = query(collection(db, "blogs"), orderBy("timestamp", "desc"), limit(5));
-            const snapshot = await getDocs(q);
-            
-            // NOW we clear the skeletons, right before we inject the real data!
-            container.innerHTML = ""; 
-            
-            if(!snapshot.empty) {
-                lastVisibleDoc = snapshot.docs[snapshot.docs.length - 1];
-                allFetchedBlogs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                renderBlogs();
-                
-                // 🚀 Changed to 5 so button shows if there are at least 5 posts
-                if(snapshot.docs.length === 5) document.getElementById('load-more-container').style.display = 'block';
+   // 1. Initial Load (Top 5 + Deep Link Check)
+   async function loadInitialBlogs() {
+       const container = document.getElementById('blog-container');
+       
+       try {
+           // Fetch the top 5 latest blogs
+           const q = query(collection(db, "blogs"), orderBy("timestamp", "desc"), limit(5));
+           const snapshot = await getDocs(q);
+           
+           container.innerHTML = ""; 
+           
+           if(!snapshot.empty) {
+               lastVisibleDoc = snapshot.docs[snapshot.docs.length - 1];
+               allFetchedBlogs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+               renderBlogs();
+               
+               if(snapshot.docs.length === 5) document.getElementById('load-more-container').style.display = 'block';
 
-                // Check for Deep Link on first load
-                const urlParams = new URLSearchParams(window.location.search);
-                const postId = urlParams.get('post');
-                if (postId) {
-                    const targetBlog = allFetchedBlogs.find(b => b.id === postId);
-                    if (targetBlog) triggerOpenBlog(targetBlog);
-                }
-            } else {
-                document.getElementById('no-posts-msg').style.display = 'block';
-            }
-        } catch(e) { 
-            console.error(e); 
-            container.innerHTML = "<p style='text-align:center;'>Failed to load network.</p>";
-        }
-    }
+               // 🚀 UPGRADED DEEP LINK CHECK
+               const urlParams = new URLSearchParams(window.location.search);
+               const postId = urlParams.get('post');
+               
+               if (postId) {
+                   // Try to find it in the first 5 posts
+                   const targetBlog = allFetchedBlogs.find(b => b.id === postId);
+                   
+                   if (targetBlog) {
+                       triggerOpenBlog(targetBlog); // It was found! Open it.
+                   } else {
+                       // It's an older post! Fetch it directly from Firebase.
+                       const docSnap = await getDoc(doc(db, "blogs", postId));
+                       if (docSnap.exists()) {
+                           const oldBlog = { id: docSnap.id, ...docSnap.data() };
+                           allFetchedBlogs.push(oldBlog); // Add to local array so likes/views still work
+                           triggerOpenBlog(oldBlog); // Open it!
+                       }
+                   }
+               }
+           } else {
+               document.getElementById('no-posts-msg').style.display = 'block';
+           }
+       } catch(e) { 
+           console.error(e); 
+           container.innerHTML = "<p style='text-align:center;'>Failed to load network.</p>";
+       }
+   }
 
     // 2. Load More (Next 5)
     window.loadMore = async function() {

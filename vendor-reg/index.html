@@ -146,48 +146,82 @@
         .time-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
         
         .btn-submit { 
-            background: linear-gradient(135deg, #2d8eff, #0056b3); color: white; 
+            background: #2d8eff; /* CHANGED TO SOLID BLUE */
+            color: white; 
             width: 100%; padding: 16px; border: none; border-radius: 12px; 
             font-weight: 700; cursor: pointer; font-size: 16px; margin-top: 20px; 
-            box-shadow: 0 4px 15px rgba(45, 142, 255, 0.3); transition: transform 0.2s;
+            box-shadow: 0 4px 15px rgba(45, 142, 255, 0.3); transition: transform 0.2s, background 0.2s;
         }
         .btn-submit:active { transform: scale(0.98); }
+        .btn-submit:hover { background: #1a7ae5; } /* Optional slight hover effect */
         .btn-submit:disabled { background: #ccc; box-shadow: none; cursor: not-allowed; }
 
-        /* Support Section Styles */
-        .support-section {
-            margin-top: 30px;
-            padding-top: 20px;
-            border-top: 1px solid #eee;
+        /* --- AMBASSADOR SUPPORT GRID STYLES --- */
+        .ambassador-section {
+            margin-top: 40px;
+            padding-top: 25px;
+            border-top: 2px dashed #eee;
             text-align: center;
         }
-        .support-title {
+        .ambassador-title {
             font-size: 13px;
-            color: #777;
+            color: #555;
             font-weight: 600;
-            margin-bottom: 15px;
+            margin-bottom: 18px;
+            line-height: 1.5;
         }
-        .support-grid {
+        .ambassador-grid {
             display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 15px;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
         }
-        .support-btn {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            padding: 10px;
-            border-radius: 30px;
-            background: #25D366;
-            color: white;
-            text-decoration: none;
-            font-size: 13px;
-            font-weight: bold;
-            box-shadow: 0 2px 8px rgba(37, 211, 102, 0.3);
+        .amb-card {
+            background: #fafafa;
+            border: 1px solid #eaeaea;
+            padding: 15px 10px;
+            border-radius: 12px;
+            text-align: center;
             transition: transform 0.2s;
         }
-        .support-btn:active { transform: scale(0.95); }
+        .amb-card:active { transform: scale(0.96); }
+        .amb-avatar {
+            width: 40px; height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #eef7ff, #ffffff);
+            color: #2d8eff;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 18px; font-weight: 800;
+            margin: 0 auto 8px;
+            border: 2px solid #2d8eff;
+        }
+        .amb-name {
+            font-size: 13px; font-weight: 700; color: #333;
+            margin-bottom: 10px;
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        }
+        .amb-btn {
+            display: flex; align-items: center; justify-content: center; gap: 6px;
+            background: #25D366; color: white; text-decoration: none;
+            padding: 8px; border-radius: 8px; font-size: 11px; font-weight: bold;
+            box-shadow: 0 2px 8px rgba(37, 211, 102, 0.2);
+        }
+
+        /* --- SKELETON LOADING UI --- */
+        @keyframes shimmer {
+            0% { background-position: -200px 0; }
+            100% { background-position: calc(200px + 100%) 0; }
+        }
+        .sk-shimmer {
+            background-color: #eee;
+            background-image: linear-gradient(90deg, #eee, #f5f5f5, #eee);
+            background-size: 200px 100%;
+            animation: shimmer 1.5s infinite linear;
+        }
+        .sk-amb-card { padding: 15px 10px; border-radius: 12px; border: 1px solid #eaeaea; background: #fafafa; }
+        .sk-amb-avatar { width: 40px; height: 40px; border-radius: 50%; margin: 0 auto 8px; }
+        .sk-amb-name { width: 60%; height: 12px; border-radius: 4px; margin: 0 auto 10px; }
+        .sk-amb-btn { width: 80%; height: 26px; border-radius: 8px; margin: 0 auto; }
+
 
         /* --- POPUP STYLES --- */
         .popup-overlay {
@@ -237,8 +271,15 @@
         body.dark-mode .cat-option:checked + .cat-label { background: rgba(45, 142, 255, 0.2); border-color: #2d8eff; color: #2d8eff; }
         body.dark-mode .warning-text { background: rgba(214, 48, 49, 0.1); }
         body.dark-mode .flyer-section { border-color: #333; }
-        body.dark-mode .support-section { border-top-color: #333; }
         body.dark-mode .terms-box { color: #bbb; }
+        
+        /* Dark Mode for Ambassadors & Skeletons */
+        body.dark-mode .ambassador-section { border-top-color: #333; }
+        body.dark-mode .ambassador-title { color: #aaa; }
+        body.dark-mode .amb-card, body.dark-mode .sk-amb-card { background: #222; border-color: #333; }
+        body.dark-mode .amb-name { color: #eee; }
+        body.dark-mode .amb-avatar { background: #1a1a1a; }
+        body.dark-mode .sk-shimmer { background-color: #333; background-image: linear-gradient(90deg, #333, #444, #333); }
 
         @media (max-width: 480px) {
             .reg-container { padding: 20px; width: 95%; }
@@ -430,24 +471,25 @@
 
             <button type="submit" id="submitBtn" class="btn-submit">Submit Application</button>
 
-            <div class="support-section">
-                <p class="support-title">Need help with registration?</p>
-                <div class="support-grid">
-                    <a href="https://wa.me/2348144516127?text=I%20need%20help%20registering%20as%20a%20vendor" class="support-btn">
-                        <i class="fab fa-whatsapp"></i> Support 1
-                    </a>
-                    <a href="https://wa.me/2349153375488?text=I%20need%20help%20registering%20as%20a%20vendor" class="support-btn">
-                        <i class="fab fa-whatsapp"></i> Support 2
-                    </a>
-                </div>
-            </div>
-
         </form>
+        <div class="ambassador-section">
+            <p class="ambassador-title">Need help registering? <br>Contact any of our ambassadors to guide you through the process.</p>
+            <div class="ambassador-grid" id="ambassador-grid">
+                <div class="sk-amb-card"><div class="sk-shimmer sk-amb-avatar"></div><div class="sk-shimmer sk-amb-name"></div><div class="sk-shimmer sk-amb-btn"></div></div>
+                <div class="sk-amb-card"><div class="sk-shimmer sk-amb-avatar"></div><div class="sk-shimmer sk-amb-name"></div><div class="sk-shimmer sk-amb-btn"></div></div>
+                <div class="sk-amb-card"><div class="sk-shimmer sk-amb-avatar"></div><div class="sk-shimmer sk-amb-name"></div><div class="sk-shimmer sk-amb-btn"></div></div>
+                <div class="sk-amb-card"><div class="sk-shimmer sk-amb-avatar"></div><div class="sk-shimmer sk-amb-name"></div><div class="sk-shimmer sk-amb-btn"></div></div>
+            </div>
+        </div>
+
     </div>
 
     <script>
         const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyX6HGXNmSZO7_ewGvUN3zwcEL18FI5MCezh90cJMvQHg1IgKmLVS9-bKp0a0oc39Vfig/exec"; 
         const IMGBB_KEY = "2ac38bef2c73c5a65e7ddf94efe37962";
+        
+        // Target for fetching Ambassadors
+        const AMBASSADOR_API_URL = "https://script.google.com/macros/s/AKfycbwJaw637QlwHB5D-X_peOJ2Iq2I29FDMPWXdLmCDvr6uPQehwZCF3jYVHAqqrWy3ka5tg/exec";
 
         const categories = [
             "Phone", "Laptops", "Gadgets", "Fashion", "Fashion Accessories", "Phone Accessories",
@@ -531,7 +573,6 @@
                     image: profileUrl,
                     id_card: idCardUrl,
                     
-                    // NEW FIELDS
                     subscription_plan: document.getElementById('v_plan').value,
                     payment_proof: paymentUrl,
                     ambassador_id: document.getElementById('v_ambassador_id').value
@@ -545,7 +586,6 @@
                 });
 
                 alert("Thank you for submitting your application! \n\nIt will be reviewed, and you will be contacted through WhatsApp and Email within 24 hours.");
-                // 🛠️ CHANGED: Added ../ to redirect to root index.html
                 window.location.href = "../index.html";
 
             } catch (error) {
@@ -555,6 +595,63 @@
                 btn.innerText = "Submit Application";
             }
         }
+
+        // 🚀 FETCH AND RENDER 4 RANDOM AMBASSADORS 🚀
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+
+        async function loadAmbassadors() {
+            const grid = document.getElementById('ambassador-grid');
+            
+            try {
+                const res = await fetch(AMBASSADOR_API_URL);
+                const data = await res.json();
+                
+                if (data && data.length > 0) {
+                    const shuffled = shuffleArray(data).slice(0, 4);
+                    grid.innerHTML = ""; 
+                    
+                    shuffled.forEach(user => {
+                        const initial = user.name.charAt(0).toUpperCase();
+                        let cleanPhone = user.whatsapp.toString().replace(/\D/g, ''); 
+                        if (cleanPhone.startsWith('0')) cleanPhone = '234' + cleanPhone.substring(1);
+                        
+                        const firstName = user.name.split(' ')[0];
+
+                        grid.innerHTML += `
+                            <div class="amb-card">
+                                <div class="amb-avatar">${initial}</div>
+                                <div class="amb-name">${firstName}</div>
+                                <a href="https://wa.me/${cleanPhone}?text=Hello%20${firstName},%20I%20need%20help%20registering%20as%20a%20vendor%20on%20ADM" class="amb-btn" target="_blank">
+                                    <i class="fab fa-whatsapp"></i> Chat
+                                </a>
+                            </div>
+                        `;
+                    });
+                } else {
+                    grid.innerHTML = "<p style='grid-column:1/-1; color:#888; font-size:12px;'>No ambassadors available right now.</p>";
+                }
+            } catch(e) {
+                console.error("Failed to load ambassadors", e);
+                // Fallback Admin Support
+                grid.innerHTML = `
+                    <div style="grid-column:1/-1; text-align:center;">
+                        <a href="https://wa.me/2348144516127?text=I%20need%20help%20registering%20as%20a%20vendor" class="amb-btn" style="width: 150px; margin: 0 auto; padding: 12px; background: #25D366; color: white; border-radius: 30px; text-decoration: none;">
+                            <i class="fab fa-whatsapp"></i> Admin Support
+                        </a>
+                    </div>
+                `;
+            }
+        }
+
+        // Trigger fetch on page load
+        document.addEventListener("DOMContentLoaded", loadAmbassadors);
+
     </script>
     <script type="text/javascript">
     (function(w,d,v3){
