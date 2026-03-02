@@ -1119,7 +1119,8 @@
 
    function shuffle(array) { return array.sort(() => 0.5 - Math.random()); }
    
-  function setupMainSearch() {
+   // 🚀 THE FIX IS RIGHT HERE: ADDED ALGOLIA FILTERING
+   function setupMainSearch() {
        const searchInput = document.getElementById('main-search');
        const searchType = document.getElementById('search-type');
        let searchTimeout; 
@@ -1129,24 +1130,32 @@
                clearTimeout(searchTimeout); 
                
                searchTimeout = setTimeout(async () => {
-                   const query = e.target.value.toLowerCase().trim();
-                   const type = searchType.value; 
+                   const queryVal = e.target.value.toLowerCase().trim();
                    
-                   if(query === "") {
+                   if(queryVal === "") {
                        initData(); 
                        return;
                    }
                    
+                   const type = searchType.value; 
+                   
                    if (type === 'product') {
                        try {
-                           const { hits } = await algoliaIndex.search(query);
-                           renderItems(hits); 
+                           const { hits } = await algoliaIndex.search(queryVal);
+                           
+                           // 🔥 NEW: Filter out suspended vendors from Algolia results
+                           const validHits = hits.filter(hit => {
+                               const vendorId = hit.vendor_id || hit.Vendor_ID;
+                               return !suspendedVendors.has(vendorId);
+                           });
+                           
+                           renderItems(validHits); 
                        } catch (err) {
                            console.error("Algolia search error:", err);
-                           renderItems(allProducts.filter(p => (p.name || p.Name).toLowerCase().includes(query)));
+                           renderItems(allProducts.filter(p => (p.name || p.Name).toLowerCase().includes(queryVal)));
                        }
                    } else if (type === 'vendor') {
-                       renderVendors(allVendors.filter(v => (v.business_name || v.Business_Name).toLowerCase().includes(query)));
+                       renderVendors(allVendors.filter(v => (v.business_name || v.Business_Name).toLowerCase().includes(queryVal)));
                    }
                }, 300); 
            });
@@ -1170,6 +1179,7 @@
            });
        }
    }
+
    function renderItems(data) {
        const itemGrid = document.getElementById("home-items-grid");
        if(!itemGrid) return;
@@ -1182,7 +1192,7 @@
            const pDesc = p.description || p.Description || "";
            const pCat = p.category || p.Category || "General";
            const pStatus = p.status || p.Status || "Active"; 
-           const isFeatured = p.is_featured === "true"; 
+           const isFeatured = String(p.is_featured).toLowerCase() === "true"; 
            const pID = p.id; 
 
            const img = pImage.startsWith('http') ? pImage : `img/${pImage}`;

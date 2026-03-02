@@ -118,6 +118,25 @@
         .action-icon:hover { color: var(--primary-blue, #007bff); }
         .action-delete:hover { color: #ff4757; }
 
+        /* 🚀 NEW TOP WRITE BUTTON */
+        .top-write-btn {
+            background: #2d8eff;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 30px;
+            font-weight: bold;
+            font-size: 13px;
+            cursor: pointer;
+            box-shadow: 0 4px 10px rgba(45, 142, 255, 0.3);
+            transition: transform 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 20px;
+        }
+        .top-write-btn:active { transform: scale(0.95); }
+
         /* Skeletons */
         .sk-shimmer {
             background: #eee;
@@ -158,8 +177,14 @@
     </div>
 
     <div class="content-page-wrapper">
-        <h2 class="content-title">What Students Say</h2>
-        <p style="color:#777; font-size:13px; margin-bottom:20px;">Real feedback from the AFIT community.</p>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
+            <h2 class="content-title" style="margin: 0;">What Students Say</h2>
+        </div>
+        <p style="color:#777; font-size:13px; margin-bottom:15px;">Real feedback from the AFIT community.</p>
+
+        <button class="top-write-btn" onclick="openReviewModal()">
+            <i class="fas fa-pen"></i> Write a Review
+        </button>
 
         <div class="filter-scroll" style="display:flex; gap:8px; overflow-x:auto; padding-bottom:15px; margin-bottom:10px; scrollbar-width: none;">
             <button class="filter-btn active" onclick="filterReviews('all', this)">All</button>
@@ -219,7 +244,8 @@
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
     import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-    import { getFirestore, collection, addDoc, updateDoc, deleteDoc, doc, getDocs, query, orderBy, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+    // 🚀 Added 'limit' to the imports to prevent full table scans
+    import { getFirestore, collection, addDoc, updateDoc, deleteDoc, doc, getDocs, query, orderBy, serverTimestamp, limit } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
     const firebaseConfig = {
         apiKey: "AIzaSyA1eQbrJpH9OtDNDN7z9oTFTRSAE7vCFbg",
@@ -249,7 +275,6 @@
     function timeAgo(dateInput) {
         if (!dateInput) return "Recently";
         
-        // Handle Firebase Timestamp or JS Date
         const date = dateInput.seconds ? new Date(dateInput.seconds * 1000) : new Date(dateInput);
         const seconds = Math.floor((new Date() - date) / 1000);
 
@@ -287,8 +312,8 @@
         container.innerHTML = html;
     }
 
-    // --- CACHING SYSTEM ---
-    const CACHE_TTL = 2 * 60 * 1000; 
+    // --- 🚀 UPGRADED CACHING SYSTEM (15 MIN TTL) ---
+    const CACHE_TTL = 15 * 60 * 1000; // Increased to 15 minutes to save massive reads
 
     function getCachedData(key) {
         const cached = localStorage.getItem(key);
@@ -307,7 +332,6 @@
 
     function invalidateReviewCaches() {
         localStorage.removeItem('cache_all_reviews'); 
-        localStorage.removeItem('cache_reviews'); 
     }
 
     onAuthStateChanged(auth, (user) => {
@@ -316,8 +340,17 @@
     });
 
     document.addEventListener("DOMContentLoaded", () => {
-        renderSkeletons(); // Show immediately while Firebase checks auth/cache
+        renderSkeletons(); 
     });
+
+    // --- SHUFFLE FUNCTION 🚀 ---
+    function shuffleArray(array) {
+        for (let i = array.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [array[i], array[j]] = [array[j], array[i]];
+        }
+        return array;
+    }
 
     // --- MODAL FUNCTIONS ---
     window.openReviewModal = function() {
@@ -335,7 +368,7 @@
         }
         
         document.getElementById('reviewModal').style.display = 'flex';
-        document.body.style.overflow = 'hidden'; // Stop background scrolling
+        document.body.style.overflow = 'hidden'; 
     }
 
     window.openEditModal = function(id, text, rating) {
@@ -419,7 +452,7 @@
 
             invalidateReviewCaches();
             closeReviewModal();
-            renderSkeletons(); // Show loading again
+            renderSkeletons(); 
             loadReviews(); 
 
         } catch (e) {
@@ -453,10 +486,10 @@
             let rawReviewData = getCachedData('cache_all_reviews');
 
             if (!rawReviewData) {
-                const q = query(collection(db, "reviews"), orderBy("createdAt", "desc"));
+                // 🚀 SAFETY CAP: Only fetch the 50 most recent reviews to save reads!
+                const q = query(collection(db, "reviews"), orderBy("createdAt", "desc"), limit(50));
                 const snapshot = await getDocs(q);
                 
-                // Keep the timestamp intact for the timeAgo function
                 rawReviewData = snapshot.docs.map(doc => {
                     const data = doc.data();
                     return { 
@@ -470,14 +503,23 @@
             } 
 
             allReviews = [];
+            let myReviews = [];
+            let otherReviews = [];
             
             rawReviewData.forEach(data => {
-                if (data.status === 'approved') {
-                    allReviews.push(data);
-                } else if (currentUser && data.uid === currentUser.uid) {
-                    allReviews.push(data); 
+                // Keep the logged-in user's reviews separate so they always stay at the top
+                if (currentUser && data.uid === currentUser.uid) {
+                    myReviews.push(data); 
+                } else if (data.status === 'approved') {
+                    otherReviews.push(data);
                 }
             });
+
+            // 🚀 SHUFFLE ONLY OTHER REVIEWS (Your own reviews stay pinned at the top)
+            otherReviews = shuffleArray(otherReviews);
+            
+            // Combine them back together
+            allReviews = [...myReviews, ...otherReviews];
 
             renderReviews(allReviews);
 
@@ -518,7 +560,6 @@
                 `;
             }
 
-            // XSS Protection for display
             const safeNameHTML = escapeHTML(r.name);
             const safeReviewHTML = escapeHTML(r.review);
 
