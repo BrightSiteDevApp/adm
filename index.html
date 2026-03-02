@@ -491,7 +491,7 @@
     import { getAuth, onAuthStateChanged, signInWithPopup, GoogleAuthProvider, getAdditionalUserInfo } 
     from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
     
-    // ✅ ADDED orderBy and limit FOR THE BLOGS QUERY
+    // 🚀 ADDED 'limit' to the imports for safety caps!
     import { getFirestore, doc, setDoc, deleteDoc, collection, getDocs, query, getDoc, where, addDoc, orderBy, limit } 
     from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
@@ -707,10 +707,12 @@
            let suspendedData = getCachedData('cache_suspended_vendors');
            
            if (!suspendedData) {
-               const suspendedSnap = await getDocs(collection(db, "vendor_status"));
+               // 🚀 THE PRIMARY READ-SAVER FIX: Only fetch suspended vendors
+               const qSuspended = query(collection(db, "vendor_status"), where("status", "==", "suspended"));
+               const suspendedSnap = await getDocs(qSuspended);
                suspendedData = [];
                suspendedSnap.forEach(doc => { 
-                   if (doc.data().status === "suspended") suspendedData.push(doc.id); 
+                   suspendedData.push(doc.id); 
                });
                setCachedData('cache_suspended_vendors', suspendedData);
            }
@@ -777,7 +779,8 @@
        }
 
        try {
-           const q = query(collection(db, "products")); 
+           // 🚀 THE SECOND READ-SAVER FIX: Added limit(1000) so we don't accidentally read millions!
+           const q = query(collection(db, "products"), limit(1000)); 
            const snapshot = await getDocs(q);
            const data = snapshot.docs.map(doc => ({
                id: doc.id, 
@@ -789,7 +792,6 @@
        } catch(e) { return []; }
    }
 
-   // 🚀 NEW FUNCTION: LOAD RECENT BLOGS 🚀
  // 🚀 CRASH-PROOF BLOG LOADER 🚀
    async function loadRecentBlogs() {
         const container = document.getElementById('home-blog-grid');

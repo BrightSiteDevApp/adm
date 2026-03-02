@@ -276,7 +276,8 @@
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
     import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-    import { getFirestore, doc, setDoc, deleteDoc, collection, getDocs, query, limit } 
+    // 🚀 Added 'where' to imports!
+    import { getFirestore, doc, setDoc, deleteDoc, collection, getDocs, query, limit, where } 
     from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
     const firebaseConfig = {
@@ -302,6 +303,7 @@
     let masterItemList = []; 
     let currentDisplayCount = 0; 
     let phoneBook = {}; 
+    let suspendedVendors = new Set(); // 🚀 ADDED: To track suspended accounts
 
     const INITIAL_DISPLAY = 50; 
     const LOAD_STEP = 20;    
@@ -410,6 +412,22 @@
         renderSkeletons('all-items-container', 8);
 
         try {
+            // 🚀 0. FETCH SUSPENDED VENDORS FIRST (Optimized Query)
+            let suspendedData = getCachedData('cache_suspended_vendors');
+            
+            if (!suspendedData) {
+                const qSuspended = query(collection(db, "vendor_status"), where("status", "==", "suspended"));
+                const suspendedSnap = await getDocs(qSuspended);
+                suspendedData = [];
+                suspendedSnap.forEach(doc => { 
+                    suspendedData.push(doc.id); 
+                });
+                setCachedData('cache_suspended_vendors', suspendedData);
+            }
+            
+            // Store them in the global Set for fast checking
+            suspendedData.forEach(id => suspendedVendors.add(id));
+
             // 1. FETCH BOTH VENDOR SHEETS
             const [v1, v2] = await Promise.all([
                 fetch(`${apiRoot}/Vendors`).then(res => res.json().catch(() => [])),
@@ -443,7 +461,6 @@
             
             if (!firestoreRaw) {
                 console.log("Fetching fresh products from Firebase (Items Page)");
-                // 🔥 THE FIX: Bumped limit from 500 to 2000!
                 const q = query(collection(db, "products"), limit(1000)); 
                 const snapshot = await getDocs(q);
                 firestoreRaw = snapshot.docs.map(doc => ({
@@ -465,8 +482,15 @@
                 };
             });
 
-            // 4. COMBINE & SHUFFLE
-            masterItemList = [...sheetItems, ...firestoreItems];
+            // 4. COMBINE, FILTER OUT SUSPENDED VENDORS, & SHUFFLE 🚀
+            let combinedList = [...sheetItems, ...firestoreItems];
+            
+            // 🔥 REMOVE SUSPENDED PRODUCTS HERE:
+            masterItemList = combinedList.filter(p => {
+                const vID = p.vendor_id || p.Vendor_ID;
+                return !suspendedVendors.has(vID);
+            });
+
             shuffleArray(masterItemList);
 
             // 5. RENDER INITIAL BATCH

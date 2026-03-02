@@ -74,7 +74,8 @@
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+    // 🚀 Added query and where to the imports here!
+    import { getFirestore, collection, getDocs, query, where } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
     const firebaseConfig = {
         apiKey: "AIzaSyA1eQbrJpH9OtDNDN7z9oTFTRSAE7vCFbg",
@@ -119,12 +120,12 @@
             let suspendedData = getCachedData('cache_suspended_vendors');
             
             if (!suspendedData) {
-                const suspendedSnap = await getDocs(collection(db, "vendor_status"));
+                // 🚀 THE READ-SAVER FIX: Only fetch vendors who are actually suspended!
+                const qSuspended = query(collection(db, "vendor_status"), where("status", "==", "suspended"));
+                const suspendedSnap = await getDocs(qSuspended);
                 suspendedData = [];
                 suspendedSnap.forEach(doc => {
-                    if (doc.data().status === "suspended") {
-                        suspendedData.push(doc.id);
-                    }
+                    suspendedData.push(doc.id);
                 });
                 setCachedData('cache_suspended_vendors', suspendedData);
             }
@@ -187,7 +188,6 @@
             });
 
             // Search functionality
-           // Search functionality
             const searchInput = document.getElementById('vendor-search');
             
             // 1. Inject a hidden "No Vendor Found" message at the end of the grid

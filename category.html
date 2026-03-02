@@ -152,7 +152,8 @@
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
     import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-    import { getFirestore, doc, setDoc, deleteDoc, collection, getDocs, query, where } 
+    // 🚀 Added 'limit' to the imports here!
+    import { getFirestore, doc, setDoc, deleteDoc, collection, getDocs, query, where, limit } 
     from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
     const firebaseConfig = {
@@ -180,7 +181,7 @@
     const INITIAL_LOAD = 30;
     const LOAD_STEP = 20;
 
-    // --- 🟢 SHARED LOCAL STORAGE CACHING SYSTEM (1 MIN TTL) ---
+    // --- 🟢 SHARED LOCAL STORAGE CACHING SYSTEM (10 MIN TTL) ---
     const CACHE_TTL = 10 * 60 * 1000; 
 
     function getCachedData(key) {
@@ -244,7 +245,8 @@
 
         try {
             console.log("Fetching fresh products from Firebase (Category Page)");
-            const q = query(collection(db, "products")); 
+            // 🚀 THE SECOND READ-SAVER FIX: Added limit(1000) so we don't accidentally read millions!
+            const q = query(collection(db, "products"), limit(1000)); 
             const snapshot = await getDocs(q);
             const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
             
@@ -298,19 +300,6 @@
         catSearchInput.addEventListener('search', function(e) {
              this.blur();
         });
-
-      // NEW: Bulletproof mobile keyboard close
-        catSearchInput.addEventListener('keyup', function(e) {
-            if (e.key === 'Enter' || e.keyCode === 13) {
-                e.preventDefault();
-                this.blur(); // Forces keyboard to close
-            }
-        });
-
-        // Some mobile keyboards use a special "search" event instead of Enter
-        catSearchInput.addEventListener('search', function(e) {
-             this.blur();
-        });
  
         const params = new URLSearchParams(window.location.search);
         let category = params.get('cat');
@@ -325,10 +314,12 @@
                 let suspendedData = getCachedData('cache_suspended_vendors');
                 
                 if (!suspendedData) {
-                    const suspendedSnap = await getDocs(collection(db, "vendor_status"));
+                    // 🚀 THE PRIMARY READ-SAVER FIX: Only fetch suspended vendors
+                    const qSuspended = query(collection(db, "vendor_status"), where("status", "==", "suspended"));
+                    const suspendedSnap = await getDocs(qSuspended);
                     suspendedData = [];
                     suspendedSnap.forEach(doc => { 
-                        if(doc.data().status === "suspended") suspendedData.push(doc.id); 
+                        suspendedData.push(doc.id); 
                     });
                     setCachedData('cache_suspended_vendors', suspendedData);
                 }
@@ -350,7 +341,7 @@
 
                 const sheetProductsRes = await fetch(`${apiRoot}/Products`);
                 const sheetProducts = await sheetProductsRes.json();
-                const firestoreProducts = await loadFirestoreProducts(); // Now uses cache
+                const firestoreProducts = await loadFirestoreProducts(); // Now uses cache & limits!
 
                 let combined = [...sheetProducts, ...firestoreProducts];
                 
@@ -437,7 +428,7 @@
                         style="position:absolute; top:10px; right:10px; background:white; border:none; border-radius:50%; width:30px; height:30px; display:flex; align-items:center; justify-content:center; cursor:pointer; box-shadow:0 2px 5px rgba(0,0,0,0.2); z-index:10;">
                     <i class="${heartClass} fa-heart" style="color:${heartColor}; font-size:16px;"></i>
                 </button>
-                <img class="ad-img" src="${img}" alt="${safeNameHTML}" onerror="this.src='img/logo-blue.png'">
+                <img class="ad-img" src="${img}" alt="${safeNameHTML}" onerror="this.src='../img/logo-blue.png'">
                 <div class="ad-info">
                     <div class="ad-price">${safePrice}</div>
                     <div class="ad-title">${safeNameHTML}</div>

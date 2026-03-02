@@ -322,12 +322,13 @@
         }
     });
 
-   // 1. Initial Load (Top 10)
+   // 1. Initial Load (Top 5)
     async function loadInitialBlogs() {
         const container = document.getElementById('blog-container');
         
         try {
-            const q = query(collection(db, "blogs"), orderBy("timestamp", "desc"), limit(10));
+            // 🚀 Changed limit from 10 to 5
+            const q = query(collection(db, "blogs"), orderBy("timestamp", "desc"), limit(5));
             const snapshot = await getDocs(q);
             
             // NOW we clear the skeletons, right before we inject the real data!
@@ -338,7 +339,8 @@
                 allFetchedBlogs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
                 renderBlogs();
                 
-                if(snapshot.docs.length === 10) document.getElementById('load-more-container').style.display = 'block';
+                // 🚀 Changed to 5 so button shows if there are at least 5 posts
+                if(snapshot.docs.length === 5) document.getElementById('load-more-container').style.display = 'block';
 
                 // Check for Deep Link on first load
                 const urlParams = new URLSearchParams(window.location.search);
@@ -656,4 +658,4 @@
     }
 </script>
 </body>
-</html>
+</html> 
