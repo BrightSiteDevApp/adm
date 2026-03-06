@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Secure Email Gateway | AFIT Digital Market</title>
+    <link rel="stylesheet" href="asset/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="icon" href="img/app-logo.png" type="image/png">
+    <style>
+        body { background-color: #1e272e; color: #fff; font-family: 'Segoe UI', sans-serif; margin: 0; }
+        
+        .header {
+            background: #2f3640; padding: 15px 20px; display: flex; align-items: center; 
+            justify-content: space-between; border-bottom: 2px solid #e84118;
+        }
+
+        .admin-container { 
+            max-width: 700px; width: 92%; margin: 30px auto; 
+            background: #2f3640; padding: 30px; border-radius: 12px; 
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+
+        .form-group { margin-bottom: 20px; }
+        .form-label { font-size: 13px; font-weight: 600; color: #dcdde1; display: block; margin-bottom: 8px; }
+        
+        .form-input { 
+            width: 100%; padding: 14px; border: 1px solid #718093; 
+            border-radius: 8px; font-size: 14px; background: #353b48; color: #fff; box-sizing: border-box;
+        }
+        .form-input:focus { border-color: #e84118; outline: none; }
+
+        .btn-submit { 
+            background: #e84118; color: white; width: 100%; padding: 15px; border: none; 
+            border-radius: 8px; font-weight: 700; cursor: pointer; font-size: 16px; 
+            transition: 0.2s; display: flex; justify-content: center; align-items: center; gap: 10px;
+        }
+        .btn-submit:active { transform: scale(0.98); }
+        .btn-submit:disabled { background: #718093; cursor: not-allowed; }
+
+        /* Terminal Console */
+        .terminal {
+            background: #000; color: #00ff00; font-family: monospace;
+            padding: 15px; border-radius: 8px; height: 200px; overflow-y: auto;
+            margin-top: 20px; font-size: 12px; border: 1px solid #333;
+            display: none; /* Hidden until sending starts */
+        }
+        .log-error { color: #ff4757; }
+        .log-success { color: #2ed573; }
+        .log-wait { color: #feca57; }
+
+        #unauthorized { display: none; text-align: center; padding: 50px; color: #e84118; }
+    </style>
+</head>
+<body>
+
+    <div id="preloader">
+        <div class="loader-content">
+            <img src="img/logo-blue.png" alt="Loading..." class="loader-logo">
+            <div class="loading-bar"></div>
+        </div>
+    </div>
+
+    <div class="header">
+        <a href="account.html" style="color: #fff; text-decoration: none; font-weight: bold;">
+            <i class="fas fa-arrow-left"></i> Exit Gateway
+        </a>
+        <span style="font-weight:bold; color: #e84118;"><i class="fas fa-lock"></i> SECURE SMTP GATEWAY</span>
+        <div style="width: 30px;"></div>
+    </div>
+
+    <div id="unauthorized">
+        <i class="fas fa-shield-alt" style="font-size: 60px; margin-bottom: 20px;"></i>
+        <h2>ACCESS DENIED</h2>
+        <p>Your IP and Email have been logged. You do not have clearance for this terminal.</p>
+    </div>
+
+    <div class="admin-container" id="admin-panel" style="display: none;">
+        
+        <div style="background: rgba(232, 65, 24, 0.1); border: 1px solid #e84118; padding: 15px; border-radius: 8px; margin-bottom: 25px; font-size: 13px; color: #dcdde1; line-height: 1.5;">
+            <strong style="color: #e84118;"><i class="fas fa-info-circle"></i> Instructions:</strong><br>
+            Paste Vendor IDs separated by commas (e.g. V001, V002, V003). The system will automatically fetch their emails and send the message with a 5-second delay between each to prevent spam flagging. You can use standard HTML in the message box to create links.
+        </div>
+
+        <div class="form-group">
+            <label class="form-label">Target Vendor IDs (Comma separated)</label>
+            <textarea id="target-ids" class="form-input" style="height: 80px;" placeholder="e.g. V001, V015, V042"></textarea>
+        </div>
+
+        <div class="form-group">
+            <label class="form-label">Email Subject</label>
+            <input type="text" id="email-subject" class="form-input" placeholder="e.g. Action Required: Subscription Renewal" value="Action Required: AFIT Market Subscription Renewal">
+        </div>
+
+        <div class="form-group">
+            <label class="form-label">Message Body (HTML Allowed)</label>
+            <textarea id="email-body" class="form-input" style="height: 150px;">Hello Vendor,
+
+This is a reminder that your subscription plan on AFIT Digital Market is due for renewal. 
+
+Please click the link below to upload your payment receipt and avoid account suspension:
+<a href="https://afitdgm.store/payment.html">https://afitdgm.store/payment.html</a>
+
+Thank you for doing business with us!
+- ADM Admin Team</textarea>
+        </div>
+
+        <button id="sendBtn" class="btn-submit" onclick="startSendingProcess()">
+            <i class="fas fa-paper-plane"></i> INITIATE BLAST
+        </button>
+
+        <div id="terminal" class="terminal"></div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+        import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyA1eQbrJpH9OtDNDN7z9oTFTRSAE7vCFbg",
+            authDomain: "afit-market-auth.firebaseapp.com",
+            projectId: "afit-market-auth",
+            storageBucket: "afit-market-auth.firebasestorage.app",
+            messagingSenderId: "894920886640",
+            appId: "1:894920886640:web:77d0a6b39bf89ff8f767b5"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        
+        const SHEET_ID = "1SvVUbEnDgqgw2Z_M1ShQkzyFTsnnS6n8mTs7UMXVvF4";
+        const API_ROOT = `https://opensheet.elk.sh/${SHEET_ID}`;
+
+        // 🚨 CRITICAL: UPDATE THESE TO YOUR 3 ADMIN EMAILS
+        const ALLOWED_ADMINS = [
+            "afitdgm@gmail.com",
+            "admin2@gmail.com", 
+            "admin3@gmail.com"
+        ];
+
+        let masterVendorList = [];
+
+        onAuthStateChanged(auth, async (user) => {
+            const preloader = document.getElementById('preloader');
+            
+            if (user && ALLOWED_ADMINS.includes(user.email.toLowerCase().trim())) {
+                // Authorized!
+                await fetchMasterVendors();
+                preloader.style.display = 'none';
+                document.getElementById('admin-panel').style.display = 'block';
+            } else {
+                // Unauthorized! Kick them out.
+                preloader.style.display = 'none';
+                document.getElementById('unauthorized').style.display = 'block';
+                setTimeout(() => { window.location.href = "index.html"; }, 3000);
+            }
+        });
+
+        async function fetchMasterVendors() {
+            try {
+                const [v1, v2] = await Promise.all([
+                    fetch(`${API_ROOT}/Vendors`).then(res => res.json()),
+                    fetch(`${API_ROOT}/Vendors_v2`).then(res => res.json().catch(() => []))
+                ]);
+                masterVendorList = [...v1, ...v2];
+            } catch(e) {
+                alert("Warning: Failed to load master vendor list. Please refresh.");
+            }
+        }
+
+        // Terminal Logging Function
+        function logToTerminal(msg, type = "") {
+            const term = document.getElementById('terminal');
+            term.style.display = 'block';
+            const time = new Date().toLocaleTimeString();
+            let colorClass = "";
+            if(type === "error") colorClass = "log-error";
+            if(type === "success") colorClass = "log-success";
+            if(type === "wait") colorClass = "log-wait";
+            
+            term.innerHTML += `<div class="${colorClass}">[${time}] ${msg}</div>`;
+            term.scrollTop = term.scrollHeight; // Auto scroll to bottom
+        }
+
+        window.startSendingProcess = async function() {
+            const idsRaw = document.getElementById('target-ids').value;
+            const subject = document.getElementById('email-subject').value.trim();
+            const bodyRaw = document.getElementById('email-body').value.trim();
+            const btn = document.getElementById('sendBtn');
+
+            if(!idsRaw || !subject || !bodyRaw) {
+                alert("Please fill all fields.");
+                return;
+            }
+
+            btn.disabled = true;
+            document.getElementById('terminal').innerHTML = ""; // Clear terminal
+            logToTerminal("INITIATING BLAST SEQUENCE...");
+
+            // 1. Convert newlines to <br> to preserve formatting in the email
+            const formattedBody = bodyRaw.replace(/\n/g, "<br>");
+
+            // 2. Parse the IDs
+            // Splits by comma, removes spaces, filters out empty strings, converts to uppercase
+            const rawIdArray = idsRaw.split(',').map(id => id.trim().toUpperCase()).filter(id => id !== "");
+            
+            // Remove duplicates
+            const uniqueIds = [...new Set(rawIdArray)];
+            
+            logToTerminal(`Found ${uniqueIds.length} unique Vendor IDs to process.`);
+
+            let successCount = 0;
+            let failCount = 0;
+
+            // 3. Loop through IDs and send
+            for (let i = 0; i < uniqueIds.length; i++) {
+                const targetId = uniqueIds[i];
+                logToTerminal(`Looking up email for Vendor: ${targetId}...`);
+
+                // Find vendor in master list
+                const vendor = masterVendorList.find(v => {
+                    const vId = String(v.vendor_id || v.Vendor_ID || "").toUpperCase().trim();
+                    return vId === targetId;
+                });
+
+                if (!vendor || !vendor.Email) {
+                    logToTerminal(`FAILED: Could not find email for ${targetId}`, "error");
+                    failCount++;
+                    continue;
+                }
+
+                const targetEmail = vendor.Email.trim();
+
+                try {
+                    // Send to Firebase Trigger Email extension
+                    await addDoc(collection(db, "mail"), {
+                        to: targetEmail,
+                        message: {
+                            subject: subject,
+                            html: formattedBody
+                        }
+                    });
+                    
+                    logToTerminal(`SUCCESS: Email queued for ${targetId} (${targetEmail})`, "success");
+                    successCount++;
+                } catch (error) {
+                    logToTerminal(`FIREBASE ERROR for ${targetId}: ${error.message}`, "error");
+                    failCount++;
+                }
+
+                // 4. THE 5-SECOND DELAY (If not the last email)
+                if (i < uniqueIds.length - 1) {
+                    logToTerminal(`Rate Limiter Active: Pausing for 5 seconds...`, "wait");
+                    await new Promise(resolve => setTimeout(resolve, 5000));
+                }
+            }
+
+            logToTerminal(`BLAST COMPLETE. Success: ${successCount} | Failed: ${failCount}`, "success");
+            btn.disabled = false;
+            btn.innerHTML = `<i class="fas fa-paper-plane"></i> BLAST AGAIN`;
+        }
+    </script>
+</body>
+</html>
