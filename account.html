@@ -125,6 +125,12 @@
                     <div class="option-text" style="color: #009688;">Vendor Support Tickets</div>
                     <i class="fas fa-chevron-right" style="color: #009688;"></i>
                 </a>
+
+                <a href="payment.html" id="btn-renew" class="account-option" style="border-left: 4px solid #f39c12;">
+                    <div class="option-icon" style="background: #fdf5e6; color: #f39c12;"><i class="fas fa-credit-card"></i></div>
+                    <div class="option-text" style="color: #f39c12;">Renew Subscription</div>
+                    <i class="fas fa-chevron-right" style="color: #f39c12;"></i>
+                </a>
             </div>
 
             <div class="menu-section-title">My Activity</div>
@@ -186,16 +192,10 @@
         
         const ADMIN_EMAIL = "afitdgm@gmail.com";
 
-        // --- 🟢 CACHING SYSTEM FOR FAST LOAD ---
-
-     function getCachedVendorStatus(email) {
+        function getCachedVendorStatus(email) {
             const cached = localStorage.getItem(`vendor_status_${email}`);
             if (!cached) return null;
             const parsed = JSON.parse(cached);
-            
-            // 🧠 SMART CACHE LOGIC:
-            // If they ARE a vendor, cache it for 24 hours.
-            // If they are NOT a vendor, cache it for only 20 SECONDS.
             const TTL = parsed.isVendor ? (24 * 60 * 60 * 1000) : (20 * 1000); 
 
             if (Date.now() - parsed.timestamp > TTL) {
@@ -210,20 +210,17 @@
                 isVendor: isVendor
             }));
         }
-        // ----------------------------------------
 
         onAuthStateChanged(auth, async (user) => {
-            const preloader = document.getElementById('preloader'); // 🚀 GET PRELOADER
+            const preloader = document.getElementById('preloader');
             
             if (user) {
-                // 1. Set Info Immediately
                 document.getElementById('user-name').innerText = user.displayName || "Student";
                 document.getElementById('user-email').innerText = user.email;
                 document.getElementById('user-img').src = user.photoURL || "img/person.png";
 
                 const email = user.email.toLowerCase().trim();
 
-                // 2. Admin Check
                 let isAdmin = false;
                 if (email === ADMIN_EMAIL) {
                     isAdmin = true;
@@ -231,35 +228,31 @@
                     document.getElementById('btn-admin').style.display = "flex";
                 } 
                 
-                // 3. Fast Vendor Check
                 await checkIfVendor(email, isAdmin);
 
-                // 4. Reveal Page & Hide Preloader
                 if(preloader) preloader.style.display = 'none';
                 document.getElementById('account-content').style.display = 'block';
                 
-                // Extra safety for dark mode text color
                 if(document.body.classList.contains('dark-mode')) {
                     document.getElementById('user-name').style.color = "white";
                 }
             } else {
                 if(preloader) preloader.style.display = 'none';
-                window.location.href = "index.html";
+                // 🚀 FIXED: Redirects to login.html instead of index.html
+                window.location.href = "login.html";
             }
         });
 
         async function checkIfVendor(email, isAdmin) {
-            // Check high-speed cache first!
             const cachedStatus = getCachedVendorStatus(email);
             
             if (cachedStatus === true) {
                 showVendorTools();
                 return;
             } else if (cachedStatus === false && !isAdmin) {
-                return; // Not a vendor, don't show tools
+                return; 
             }
 
-            // Not in cache, fetch from Google Sheets
             try {
                 const [v1, v2] = await Promise.all([
                     fetch(`${apiRoot}/Vendors`).then(res => res.json()),
@@ -269,7 +262,6 @@
                 const allVendors = [...v1, ...v2];
                 const isVendor = allVendors.some(v => v.Email && v.Email.toLowerCase().trim() === email);
 
-                // Save result to cache so next load is instant
                 setCachedVendorStatus(email, isVendor);
 
                 if (isVendor) showVendorTools();
@@ -285,7 +277,7 @@
 
         window.handleLogout = () => {
             if(confirm("Log out now?")) {
-                localStorage.removeItem(`vendor_status_${document.getElementById('user-email').innerText}`); // Clear their cache
+                localStorage.removeItem(`vendor_status_${document.getElementById('user-email').innerText}`); 
                 signOut(auth).then(() => window.location.href = "index.html");
             }
         };
