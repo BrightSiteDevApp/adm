@@ -17,6 +17,7 @@
             margin: 0;
         }
 
+        /* 🚀 NEW FLEX HEADER: Guarantees perfect centering & no squishing */
         .header {
             background: white; padding: 15px 20px;
             box-shadow: 0 2px 10px rgba(0,0,0,0.05);
@@ -39,7 +40,7 @@
             margin-bottom: 25px;
             display: none; /* Hidden until loaded */
         }
-        .info-row { display: flex; justify-content: space-between; margin-bottom: 5px; font-size: 13px;}
+        .info-row { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 13px;}
         .info-label { color: #555; font-weight: 600; }
         .info-val { color: #2d8eff; font-weight: 700; text-align: right; }
 
@@ -118,12 +119,13 @@
     </div>
 
     <div class="header">
-        <a href="dashboard.html" class="back-btn" style="text-decoration: none; color: #333; font-weight: 600;">
-            <i class="fas fa-arrow-left"></i> Dashboard
-        </a>
-        <span style="font-weight:bold; color: #333;">Subscription Payment</span>
-        <div style="width: 40px;"></div>
-    </div>
+        <div style="flex: 1; display: flex; justify-content: flex-start;">
+            <a href="account.html" class="back-btn" style="text-decoration: none; color: #333; font-weight: 600;">
+                <i class="fas fa-arrow-left"></i> Back
+            </a>
+        </div>
+        <span style="font-weight:bold; color: #333; flex: 2; text-align: center; white-space: nowrap; font-size: 16px;">Renew Plan</span>
+        <div style="flex: 1;"></div> </div>
 
     <div class="pay-container">
         
@@ -143,7 +145,11 @@
             <div class="vendor-info-box" id="v-info-box">
                 <div class="info-row"><span class="info-label">Vendor ID:</span> <span class="info-val" id="disp-id">Loading...</span></div>
                 <div class="info-row"><span class="info-label">Business:</span> <span class="info-val" id="disp-biz">Loading...</span></div>
-                <div class="info-row" style="margin-bottom:0;"><span class="info-label">Email:</span> <span class="info-val" id="disp-email">Loading...</span></div>
+                
+                <div class="info-row"><span class="info-label">Current Plan:</span> <span class="info-val" id="disp-plan" style="color: #f39c12;">Loading...</span></div>
+                <div class="info-row"><span class="info-label">Next Payment Due:</span> <span class="info-val" id="disp-due" style="color: #ff4757;">Loading...</span></div>
+                
+                <div class="info-row" style="margin-bottom:0; margin-top: 5px; border-top: 1px dashed #ccc; padding-top: 8px;"><span class="info-label">Email:</span> <span class="info-val" id="disp-email">Loading...</span></div>
             </div>
 
             <div class="bank-card">
@@ -204,10 +210,9 @@
         const API_ROOT = `https://opensheet.elk.sh/${SHEET_ID}`;
         const IMGBB_KEY = "2ac38bef2c73c5a65e7ddf94efe37962";
         
-        // 🚀 THE NEW PAYMENT SCRIPT URL YOU JUST CREATED
+        // 🚀 NEW PAYMENT SCRIPT URL
         const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz7OEC7WnvDcTjkjQYI4EoYPm_oyq_1_zG_w5kB5JX1zZfsHp-gVWnWIfY4NMUCbRx5Lw/exec";
 
-        // Global Vendor Data
         let currentVendorData = null;
 
         onAuthStateChanged(auth, async (user) => {
@@ -216,7 +221,6 @@
             if (user) {
                 await verifyVendor(user.email);
             } else {
-                // Not logged in
                 preloader.style.display = 'none';
                 document.getElementById('error-state').style.display = 'block';
             }
@@ -224,15 +228,12 @@
 
         async function verifyVendor(email) {
             try {
-                // Fetch Master Vendor Sheets
                 const [v1, v2] = await Promise.all([
                     fetch(`${API_ROOT}/Vendors`).then(res => res.json()),
                     fetch(`${API_ROOT}/Vendors_v2`).then(res => res.json().catch(() => []))
                 ]);
 
                 const allVendors = [...v1, ...v2];
-                
-                // Find matching vendor by Email
                 const vendor = allVendors.find(v => v.Email && v.Email.toLowerCase().trim() === email.toLowerCase().trim());
 
                 const preloader = document.getElementById('preloader');
@@ -241,15 +242,26 @@
                 if (vendor) {
                     currentVendorData = vendor;
                     
-                    // Populate UI
+                    // Populate Standard Info
                     document.getElementById('disp-id').innerText = vendor.vendor_id || vendor.Vendor_ID || "N/A";
                     document.getElementById('disp-biz').innerText = vendor.business_name || vendor.Business_Name || vendor.Name || "N/A";
                     document.getElementById('disp-email').innerText = vendor.Email;
                     
+                    // 🚀 FETCH PLAN AND DUE DATE
+                    const currentPlan = vendor.Subscription_Plan || vendor.subscription_plan || vendor.Plan || "N/A";
+                    let nextDue = vendor.Next_Payment_Due || vendor.next_payment_due || vendor.Due_Date || "N/A";
+                    
+                    // Format the date slightly if it looks like an ugly timestamp string
+                    if (nextDue !== "N/A" && String(nextDue).includes('T')) {
+                        nextDue = new Date(nextDue).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+                    }
+
+                    document.getElementById('disp-plan').innerText = currentPlan;
+                    document.getElementById('disp-due').innerText = nextDue;
+
                     document.getElementById('v-info-box').style.display = 'block';
                     document.getElementById('payment-form-area').style.display = 'block';
                 } else {
-                    // Logged in, but NOT a vendor
                     document.getElementById('error-state').style.display = 'block';
                 }
 
@@ -260,7 +272,6 @@
             }
         }
 
-        // Global functions for the HTML form
         window.previewFile = function(input, labelId) {
             if (input.files && input.files[0]) {
                 document.getElementById(labelId).innerText = "✅ " + input.files[0].name;
@@ -302,13 +313,11 @@
             btn.innerText = "Uploading Receipt...";
 
             try {
-                // 1. Upload the receipt to ImgBB
                 const fileInput = document.getElementById('p_receipt').files[0];
                 const receiptUrl = await uploadImage(fileInput, 'uploadStatus');
 
                 btn.innerText = "Submitting to Database...";
 
-                // 2. Package the data for Google Sheets
                 const payload = {
                     vendor_id: currentVendorData.vendor_id || currentVendorData.Vendor_ID || "Unknown",
                     business_name: currentVendorData.business_name || currentVendorData.Business_Name || currentVendorData.Name || "Unknown",
@@ -317,7 +326,6 @@
                     receipt_url: receiptUrl
                 };
 
-                // 3. Send to Google Apps Script
                 await fetch(SCRIPT_URL, {
                     method: 'POST',
                     mode: 'no-cors',
@@ -326,7 +334,7 @@
                 });
 
                 alert("Payment proof submitted successfully! \n\nYour account will be updated once the admin verifies the transfer.");
-                window.location.href = "dashboard.html";
+                window.location.href = "account.html";
 
             } catch (error) {
                 console.error(error);
