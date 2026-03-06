@@ -62,6 +62,7 @@
       body.dark-mode .ad-desc-preview { color: #aaa; }
       body.dark-mode #m-desc { color: #ccc !important; }
       body.dark-mode .desc-box { background: #333 !important; color: #ddd; }
+      body.dark-mode .auth-title { color: #eee !important; } /* Fix for Auth Title */
 
       /* --- SKELETON LOADING STYLES --- */
       @keyframes skeleton-loading {
@@ -137,6 +138,13 @@
 
         <div id="load-more-container">
             <button id="load-more-btn">Load More</button>
+        </div>
+
+        <div id="not-signed-in-state" style="display:none; text-align:center; padding:60px 20px; color:#888;">
+            <i class="fas fa-user-lock" style="font-size:45px; margin-bottom:15px; opacity:0.5;"></i>
+            <h3 class="auth-title" style="margin:0 0 10px 0; color:#333;">Sign In Required</h3>
+            <p style="font-size: 14px; line-height: 1.5;">Please sign in to view and manage your saved items across all devices.</p>
+            <a href="login.html" class="chat-btn" style="display:inline-block; width:auto; margin-top:20px; padding: 12px 30px;">Sign In Now</a>
         </div>
 
         <div id="empty-state" style="display:none; text-align:center; padding:50px; color:#888;">
@@ -216,6 +224,9 @@
         let savedItemIds = new Set();
 
         onAuthStateChanged(auth, (user) => {
+            const preloader = document.getElementById('preloader');
+            const skeleton = document.getElementById('saved-skeleton');
+
             if (user) {
                 // Load Master Data First
                 loadMasterData().then(() => {
@@ -226,10 +237,10 @@
                     loadNextBatch(user.uid);
                 });
             } else {
-                // 🚀 HIDE PRELOADER BEFORE REDIRECT
-                const preloader = document.getElementById('preloader');
+                // 🚀 USER NOT LOGGED IN: HIDE LOADERS & SHOW SIGN IN BUTTON
                 if(preloader) preloader.style.display = 'none';
-                window.location.href = "index.html"; 
+                if(skeleton) skeleton.style.display = 'none';
+                document.getElementById('not-signed-in-state').style.display = 'block'; 
             }
         });
 
@@ -270,7 +281,7 @@
             const emptyState = document.getElementById('empty-state');
             const loadBtnDiv = document.getElementById('load-more-container');
             const loadBtn = document.getElementById('load-more-btn');
-            const preloader = document.getElementById('preloader'); // 🚀 GET PRELOADER
+            const preloader = document.getElementById('preloader'); 
 
             loadBtn.innerText = "Loading...";
 
@@ -364,7 +375,6 @@
                 }
             } finally {
                 isFetching = false;
-                // 🚀 HIDE PRELOADER WHEN EVERYTHING IS DONE LOADING
                 if(preloader) preloader.style.display = 'none';
             }
         }
