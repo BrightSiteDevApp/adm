@@ -146,14 +146,14 @@
         .time-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
         
         .btn-submit { 
-            background: #2d8eff; /* CHANGED TO SOLID BLUE */
+            background: #2d8eff; 
             color: white; 
             width: 100%; padding: 16px; border: none; border-radius: 12px; 
             font-weight: 700; cursor: pointer; font-size: 16px; margin-top: 20px; 
             box-shadow: 0 4px 15px rgba(45, 142, 255, 0.3); transition: transform 0.2s, background 0.2s;
         }
         .btn-submit:active { transform: scale(0.98); }
-        .btn-submit:hover { background: #1a7ae5; } /* Optional slight hover effect */
+        .btn-submit:hover { background: #1a7ae5; } 
         .btn-submit:disabled { background: #ccc; box-shadow: none; cursor: not-allowed; }
 
         /* --- AMBASSADOR SUPPORT GRID STYLES --- */
@@ -295,6 +295,13 @@
             document.body.classList.add('dark-mode');
         }
     </script>
+
+    <div id="preloader">
+        <div class="loader-content">
+            <img src="../img/logo-blue.png" alt="Loading..." class="loader-logo">
+            <div class="loading-bar"></div>
+        </div>
+    </div>
 
     <div id="notice-popup" class="popup-overlay">
         <div class="popup-content">
@@ -472,6 +479,7 @@
             <button type="submit" id="submitBtn" class="btn-submit">Submit Application</button>
 
         </form>
+
         <div class="ambassador-section">
             <p class="ambassador-title">Need help registering? <br>Contact any of our ambassadors to guide you through the process.</p>
             <div class="ambassador-grid" id="ambassador-grid">
@@ -607,6 +615,7 @@
 
         async function loadAmbassadors() {
             const grid = document.getElementById('ambassador-grid');
+            const preloader = document.getElementById('preloader'); // 🚀 GET PRELOADER
             
             try {
                 const res = await fetch(AMBASSADOR_API_URL);
@@ -646,6 +655,9 @@
                         </a>
                     </div>
                 `;
+            } finally {
+                // 🚀 HIDE PRELOADER WHEN DONE FETCHING
+                if(preloader) preloader.style.display = 'none';
             }
         }
 

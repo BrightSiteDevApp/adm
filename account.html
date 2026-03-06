@@ -82,16 +82,18 @@
         if (localStorage.getItem('theme') === 'dark') document.body.classList.add('dark-mode');
     </script>
 
+    <div id="preloader">
+        <div class="loader-content">
+            <img src="img/logo-blue.png" alt="Loading..." class="loader-logo">
+            <div class="loading-bar"></div>
+        </div>
+    </div>
+
     <div class="app-container">
         <div class="header">
             <a href="/" class="back-btn"><i class="fas fa-arrow-left"></i></a>
             <span style="font-weight:bold;">My Account</span>
             <div style="width:30px;"></div>
-        </div>
-
-        <div id="account-loader" style="text-align:center; padding:100px 20px;">
-            <i class="fas fa-circle-notch fa-spin" style="font-size:30px; color:#2d8eff;"></i>
-            <p style="color:#777; font-size:12px; margin-top:15px;">Loading profile...</p>
         </div>
 
         <div id="account-content" style="padding: 15px; display: none;">
@@ -211,6 +213,8 @@
         // ----------------------------------------
 
         onAuthStateChanged(auth, async (user) => {
+            const preloader = document.getElementById('preloader'); // 🚀 GET PRELOADER
+            
             if (user) {
                 // 1. Set Info Immediately
                 document.getElementById('user-name').innerText = user.displayName || "Student";
@@ -230,8 +234,8 @@
                 // 3. Fast Vendor Check
                 await checkIfVendor(email, isAdmin);
 
-                // 4. Reveal Page
-                document.getElementById('account-loader').style.display = 'none';
+                // 4. Reveal Page & Hide Preloader
+                if(preloader) preloader.style.display = 'none';
                 document.getElementById('account-content').style.display = 'block';
                 
                 // Extra safety for dark mode text color
@@ -239,7 +243,8 @@
                     document.getElementById('user-name').style.color = "white";
                 }
             } else {
-                window.location.href = "login.html";
+                if(preloader) preloader.style.display = 'none';
+                window.location.href = "index.html";
             }
         });
 

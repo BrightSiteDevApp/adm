@@ -172,6 +172,13 @@
 </head>
 <body>
 
+<div id="preloader">
+    <div class="loader-content">
+        <img src="../img/logo-blue.png" alt="Loading..." class="loader-logo">
+        <div class="loading-bar"></div>
+    </div>
+</div>
+
 <script>
     if (localStorage.getItem('theme') === 'dark') document.body.classList.add('dark-mode');
 </script>
@@ -286,6 +293,7 @@
 </div>
 
 <script src="../asset/script.js"></script>
+
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
     import { getAuth, onAuthStateChanged, signInWithPopup, GoogleAuthProvider } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
@@ -324,6 +332,8 @@
 
    async function loadInitialBlogs() {
        const container = document.getElementById('blog-container');
+       const preloader = document.getElementById('preloader'); // 🚀 GET PRELOADER
+       
        try {
            const q = query(collection(db, "blogs"), orderBy("timestamp", "desc"), limit(5));
            const snapshot = await getDocs(q);
@@ -354,6 +364,9 @@
        } catch(e) { 
            console.error(e); 
            container.innerHTML = "<p style='text-align:center;'>Failed to load network.</p>";
+       } finally {
+           // 🚀 ALWAYS HIDE PRELOADER WHEN DONE
+           if(preloader) preloader.style.display = 'none';
        }
    }
 
@@ -457,18 +470,15 @@
         document.getElementById('blogModal').style.display = 'flex';
         document.body.style.overflow = 'hidden'; 
 
-        // 👁️ VIEW COUNTER (Works for non-signed in users now!)
         const viewedPosts = JSON.parse(localStorage.getItem('viewed_blogs') || "[]");
         if(!viewedPosts.includes(b.id)) {
-            // Optimistic UI Update
             b.views = (b.views || 0) + 1;
             renderBlogs(); 
 
-            // Firebase Update (Needs Rule change in Console)
             const blogRef = doc(db, "blogs", b.id);
             updateDoc(blogRef, { views: increment(1) }).catch(err => {
                 console.warn("View record failed. Check Security Rules.", err);
-                b.views -= 1; // Rollback UI if failed
+                b.views -= 1; 
                 renderBlogs();
             });
             

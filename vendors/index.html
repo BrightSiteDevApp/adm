@@ -21,6 +21,13 @@
 </head>
 <body>
 
+  <div id="preloader">
+      <div class="loader-content">
+          <img src="../img/logo-blue.png" alt="Loading..." class="loader-logo">
+          <div class="loading-bar"></div>
+      </div>
+  </div>
+
   <div class="app-container">
     <div class="header">
       <a href="../index.html" class="back-btn"><i class="fas fa-arrow-left"></i></a>
@@ -74,7 +81,6 @@
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    // 🚀 Added query and where to the imports here!
     import { getFirestore, collection, getDocs, query, where } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
     const firebaseConfig = {
@@ -115,12 +121,13 @@
     // --- 🟢 END CACHING SYSTEM ---
 
     document.addEventListener("DOMContentLoaded", async () => {
+        const preloader = document.getElementById('preloader'); // 🚀 GET PRELOADER
+        
         try {
             // 1. Get Suspended List (From Cache or Firestore)
             let suspendedData = getCachedData('cache_suspended_vendors');
             
             if (!suspendedData) {
-                // 🚀 THE READ-SAVER FIX: Only fetch vendors who are actually suspended!
                 const qSuspended = query(collection(db, "vendor_status"), where("status", "==", "suspended"));
                 const suspendedSnap = await getDocs(qSuspended);
                 suspendedData = [];
@@ -202,13 +209,13 @@
             if (searchInput) {
                 searchInput.addEventListener('input', (e) => {
                     const query = e.target.value.toLowerCase().trim();
-                    let hasVisible = false; // Track if we find any matches
+                    let hasVisible = false; 
                     
                     document.querySelectorAll('.vendor-card').forEach(card => {
                         const text = card.innerText.toLowerCase();
                         if (text.includes(query)) {
                             card.style.display = "";
-                            hasVisible = true; // We found at least one!
+                            hasVisible = true; 
                         } else {
                             card.style.display = "none";
                         }
@@ -224,14 +231,17 @@
                 // Close mobile keyboard when "Enter/Search" is pressed
                 searchInput.addEventListener('keydown', function(e) {
                     if (e.key === 'Enter') {
-                        e.preventDefault(); // Stop any default jumps
-                        this.blur();        // Closes the keyboard!
+                        e.preventDefault(); 
+                        this.blur();        
                     }
                 });
             }
         } catch (err) {
             console.error("Error loading vendors:", err);
             document.getElementById('all-vendors-container').innerHTML = "<p style='text-align:center; color:red;'>Failed to load vendors.</p>";
+        } finally {
+            // 🚀 ALWAYS HIDE PRELOADER WHEN DONE
+            if (preloader) preloader.style.display = 'none';
         }
     });
 </script>

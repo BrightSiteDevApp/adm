@@ -90,12 +90,13 @@
       body.dark-mode .skeleton-card {
           background: #1e1e1e;
           box-shadow: 0 2px 10px rgba(255,255,255,0.05);
+          border: 1px solid #333;
       }
       body.dark-mode .sk-img-rect,
       body.dark-mode .sk-text-short,
       body.dark-mode .sk-text-long,
       body.dark-mode .sk-btn {
-          background: #333;
+          background-color: #333;
           background-image: linear-gradient(90deg, #333, #444, #333);
       }
   </style>
@@ -108,9 +109,16 @@
         }
     </script>
 
+    <div id="preloader">
+        <div class="loader-content">
+            <img src="img/logo-blue.png" alt="Loading..." class="loader-logo">
+            <div class="loading-bar"></div>
+        </div>
+    </div>
+
     <div class="app-container">
         <div class="header">
-            <a href="/" class="back-btn"><i class="fas fa-arrow-left"></i></a>
+            <a href="index.html" class="back-btn"><i class="fas fa-arrow-left"></i></a>
             <span style="font-weight:bold;">Saved Items</span>
              <div class="notification-icon-box" id="theme-toggle" style="margin-left:auto;">
                 <i class="fas fa-moon"></i>
@@ -118,6 +126,8 @@
         </div>
 
         <div id="saved-skeleton" class="trending-grid" style="padding: 15px;">
+            <div class="skeleton-card"><div class="sk-img-rect"></div><div class="sk-text-short"></div><div class="sk-text-long"></div><div class="sk-btn"></div></div>
+            <div class="skeleton-card"><div class="sk-img-rect"></div><div class="sk-text-short"></div><div class="sk-text-long"></div><div class="sk-btn"></div></div>
             <div class="skeleton-card"><div class="sk-img-rect"></div><div class="sk-text-short"></div><div class="sk-text-long"></div><div class="sk-btn"></div></div>
             <div class="skeleton-card"><div class="sk-img-rect"></div><div class="sk-text-short"></div><div class="sk-text-long"></div><div class="sk-btn"></div></div>
         </div>
@@ -203,6 +213,7 @@
         let lastVisibleDoc = null;
         let isFetching = false;
         const BATCH_SIZE = 10;
+        let savedItemIds = new Set();
 
         onAuthStateChanged(auth, (user) => {
             if (user) {
@@ -215,7 +226,10 @@
                     loadNextBatch(user.uid);
                 });
             } else {
-                window.location.href = "login.html";
+                // 🚀 HIDE PRELOADER BEFORE REDIRECT
+                const preloader = document.getElementById('preloader');
+                if(preloader) preloader.style.display = 'none';
+                window.location.href = "index.html"; 
             }
         });
 
@@ -256,6 +270,7 @@
             const emptyState = document.getElementById('empty-state');
             const loadBtnDiv = document.getElementById('load-more-container');
             const loadBtn = document.getElementById('load-more-btn');
+            const preloader = document.getElementById('preloader'); // 🚀 GET PRELOADER
 
             loadBtn.innerText = "Loading...";
 
@@ -271,13 +286,13 @@
 
                 const querySnapshot = await getDocs(q);
                 
+                // Hide skeleton as soon as Firebase returns data
                 if(!lastVisibleDoc) skeleton.style.display = 'none';
 
                 if (querySnapshot.empty) {
                     loadBtnDiv.style.display = 'none'; 
                     if (!lastVisibleDoc) emptyState.style.display = 'block'; 
-                    isFetching = false;
-                    return;
+                    return; // exit early
                 }
 
                 lastVisibleDoc = querySnapshot.docs[querySnapshot.docs.length - 1];
@@ -286,12 +301,11 @@
                 for (const docSnap of querySnapshot.docs) {
                     const savedData = docSnap.data();
                     const pID = docSnap.id; // The ID saved in Firestore
+                    savedItemIds.add(pID); // Keep track locally for UI
                     
                     // MAGIC: Look for the real item in our Master List
-                    // We check if the ID matches OR if we can reconstruct the ID
                     let liveItem = masterProductList.find(p => p.id === pID);
                     
-                    // If not found by direct ID, try the ID generation logic used in other files
                     if (!liveItem) {
                         liveItem = masterProductList.find(p => {
                             const genID = (p.id || ((p.vendor_id||p.Vendor_ID) + "-" + (p.name||p.Name)).replace(/\s+/g, '-').toLowerCase());
@@ -304,7 +318,7 @@
                     const pPrice = liveItem ? (liveItem.price || liveItem.Price) : savedData.price;
                     const pVendor = liveItem ? (liveItem.vendor_id || liveItem.Vendor_ID) : savedData.vendor;
                     let pImage = liveItem ? (liveItem.image || liveItem.Image) : savedData.image;
-                    // GET DESCRIPTION (Live or Fallback)
+                    
                     let pDesc = liveItem ? (liveItem.description || liveItem.Description) : savedData.description;
                     if(!pDesc) pDesc = "No description available.";
 
@@ -343,9 +357,16 @@
 
             } catch (err) {
                 console.error("Error loading items:", err);
-                if(!lastVisibleDoc) grid.innerHTML = "<p style='width:100%; text-align:center;'>Error loading items.</p>";
+                if(!lastVisibleDoc) {
+                    skeleton.style.display = 'none';
+                    grid.style.display = 'block';
+                    grid.innerHTML = "<p style='width:100%; text-align:center;'>Error loading items.</p>";
+                }
+            } finally {
+                isFetching = false;
+                // 🚀 HIDE PRELOADER WHEN EVERYTHING IS DONE LOADING
+                if(preloader) preloader.style.display = 'none';
             }
-            isFetching = false;
         }
 
         // FUNCTION TO OPEN MODAL
