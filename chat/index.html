@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Chat | AFIT Digital Market</title>
+    
+    <link rel="stylesheet" href="../asset/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="icon" href="../img/app-logo.png" type="image/png">
+
+    <style>
+        body { 
+            background: #eef1f4; 
+            font-family: 'Segoe UI', sans-serif;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            height: 100vh; /* Full screen height */
+            overflow: hidden; /* Prevent body scroll, only chat scrolls */
+        }
+
+        /* Fixed Header */
+        .chat-header {
+            background: white; padding: 15px 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            display: flex; align-items: center; gap: 15px;
+            z-index: 100; flex-shrink: 0;
+        }
+
+        .header-avatar {
+            width: 40px; height: 40px; border-radius: 50%;
+            background: #2d8eff; color: white; display: flex;
+            align-items: center; justify-content: center; font-weight: bold;
+        }
+
+        .header-info { flex: 1; min-width: 0; }
+        .header-name { font-weight: 700; font-size: 16px; color: #333; margin-bottom: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .header-product { font-size: 11px; color: #777; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+        /* Scrollable Chat Area */
+        .chat-area {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            background: #eef1f4;
+        }
+
+        /* Chat Bubbles */
+        .msg-row { display: flex; width: 100%; }
+        .msg-row.mine { justify-content: flex-end; }
+        .msg-row.theirs { justify-content: flex-start; }
+
+        .bubble {
+            max-width: 75%; padding: 12px 16px;
+            border-radius: 18px; font-size: 14px; line-height: 1.4;
+            position: relative; word-wrap: break-word;
+        }
+        .msg-row.theirs .bubble {
+            background: white; color: #333;
+            border-bottom-left-radius: 4px;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+        }
+        .msg-row.mine .bubble {
+            background: #2d8eff; color: white;
+            border-bottom-right-radius: 4px;
+            box-shadow: 0 1px 2px rgba(45, 142, 255, 0.2);
+        }
+
+        .bubble-img {
+            max-width: 100%; border-radius: 10px; margin-bottom: 8px;
+            display: block; cursor: pointer;
+        }
+
+        .msg-time {
+            font-size: 10px; margin-top: 5px; opacity: 0.7;
+            text-align: right; display: block;
+        }
+
+        /* Fixed Input Bar */
+        .chat-input-bar {
+            background: white; padding: 10px 15px;
+            display: flex; align-items: center; gap: 10px;
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.05);
+            flex-shrink: 0; padding-bottom: calc(10px + env(safe-area-inset-bottom));
+        }
+
+        .attach-btn {
+            background: #f5f7fa; color: #555; border: none;
+            width: 40px; height: 40px; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 18px; cursor: pointer; transition: 0.2s;
+        }
+        .attach-btn:active { transform: scale(0.95); background: #e0e5ec; }
+
+        .chat-input {
+            flex: 1; border: 1px solid #eee; background: #f9f9f9;
+            border-radius: 20px; padding: 12px 15px; font-size: 14px;
+            outline: none; transition: 0.3s;
+        }
+        .chat-input:focus { border-color: #2d8eff; background: white; }
+
+        .send-btn {
+            background: #2d8eff; color: white; border: none;
+            width: 40px; height: 40px; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 16px; cursor: pointer; transition: 0.2s;
+            box-shadow: 0 2px 8px rgba(45, 142, 255, 0.3);
+        }
+        .send-btn:active { transform: scale(0.95); }
+        .send-btn:disabled { background: #ccc; box-shadow: none; cursor: not-allowed; }
+
+        /* Image Preview Overlay */
+        #img-preview-container {
+            display: none; position: absolute; bottom: 70px; left: 15px;
+            background: white; padding: 10px; border-radius: 12px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1); border: 1px solid #eee;
+        }
+        #img-preview { max-width: 100px; max-height: 100px; border-radius: 8px; }
+        .remove-img-btn { position: absolute; top: -5px; right: -5px; background: #ff4757; color: white; border: none; border-radius: 50%; width: 20px; height: 20px; cursor: pointer; font-size: 10px; }
+
+        /* Dark Mode */
+        body.dark-mode { background: #121212; }
+        body.dark-mode .chat-area { background: #121212; }
+        body.dark-mode .chat-header, body.dark-mode .chat-input-bar { background: #1e1e1e; border-color: #333; box-shadow: 0 2px 10px rgba(0,0,0,0.5); }
+        body.dark-mode .header-name { color: #eee; }
+        body.dark-mode .msg-row.theirs .bubble { background: #2a2a2a; color: #eee; border: 1px solid #333; }
+        body.dark-mode .chat-input { background: #2a2a2a; color: white; border-color: #444; }
+        body.dark-mode .attach-btn { background: #2a2a2a; color: #ccc; }
+        body.dark-mode #img-preview-container { background: #2a2a2a; border-color: #444; }
+    </style>
+</head>
+<body>
+
+    <script>
+        if (localStorage.getItem('theme') === 'dark') document.body.classList.add('dark-mode');
+    </script>
+
+    <div class="chat-header">
+        <a href="../inbox/" style="color: #333; text-decoration: none; font-size: 18px; padding-right: 10px;">
+            <i class="fas fa-arrow-left"></i>
+        </a>
+        <div class="header-avatar" id="h-avatar">?</div>
+        <div class="header-info">
+            <div class="header-name" id="h-name">Loading...</div>
+            <div class="header-product" id="h-product">Connecting securely...</div>
+        </div>
+    </div>
+
+    <div class="chat-area" id="chat-area">
+        <div style="text-align: center; color: #888; font-size: 12px; margin-top: 50px;">
+            <i class="fas fa-lock" style="margin-bottom: 5px;"></i><br>
+            Messages are securely end-to-end encrypted.<br>Chats automatically disappear after 3 days.
+        </div>
+    </div>
+
+    <div id="img-preview-container">
+        <img id="img-preview" src="">
+        <button class="remove-img-btn" onclick="clearImageSelection()"><i class="fas fa-times"></i></button>
+    </div>
+
+    <form class="chat-input-bar" id="chat-form" onsubmit="sendMessage(event)">
+        <input type="file" id="image-upload" accept="image/*" style="display: none;" onchange="previewImage(this)">
+        
+        <button type="button" class="attach-btn" onclick="document.getElementById('image-upload').click()">
+            <i class="fas fa-paperclip"></i>
+        </button>
+        
+        <input type="text" id="msg-input" class="chat-input" placeholder="Type a message..." autocomplete="off">
+        
+        <button type="submit" class="send-btn" id="send-btn" disabled>
+            <i class="fas fa-paper-plane"></i>
+        </button>
+    </form>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+        import { getFirestore, doc, getDoc, setDoc, addDoc, collection, query, orderBy, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyA1eQbrJpH9OtDNDN7z9oTFTRSAE7vCFbg",
+            authDomain: "afit-market-auth.firebaseapp.com",
+            projectId: "afit-market-auth",
+            storageBucket: "afit-market-auth.firebasestorage.app",
+            messagingSenderId: "894920886640",
+            appId: "1:894920886640:web:77d0a6b39bf89ff8f767b5"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        // Standard ImgBB Key for the chat MVP
+        const IMGBB_KEY = "2ac38bef2c73c5a65e7ddf94efe37962";
+
+        // Get Chat ID from URL (e.g., ?id=12345)
+        const urlParams = new URLSearchParams(window.location.search);
+        const CHAT_ID = urlParams.get('id');
+
+        let currentUser = null;
+        let selectedImageFile = null;
+        let isFirstMessage = false;
+        let vendorEmailForNotification = "";
+
+        // UI Elements
+        const chatArea = document.getElementById('chat-area');
+        const msgInput = document.getElementById('msg-input');
+        const sendBtn = document.getElementById('send-btn');
+        const imgPreviewContainer = document.getElementById('img-preview-container');
+
+        // Enable send button when typing
+        msgInput.addEventListener('input', () => {
+            sendBtn.disabled = msgInput.value.trim() === "" && !selectedImageFile;
+        });
+
+        // Format Time
+        function formatTime(date) {
+            if(!date) return "";
+            return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        }
+
+        // Escape HTML to prevent XSS
+        function escapeHTML(str) {
+            return String(str).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+        }
+
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                currentUser = user;
+                if(!CHAT_ID) {
+                    alert("Invalid chat link.");
+                    window.location.href = "../inbox/";
+                    return;
+                }
+                await initializeChat();
+            } else {
+                window.location.href = "../login.html";
+            }
+        });
+
+        async function initializeChat() {
+            try {
+                // 1. Fetch Chat Metadata
+                const chatRef = doc(db, "chats", CHAT_ID);
+                const chatSnap = await getDoc(chatRef);
+
+                if (!chatSnap.exists()) {
+                    // Chat exists in URL but not in database yet (Customer just clicked 'Chat with Vendor' on a product)
+                    isFirstMessage = true;
+                    document.getElementById('h-name').innerText = "New Conversation";
+                    document.getElementById('h-product').innerText = "Start typing to connect...";
+                } else {
+                    const chatData = chatSnap.data();
+                    
+                    // Verify user belongs in this chat
+                    if(!chatData.participants.includes(currentUser.uid)) {
+                        alert("Unauthorized access.");
+                        window.location.href = "../inbox/";
+                        return;
+                    }
+
+                    // Determine who the "Other Person" is
+                    const isVendor = chatData.vendorUid === currentUser.uid;
+                    const displayName = isVendor ? chatData.customerName : chatData.vendorName;
+                    
+                    // Save vendor email in case we need to trigger an email notification
+                    if(!isVendor) vendorEmailForNotification = chatData.vendorEmail;
+
+                    document.getElementById('h-name').innerText = escapeHTML(displayName);
+                    document.getElementById('h-product').innerText = escapeHTML(chatData.productName);
+                    document.getElementById('h-avatar').innerText = displayName.charAt(0).toUpperCase();
+
+                    // 2. Start Real-time Message Listener
+                    listenForMessages();
+                }
+            } catch(e) {
+                console.error("Error loading chat:", e);
+                alert("Failed to load chat.");
+            }
+        }
+
+        function listenForMessages() {
+            const q = query(collection(db, "chats", CHAT_ID, "messages"), orderBy("timestamp", "asc"));
+            
+            onSnapshot(q, (snapshot) => {
+                chatArea.innerHTML = ""; // Clear area
+                
+                snapshot.forEach((doc) => {
+                    const msg = doc.data();
+                    const isMine = msg.senderUid === currentUser.uid;
+                    const timeStr = msg.timestamp ? formatTime(msg.timestamp.toDate()) : "Sending...";
+                    
+                    let mediaHTML = "";
+                    if(msg.imageUrl) {
+                        mediaHTML = `<img src="${msg.imageUrl}" class="bubble-img" onclick="window.open('${msg.imageUrl}', '_blank')">`;
+                    }
+                    
+                    let textHTML = "";
+                    if(msg.text) {
+                        textHTML = escapeHTML(msg.text);
+                    }
+
+                    chatArea.innerHTML += `
+                        <div class="msg-row ${isMine ? 'mine' : 'theirs'}">
+                            <div class="bubble">
+                                ${mediaHTML}
+                                ${textHTML}
+                                <span class="msg-time">${timeStr}</span>
+                            </div>
+                        </div>
+                    `;
+                });
+                
+                // Auto-scroll to bottom
+                chatArea.scrollTop = chatArea.scrollHeight;
+            });
+        }
+
+        // Image Handling
+        window.previewImage = function(input) {
+            if (input.files && input.files[0]) {
+                selectedImageFile = input.files[0];
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    document.getElementById('img-preview').src = e.target.result;
+                    imgPreviewContainer.style.display = 'block';
+                    sendBtn.disabled = false;
+                }
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+
+        window.clearImageSelection = function() {
+            selectedImageFile = null;
+            document.getElementById('image-upload').value = "";
+            imgPreviewContainer.style.display = 'none';
+            sendBtn.disabled = msgInput.value.trim() === "";
+        }
+
+        async function uploadToImgBB(file) {
+            const formData = new FormData();
+            formData.append("image", file);
+            const res = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_KEY}`, { method: "POST", body: formData });
+            const data = await res.json();
+            return data.data.url;
+        }
+
+        window.sendMessage = async function(e) {
+            e.preventDefault();
+            const text = msgInput.value.trim();
+            if (!text && !selectedImageFile) return;
+
+            // Lock UI
+            sendBtn.disabled = true;
+            sendBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+            msgInput.disabled = true;
+
+            try {
+                let uploadedImgUrl = null;
+                if(selectedImageFile) {
+                    uploadedImgUrl = await uploadToImgBB(selectedImageFile);
+                }
+
+                // 1. Create the Message payload
+                const messageData = {
+                    senderUid: currentUser.uid,
+                    text: text,
+                    imageUrl: uploadedImgUrl,
+                    timestamp: serverTimestamp()
+                };
+
+                // 2. Add message to the subcollection
+                await addDoc(collection(db, "chats", CHAT_ID, "messages"), messageData);
+
+                // 3. Set the 3-Day TTL Expiration
+                const expirationDate = new Date();
+                expirationDate.setDate(expirationDate.getDate() + 3);
+
+                // 4. Update the Main Chat Document
+                const chatUpdateData = {
+                    lastMessage: text || "📷 Sent an image",
+                    updatedAt: serverTimestamp(),
+                    expiresAt: expirationDate
+                };
+
+                await setDoc(doc(db, "chats", CHAT_ID), chatUpdateData, { merge: true });
+
+                // 5. Check if we need to Trigger an Email
+                if(isFirstMessage && vendorEmailForNotification) {
+                    await triggerVendorEmail(vendorEmailForNotification);
+                    isFirstMessage = false; // Only send once
+                }
+
+                // Clear UI
+                msgInput.value = "";
+                clearImageSelection();
+                
+            } catch(error) {
+                console.error("Error sending message:", error);
+                alert("Failed to send message. Please try again.");
+            } finally {
+                // Unlock UI
+                sendBtn.innerHTML = '<i class="fas fa-paper-plane"></i>';
+                msgInput.disabled = false;
+                msgInput.focus();
+                sendBtn.disabled = true;
+            }
+        }
+
+        async function triggerVendorEmail(email) {
+            try {
+                await addDoc(collection(db, "mail"), {
+                    to: email,
+                    message: {
+                        subject: "New Message on AFIT Digital Market!",
+                        html: `Hello Vendor,<br><br>A student has just sent you a message regarding one of your products on AFIT Digital Market.<br><br>Please log in to your account and check your Inbox to reply.<br><br><a href="https://afitdgm.store/inbox/">Click here to view your Inbox</a><br><br>Thank you!`
+                    }
+                });
+            } catch(e) {
+                console.error("Failed to queue email notification", e);
+            }
+        }
+    </script>
+</body>
+</html>
