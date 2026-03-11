@@ -10,14 +10,16 @@
     <link rel="icon" href="../img/app-logo.png" type="image/png">
 
     <style>
-        body { 
+        /* 🚀 NEW MOBILE RESPONSIVE STRUCTURE */
+        html, body { 
             background: #eef1f4; 
             font-family: 'Segoe UI', sans-serif;
-            margin: 0;
+            margin: 0; padding: 0;
+            height: 100%;
+            height: 100dvh; /* Fixes mobile keyboard overlay issues */
             display: flex;
             flex-direction: column;
-            height: 100vh; /* Full screen height */
-            overflow: hidden; /* Prevent body scroll, only chat scrolls */
+            overflow: hidden; 
         }
 
         /* Fixed Header */
@@ -47,6 +49,7 @@
             flex-direction: column;
             gap: 15px;
             background: #eef1f4;
+            position: relative;
         }
 
         /* Chat Bubbles */
@@ -57,44 +60,33 @@
         .bubble {
             max-width: 75%; padding: 12px 16px;
             border-radius: 18px; font-size: 14px; line-height: 1.4;
-            position: relative; word-wrap: break-word;
+            position: relative; word-wrap: break-word; white-space: pre-wrap;
         }
-        .msg-row.theirs .bubble {
-            background: white; color: #333;
-            border-bottom-left-radius: 4px;
-            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
-        }
-        .msg-row.mine .bubble {
-            background: #2d8eff; color: white;
-            border-bottom-right-radius: 4px;
-            box-shadow: 0 1px 2px rgba(45, 142, 255, 0.2);
-        }
+        .msg-row.theirs .bubble { background: white; color: #333; border-bottom-left-radius: 4px; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
+        .msg-row.mine .bubble { background: #2d8eff; color: white; border-bottom-right-radius: 4px; box-shadow: 0 1px 2px rgba(45, 142, 255, 0.2); }
 
-        .bubble-img {
-            max-width: 100%; border-radius: 10px; margin-bottom: 8px;
-            display: block; cursor: pointer;
-        }
-
-        .msg-time {
-            font-size: 10px; margin-top: 5px; opacity: 0.7;
-            text-align: right; display: block;
-        }
+        .bubble-img { max-width: 100%; border-radius: 10px; margin-bottom: 8px; display: block; cursor: pointer; }
+        .msg-time { font-size: 10px; margin-top: 5px; opacity: 0.7; text-align: right; display: block; }
 
         /* Fixed Input Bar */
         .chat-input-bar {
             background: white; padding: 10px 15px;
             display: flex; align-items: center; gap: 10px;
             box-shadow: 0 -2px 10px rgba(0,0,0,0.05);
-            flex-shrink: 0; padding-bottom: calc(10px + env(safe-area-inset-bottom));
+            flex-shrink: 0; padding-bottom: calc(10px + env(safe-area-inset-bottom)); /* iPhone fix */
         }
 
-        .attach-btn {
-            background: #f5f7fa; color: #555; border: none;
+        .attach-btn, .send-btn {
             width: 40px; height: 40px; border-radius: 50%;
             display: flex; align-items: center; justify-content: center;
-            font-size: 18px; cursor: pointer; transition: 0.2s;
+            border: none; cursor: pointer; transition: 0.2s; flex-shrink: 0;
         }
+        .attach-btn { background: #f5f7fa; color: #555; font-size: 18px; }
         .attach-btn:active { transform: scale(0.95); background: #e0e5ec; }
+        
+        .send-btn { background: #2d8eff; color: white; font-size: 16px; box-shadow: 0 2px 8px rgba(45, 142, 255, 0.3); }
+        .send-btn:active { transform: scale(0.95); }
+        .send-btn:disabled { background: #ccc; box-shadow: none; cursor: not-allowed; }
 
         .chat-input {
             flex: 1; border: 1px solid #eee; background: #f9f9f9;
@@ -103,34 +95,36 @@
         }
         .chat-input:focus { border-color: #2d8eff; background: white; }
 
-        .send-btn {
-            background: #2d8eff; color: white; border: none;
-            width: 40px; height: 40px; border-radius: 50%;
-            display: flex; align-items: center; justify-content: center;
-            font-size: 16px; cursor: pointer; transition: 0.2s;
-            box-shadow: 0 2px 8px rgba(45, 142, 255, 0.3);
+        /* 🚀 LEAD CAPTURE OVERLAY (Customer First Message) */
+        #intro-overlay {
+            display: none; position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(238, 241, 244, 0.95); z-index: 50; 
+            align-items: center; justify-content: center; padding: 20px; backdrop-filter: blur(5px);
         }
-        .send-btn:active { transform: scale(0.95); }
-        .send-btn:disabled { background: #ccc; box-shadow: none; cursor: not-allowed; }
+        .intro-card {
+            background: white; padding: 25px; border-radius: 16px; width: 100%; max-width: 400px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1); text-align: left;
+        }
+        .intro-input { width: 100%; border: 1px solid #eee; background: #f9f9f9; border-radius: 10px; padding: 12px 15px; font-size: 14px; margin-bottom: 12px; outline: none; box-sizing: border-box; }
+        .intro-input:focus { border-color: #2d8eff; background: white; }
 
-        /* Image Preview Overlay */
+        /* Image Preview Popup */
         #img-preview-container {
             display: none; position: absolute; bottom: 70px; left: 15px;
             background: white; padding: 10px; border-radius: 12px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1); border: 1px solid #eee;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1); border: 1px solid #eee; z-index: 60;
         }
         #img-preview { max-width: 100px; max-height: 100px; border-radius: 8px; }
         .remove-img-btn { position: absolute; top: -5px; right: -5px; background: #ff4757; color: white; border: none; border-radius: 50%; width: 20px; height: 20px; cursor: pointer; font-size: 10px; }
 
         /* Dark Mode */
-        body.dark-mode { background: #121212; }
-        body.dark-mode .chat-area { background: #121212; }
-        body.dark-mode .chat-header, body.dark-mode .chat-input-bar { background: #1e1e1e; border-color: #333; box-shadow: 0 2px 10px rgba(0,0,0,0.5); }
+        body.dark-mode, body.dark-mode .chat-area { background: #121212; }
+        body.dark-mode .chat-header, body.dark-mode .chat-input-bar, body.dark-mode .intro-card { background: #1e1e1e; border-color: #333; box-shadow: 0 2px 10px rgba(0,0,0,0.5); }
         body.dark-mode .header-name { color: #eee; }
         body.dark-mode .msg-row.theirs .bubble { background: #2a2a2a; color: #eee; border: 1px solid #333; }
-        body.dark-mode .chat-input { background: #2a2a2a; color: white; border-color: #444; }
+        body.dark-mode .chat-input, body.dark-mode .intro-input { background: #2a2a2a; color: white; border-color: #444; }
         body.dark-mode .attach-btn { background: #2a2a2a; color: #ccc; }
-        body.dark-mode #img-preview-container { background: #2a2a2a; border-color: #444; }
+        body.dark-mode #intro-overlay { background: rgba(18, 18, 18, 0.95); }
     </style>
 </head>
 <body>
@@ -151,10 +145,26 @@
     </div>
 
     <div class="chat-area" id="chat-area">
-        <div style="text-align: center; color: #888; font-size: 12px; margin-top: 50px;">
+        <div style="text-align: center; color: #888; font-size: 12px; margin-top: 10px; margin-bottom: 20px;">
             <i class="fas fa-lock" style="margin-bottom: 5px;"></i><br>
-            Messages are securely end-to-end encrypted.<br>Chats automatically disappear after 3 days.
+            Secure in-app messaging.<br>Chats disappear after 3 days.
         </div>
+
+        <div id="intro-overlay">
+            <div class="intro-card">
+                <h3 style="margin:0 0 5px 0; color:#333;">Start Conversation</h3>
+                <p style="font-size:12px; color:#777; margin-bottom:15px;">Drop your details so the vendor can quickly save your contact and reply.</p>
+                
+                <input type="text" id="intro-name" class="intro-input" placeholder="Your Name" required>
+                <input type="tel" id="intro-phone" class="intro-input" placeholder="Your WhatsApp Number" required>
+                <textarea id="intro-msg" class="intro-input" style="height:80px; resize:none;" placeholder="I'm interested in this product..." required></textarea>
+                
+                <button onclick="sendIntroMessage()" class="send-btn" style="width:100%; border-radius:10px; height:45px; margin-top:5px; font-weight:bold;">
+                    Send to Vendor
+                </button>
+            </div>
+        </div>
+
     </div>
 
     <div id="img-preview-container">
@@ -162,15 +172,12 @@
         <button class="remove-img-btn" onclick="clearImageSelection()"><i class="fas fa-times"></i></button>
     </div>
 
-    <form class="chat-input-bar" id="chat-form" onsubmit="sendMessage(event)">
+    <form class="chat-input-bar" id="chat-form" onsubmit="handleRegularSend(event)">
         <input type="file" id="image-upload" accept="image/*" style="display: none;" onchange="previewImage(this)">
-        
         <button type="button" class="attach-btn" onclick="document.getElementById('image-upload').click()">
             <i class="fas fa-paperclip"></i>
         </button>
-        
         <input type="text" id="msg-input" class="chat-input" placeholder="Type a message..." autocomplete="off">
-        
         <button type="submit" class="send-btn" id="send-btn" disabled>
             <i class="fas fa-paper-plane"></i>
         </button>
@@ -184,46 +191,37 @@
         const firebaseConfig = {
             apiKey: "AIzaSyA1eQbrJpH9OtDNDN7z9oTFTRSAE7vCFbg",
             authDomain: "afit-market-auth.firebaseapp.com",
-            projectId: "afit-market-auth",
-            storageBucket: "afit-market-auth.firebasestorage.app",
-            messagingSenderId: "894920886640",
-            appId: "1:894920886640:web:77d0a6b39bf89ff8f767b5"
+            projectId: "afit-market-auth"
         };
 
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
 
-        // Standard ImgBB Key for the chat MVP
         const IMGBB_KEY = "2ac38bef2c73c5a65e7ddf94efe37962";
-
-        // Get Chat ID from URL (e.g., ?id=12345)
         const urlParams = new URLSearchParams(window.location.search);
         const CHAT_ID = urlParams.get('id');
 
         let currentUser = null;
         let selectedImageFile = null;
-        let isFirstMessage = false;
-        let vendorEmailForNotification = "";
+        let chatDataObj = null; // Stores current chat doc details
+        let isVendor = false;
 
-        // UI Elements
         const chatArea = document.getElementById('chat-area');
         const msgInput = document.getElementById('msg-input');
         const sendBtn = document.getElementById('send-btn');
         const imgPreviewContainer = document.getElementById('img-preview-container');
+        const introOverlay = document.getElementById('intro-overlay');
 
-        // Enable send button when typing
         msgInput.addEventListener('input', () => {
             sendBtn.disabled = msgInput.value.trim() === "" && !selectedImageFile;
         });
 
-        // Format Time
         function formatTime(date) {
             if(!date) return "";
             return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
         }
 
-        // Escape HTML to prevent XSS
         function escapeHTML(str) {
             return String(str).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
         }
@@ -231,51 +229,41 @@
         onAuthStateChanged(auth, async (user) => {
             if (user) {
                 currentUser = user;
-                if(!CHAT_ID) {
-                    alert("Invalid chat link.");
-                    window.location.href = "../inbox/";
-                    return;
-                }
+                if(user.displayName) document.getElementById('intro-name').value = user.displayName;
+                if(!CHAT_ID) { alert("Invalid chat link."); window.location.href = "../inbox/"; return; }
                 await initializeChat();
             } else {
                 window.location.href = "../login.html";
             }
         });
 
-  async function initializeChat() {
+        async function initializeChat() {
             try {
                 const chatRef = doc(db, "chats", CHAT_ID);
                 const chatSnap = await getDoc(chatRef);
 
                 if (!chatSnap.exists()) {
-                    isFirstMessage = true;
-                    document.getElementById('h-name').innerText = "New Conversation";
-                    document.getElementById('h-product').innerText = "Start typing to connect...";
-                } else {
-                    const chatData = chatSnap.data();
-                    
-                    // 🚀 FIXED: Check if my UID or Email is allowed in this room
-                    if(!chatData.participants.includes(currentUser.uid) && !chatData.participants.includes(currentUser.email)) {
-                        alert("Unauthorized access.");
-                        window.location.href = "../inbox/";
-                        return;
-                    }
+                    alert("Chat not found."); window.location.href = "../inbox/"; return;
+                } 
 
-                    // 🚀 FIXED: Verify who is who via Email
-                    const isVendor = chatData.vendorEmail === currentUser.email;
-                    const displayName = isVendor ? chatData.customerName : chatData.vendorName;
-                    
-                    if(!isVendor) vendorEmailForNotification = chatData.vendorEmail;
-
-                    document.getElementById('h-name').innerText = escapeHTML(displayName);
-                    document.getElementById('h-product').innerText = escapeHTML(chatData.productName);
-                    document.getElementById('h-avatar').innerText = displayName.charAt(0).toUpperCase();
-
-                    listenForMessages();
+                chatDataObj = chatSnap.data();
+                
+                // Security Check
+                if(!chatDataObj.participants.includes(currentUser.uid) && !chatDataObj.participants.includes(currentUser.email)) {
+                    alert("Unauthorized access."); window.location.href = "../inbox/"; return;
                 }
+
+                isVendor = chatDataObj.vendorEmail === currentUser.email;
+                const displayName = isVendor ? chatDataObj.customerName : chatDataObj.vendorName;
+
+                document.getElementById('h-name').innerText = escapeHTML(displayName);
+                document.getElementById('h-product').innerText = escapeHTML(chatDataObj.productName);
+                document.getElementById('h-avatar').innerText = displayName.charAt(0).toUpperCase();
+
+                listenForMessages();
+                
             } catch(e) {
                 console.error("Error loading chat:", e);
-                alert("Failed to load chat.");
             }
         }
 
@@ -283,22 +271,27 @@
             const q = query(collection(db, "chats", CHAT_ID, "messages"), orderBy("timestamp", "asc"));
             
             onSnapshot(q, (snapshot) => {
-                chatArea.innerHTML = ""; // Clear area
+                
+                // 🚀 LEAD CAPTURE TRIGGER: If no messages and user is Customer, force Intro Form
+                if (snapshot.size === 0 && !isVendor) {
+                    introOverlay.style.display = 'flex';
+                    document.getElementById('chat-form').style.display = 'none';
+                } else {
+                    introOverlay.style.display = 'none';
+                    document.getElementById('chat-form').style.display = 'flex';
+                }
+
+                // Clear previous messages (keep the security text)
+                const existingMessages = chatArea.querySelectorAll('.msg-row');
+                existingMessages.forEach(el => el.remove());
                 
                 snapshot.forEach((doc) => {
                     const msg = doc.data();
                     const isMine = msg.senderUid === currentUser.uid;
                     const timeStr = msg.timestamp ? formatTime(msg.timestamp.toDate()) : "Sending...";
                     
-                    let mediaHTML = "";
-                    if(msg.imageUrl) {
-                        mediaHTML = `<img src="${msg.imageUrl}" class="bubble-img" onclick="window.open('${msg.imageUrl}', '_blank')">`;
-                    }
-                    
-                    let textHTML = "";
-                    if(msg.text) {
-                        textHTML = escapeHTML(msg.text);
-                    }
+                    let mediaHTML = msg.imageUrl ? `<img src="${msg.imageUrl}" class="bubble-img" onclick="window.open('${msg.imageUrl}', '_blank')">` : "";
+                    let textHTML = msg.text ? escapeHTML(msg.text) : "";
 
                     chatArea.innerHTML += `
                         <div class="msg-row ${isMine ? 'mine' : 'theirs'}">
@@ -311,12 +304,11 @@
                     `;
                 });
                 
-                // Auto-scroll to bottom
                 chatArea.scrollTop = chatArea.scrollHeight;
             });
         }
 
-        // Image Handling
+        // ================= IMAGE HANDLING =================
         window.previewImage = function(input) {
             if (input.files && input.files[0]) {
                 selectedImageFile = input.files[0];
@@ -345,23 +337,50 @@
             return data.data.url;
         }
 
-        window.sendMessage = async function(e) {
+        // ================= MESSAGE LOGIC =================
+        
+        // 1. Submit from the Intro Lead Capture Form
+        window.sendIntroMessage = async function() {
+            const name = document.getElementById('intro-name').value.trim();
+            const phone = document.getElementById('intro-phone').value.trim();
+            const msg = document.getElementById('intro-msg').value.trim();
+
+            if(!name || !phone || !msg) return alert("Please fill all fields to start the chat.");
+
+            // Format it nicely for the vendor
+            const formattedText = `📞 *Contact Info:*\nName: ${name}\nWhatsApp: ${phone}\n\n*Message:*\n${msg}`;
+            
+            // Hide overlay instantly to make it feel fast
+            introOverlay.style.display = 'none';
+            document.getElementById('chat-form').style.display = 'flex';
+            
+            await processSendMessage(formattedText, null);
+        }
+
+        // 2. Submit from the Regular Input Bar
+        window.handleRegularSend = async function(e) {
             e.preventDefault();
             const text = msgInput.value.trim();
             if (!text && !selectedImageFile) return;
 
-            // Lock UI
             sendBtn.disabled = true;
             sendBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
             msgInput.disabled = true;
 
+            await processSendMessage(text, selectedImageFile);
+
+            sendBtn.innerHTML = '<i class="fas fa-paper-plane"></i>';
+            msgInput.disabled = false;
+            msgInput.focus();
+            sendBtn.disabled = true;
+        }
+
+        // Core Sending Engine + Email Triggers
+        async function processSendMessage(text, imageFile) {
             try {
                 let uploadedImgUrl = null;
-                if(selectedImageFile) {
-                    uploadedImgUrl = await uploadToImgBB(selectedImageFile);
-                }
+                if(imageFile) { uploadedImgUrl = await uploadToImgBB(imageFile); }
 
-                // 1. Create the Message payload
                 const messageData = {
                     senderUid: currentUser.uid,
                     text: text,
@@ -369,56 +388,62 @@
                     timestamp: serverTimestamp()
                 };
 
-                // 2. Add message to the subcollection
+                // Add message to subcollection
                 await addDoc(collection(db, "chats", CHAT_ID, "messages"), messageData);
 
-                // 3. Set the 3-Day TTL Expiration
-                const expirationDate = new Date();
-                expirationDate.setDate(expirationDate.getDate() + 3);
-
-                // 4. Update the Main Chat Document
-                const chatUpdateData = {
+                // Update parent chat doc
+                let chatUpdateData = {
                     lastMessage: text || "📷 Sent an image",
-                    updatedAt: serverTimestamp(),
-                    expiresAt: expirationDate
+                    updatedAt: serverTimestamp()
                 };
 
-                await setDoc(doc(db, "chats", CHAT_ID), chatUpdateData, { merge: true });
-
-                // 5. Check if we need to Trigger an Email
-                if(isFirstMessage && vendorEmailForNotification) {
-                    await triggerVendorEmail(vendorEmailForNotification);
-                    isFirstMessage = false; // Only send once
+                // 🚀 TRIGGER 1: Email Vendor if this is the Customer's first message
+                if (!isVendor && !chatDataObj.customerHasMessaged) {
+                    chatUpdateData.customerHasMessaged = true;
+                    if(chatDataObj.vendorEmail) {
+                        await triggerEmail(
+                            chatDataObj.vendorEmail, 
+                            "New Customer Inquiry - AFIT Digital Market", 
+                            `You have a new message from a student regarding your product: <b>${chatDataObj.productName}</b>.<br><br><a href="https://afitdgm.store/inbox/">Click here to reply</a>`
+                        );
+                    }
                 }
 
-                // Clear UI
+                // 🚀 TRIGGER 2: Email Customer if this is the Vendor's first reply
+                if (isVendor && !chatDataObj.vendorHasReplied) {
+                    chatUpdateData.vendorHasReplied = true;
+                    if(chatDataObj.customerEmail) {
+                        await triggerEmail(
+                            chatDataObj.customerEmail, 
+                            "Vendor Replied! - AFIT Digital Market", 
+                            `The vendor has replied to your inquiry about <b>${chatDataObj.productName}</b>.<br><br><a href="https://afitdgm.store/inbox/">Click here to view their message</a>`
+                        );
+                    }
+                }
+
+                await setDoc(doc(db, "chats", CHAT_ID), chatUpdateData, { merge: true });
+                
+                // Clear inputs
                 msgInput.value = "";
                 clearImageSelection();
-                
+
+                // Keep local object updated so we don't send emails twice
+                chatDataObj = { ...chatDataObj, ...chatUpdateData };
+
             } catch(error) {
-                console.error("Error sending message:", error);
-                alert("Failed to send message. Please try again.");
-            } finally {
-                // Unlock UI
-                sendBtn.innerHTML = '<i class="fas fa-paper-plane"></i>';
-                msgInput.disabled = false;
-                msgInput.focus();
-                sendBtn.disabled = true;
+                console.error("Send failed:", error);
+                alert("Failed to send message.");
             }
         }
 
-        async function triggerVendorEmail(email) {
+        // Universal Email Sender
+        async function triggerEmail(toEmail, subject, bodyHtml) {
             try {
                 await addDoc(collection(db, "mail"), {
-                    to: email,
-                    message: {
-                        subject: "New Message on AFIT Digital Market!",
-                        html: `Hello Vendor,<br><br>A student has just sent you a message regarding one of your products on AFIT Digital Market.<br><br>Please log in to your account and check your Inbox to reply.<br><br><a href="https://afitdgm.store/inbox/">Click here to view your Inbox</a><br><br>Thank you!`
-                    }
+                    to: toEmail,
+                    message: { subject: subject, html: bodyHtml }
                 });
-            } catch(e) {
-                console.error("Failed to queue email notification", e);
-            }
+            } catch(e) { console.error("Email trigger failed", e); }
         }
     </script>
 </body>

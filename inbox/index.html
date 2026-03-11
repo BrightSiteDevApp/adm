@@ -66,7 +66,7 @@
 
         .chat-info {
             flex: 1;
-            min-width: 0; /* Ensures text truncation works */
+            min-width: 0; 
         }
 
         .chat-header-row {
@@ -86,45 +86,28 @@
             max-width: 70%;
         }
 
-        .chat-time {
-            font-size: 11px;
-            color: #888;
-            font-weight: 500;
-        }
+        .chat-time { font-size: 11px; color: #888; font-weight: 500; }
 
         .chat-product {
-            font-size: 11px;
-            color: #2d8eff;
-            font-weight: 600;
-            margin-bottom: 3px;
-            display: inline-block;
-            background: #eef7ff;
-            padding: 2px 8px;
-            border-radius: 10px;
+            font-size: 11px; color: #2d8eff; font-weight: 600;
+            margin-bottom: 3px; display: inline-block;
+            background: #eef7ff; padding: 2px 8px; border-radius: 10px;
         }
 
         .chat-preview {
-            font-size: 13px;
-            color: #666;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
+            font-size: 13px; color: #666;
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
         }
 
-        /* Unread Badge */
-        .unread-badge {
-            position: absolute;
-            top: 15px;
-            right: 15px;
-            background: #ff4757;
-            color: white;
-            font-size: 10px;
-            font-weight: bold;
-            width: 10px;
-            height: 10px;
-            border-radius: 50%;
+        /* 🚀 NEW DELETE BUTTON */
+        .delete-chat-btn {
+            background: #ffecec; color: #ff4757; border: none;
+            width: 35px; height: 35px; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            cursor: pointer; transition: 0.2s; z-index: 10; flex-shrink: 0;
         }
-        .chat-card.unread .chat-preview { font-weight: bold; color: #333; }
+        .delete-chat-btn:hover { background: #ff4757; color: white; }
+        .delete-chat-btn:active { transform: scale(0.9); }
 
         /* States */
         #empty-state, #not-signed-in-state, #loading-state { display: none; text-align: center; padding: 60px 20px; }
@@ -139,6 +122,8 @@
         body.dark-mode .chat-product { background: #1a2635; color: #4facfe; }
         body.dark-mode .chat-avatar { background: #2a2a2a; border-color: #333; }
         body.dark-mode .auth-title { color: #eee !important; }
+        body.dark-mode .delete-chat-btn { background: #3a1c1e; color: #ff6b81; }
+        body.dark-mode .delete-chat-btn:hover { background: #ff4757; color: white; }
     </style>
 </head>
 <body>
@@ -191,8 +176,7 @@
             <a href="../index.html" class="btn-submit" style="display:inline-block; background:#2d8eff; color:white; padding:12px 30px; border-radius:10px; text-decoration:none; margin-top:15px; font-weight:bold;">Explore Market</a>
         </div>
 
-        <div id="chat-list">
-            </div>
+        <div id="chat-list"></div>
 
     </div>
 
@@ -201,28 +185,25 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-        import { getFirestore, collection, query, where, orderBy, onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        
+        // 🚀 ADDED deleteDoc and doc to imports
+        import { getFirestore, collection, query, where, orderBy, onSnapshot, doc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyA1eQbrJpH9OtDNDN7z9oTFTRSAE7vCFbg",
             authDomain: "afit-market-auth.firebaseapp.com",
-            projectId: "afit-market-auth",
-            storageBucket: "afit-market-auth.firebasestorage.app",
-            messagingSenderId: "894920886640",
-            appId: "1:894920886640:web:77d0a6b39bf89ff8f767b5"
+            projectId: "afit-market-auth"
         };
 
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
 
-        // Security Helper
         function escapeHTML(str) {
             if (!str) return "";
             return String(str).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
         }
 
-        // Format Timestamp (e.g., "10:30 AM" or "Yesterday")
         function formatTime(timestamp) {
             if (!timestamp) return "";
             const date = timestamp.toDate();
@@ -230,16 +211,12 @@
             const diff = now - date;
             const days = Math.floor(diff / (1000 * 60 * 60 * 24));
 
-            if (days === 0) {
-                return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-            } else if (days === 1) {
-                return "Yesterday";
-            } else {
-                return date.toLocaleDateString([], { month: 'short', day: 'numeric' });
-            }
+            if (days === 0) return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            else if (days === 1) return "Yesterday";
+            else return date.toLocaleDateString([], { month: 'short', day: 'numeric' });
         }
 
-        let unsubscribe = null; // To stop listening when user leaves
+        let unsubscribe = null;
 
         onAuthStateChanged(auth, (user) => {
             const preloader = document.getElementById('preloader');
@@ -249,20 +226,18 @@
                 loadingState.style.display = 'block';
                 loadInbox(user.uid);
             } else {
-                // Not Logged In
                 if(preloader) preloader.style.display = 'none';
                 loadingState.style.display = 'none';
                 document.getElementById('not-signed-in-state').style.display = 'block'; 
             }
         });
 
-       function loadInbox(currentUid) {
+        function loadInbox(currentUid) {
             const chatListDiv = document.getElementById('chat-list');
             const emptyState = document.getElementById('empty-state');
             const loadingState = document.getElementById('loading-state');
             const preloader = document.getElementById('preloader');
 
-            // 🚀 SECURE: Force my login email to lowercase for perfect matching
             const myEmail = auth.currentUser.email ? auth.currentUser.email.toLowerCase().trim() : "";
 
             const chatsRef = collection(db, "chats");
@@ -271,8 +246,6 @@
                 where("participants", "array-contains-any", [currentUid, myEmail]),
                 orderBy("updatedAt", "desc")
             );
-            
-            // ... rest of the function stays exactly the same
 
             unsubscribe = onSnapshot(q, (snapshot) => {
                 if(preloader) preloader.style.display = 'none';
@@ -291,8 +264,7 @@
                     const chat = doc.data();
                     const chatId = doc.id;
                     
-                    // 🚀 FIXED: Check if I am the vendor using my Email
-                    const isVendor = chat.vendorEmail === auth.currentUser.email;
+                    const isVendor = chat.vendorEmail === myEmail;
                     const displayName = isVendor ? chat.customerName : chat.vendorName;
                     
                     const safeName = escapeHTML(displayName || "Unknown User");
@@ -300,6 +272,9 @@
                     const safeMessage = escapeHTML(chat.lastMessage || "Tap to view message");
                     const timeStr = formatTime(chat.updatedAt);
                     const initial = safeName.charAt(0).toUpperCase();
+
+                    // Extract the ISO string so we can safely pass it to the delete function
+                    const updatedIsoString = chat.updatedAt ? chat.updatedAt.toDate().toISOString() : new Date().toISOString();
 
                     chatListDiv.innerHTML += `
                         <a href="../chat/?id=${chatId}" class="chat-card">
@@ -312,6 +287,10 @@
                                 <div class="chat-product"><i class="fas fa-box" style="font-size:10px; margin-right:3px;"></i>${safeProduct}</div>
                                 <div class="chat-preview">${safeMessage}</div>
                             </div>
+                            
+                            <button class="delete-chat-btn" onclick="attemptDeleteChat(event, '${chatId}', '${updatedIsoString}')" title="Delete Conversation">
+                                <i class="fas fa-trash-alt"></i>
+                            </button>
                         </a>
                     `;
                 });
@@ -319,9 +298,44 @@
                 console.error("Error fetching chats:", error);
                 if(preloader) preloader.style.display = 'none';
                 loadingState.style.display = 'none';
-                chatListDiv.innerHTML = `<p style="text-align:center; color:red; font-size:13px;">Error loading messages. Please check console to build Index.</p>`;
+                chatListDiv.innerHTML = `<p style="text-align:center; color:red; font-size:13px;">Error loading messages. Please refresh.</p>`;
             });
         }
+
+        // 🚀 THE SECURE DELETION LOGIC
+        window.attemptDeleteChat = async function(e, chatId, updatedIsoString) {
+            e.preventDefault(); // Stop the browser from clicking the <a> tag and opening the chat
+            e.stopPropagation();
+
+            const lastUpdateDate = new Date(updatedIsoString);
+            const now = new Date();
+            
+            // Calculate how many minutes have passed since the last message
+            const diffMs = now - lastUpdateDate;
+            const diffMins = Math.floor(diffMs / (1000 * 60));
+
+            // If less than 30 minutes, BLOCK the deletion
+            if (diffMins < 30) {
+                const minsLeft = 30 - diffMins;
+                alert(`SECURITY PROTOCOL:\n\nTo protect our users from fraud, conversations cannot be deleted until 30 minutes after the last message was sent.\n\nPlease try again in ${minsLeft} minute(s).`);
+                return;
+            }
+
+            // If 30+ minutes, ask for final confirmation
+            const confirmDelete = confirm("⚠️ WARNING ⚠️\n\nIf you delete this chat, it will be PERMANENTLY removed for both you and the other person. All messages and images will be lost.\n\nAre you absolutely sure?");
+            
+            if (confirmDelete) {
+                try {
+                    // Delete the main document. 
+                    // Because we are using onSnapshot, the chat will instantly vanish from the screen!
+                    await deleteDoc(doc(db, "chats", chatId));
+                } catch (error) {
+                    console.error("Error deleting chat:", error);
+                    alert("Failed to delete the conversation. Please check your network.");
+                }
+            }
+        };
+
     </script>
 </body>
 </html>

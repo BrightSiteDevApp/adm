@@ -113,9 +113,9 @@
         if (localStorage.getItem('theme') === 'dark') document.body.classList.add('dark-mode');
     </script>
 
-    <div id="preloader">
+   <div id="preloader">
         <div class="loader-content">
-            <img src="img/logo-blue.png" alt="Loading...">
+            <img src="img/logo-blue.png" alt="Loading..." class="loader-logo">
             <div class="loading-bar"></div>
         </div>
     </div>
@@ -412,6 +412,7 @@
                 const chatRef = await addDoc(collection(db, "chats"), {
                     participants: [user.uid, targetEmail], 
                     customerUid: user.uid,
+                    customerEmail: user.email,
                     customerName: user.displayName || "AFIT Student",
                     vendorIdString: vendorId, 
                     vendorName: vendorId, 
