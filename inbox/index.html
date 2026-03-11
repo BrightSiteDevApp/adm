@@ -256,22 +256,25 @@
             }
         });
 
-        function loadInbox(currentUid) {
+       function loadInbox(currentUid) {
             const chatListDiv = document.getElementById('chat-list');
             const emptyState = document.getElementById('empty-state');
             const loadingState = document.getElementById('loading-state');
             const preloader = document.getElementById('preloader');
 
-            // 🟢 REAL-TIME LISTENER: Fetch chats where this user is a participant
+            // 🚀 SECURE: Force my login email to lowercase for perfect matching
+            const myEmail = auth.currentUser.email ? auth.currentUser.email.toLowerCase().trim() : "";
+
             const chatsRef = collection(db, "chats");
             const q = query(
                 chatsRef, 
-                where("participants", "array-contains", currentUid),
+                where("participants", "array-contains-any", [currentUid, myEmail]),
                 orderBy("updatedAt", "desc")
             );
+            
+            // ... rest of the function stays exactly the same
 
             unsubscribe = onSnapshot(q, (snapshot) => {
-                // Hide loaders
                 if(preloader) preloader.style.display = 'none';
                 loadingState.style.display = 'none';
 
@@ -282,27 +285,22 @@
                 }
 
                 emptyState.style.display = 'none';
-                chatListDiv.innerHTML = ""; // Clear list before repopulating
+                chatListDiv.innerHTML = ""; 
 
                 snapshot.forEach((doc) => {
                     const chat = doc.data();
                     const chatId = doc.id;
                     
-                    // Figure out who the "Other Person" is
-                    // (If I am the customer, show me the vendor name. If I am the vendor, show me the customer name).
-                    const isVendor = chat.vendorUid === currentUid;
+                    // 🚀 FIXED: Check if I am the vendor using my Email
+                    const isVendor = chat.vendorEmail === auth.currentUser.email;
                     const displayName = isVendor ? chat.customerName : chat.vendorName;
                     
-                    // Safely escape outputs
                     const safeName = escapeHTML(displayName || "Unknown User");
                     const safeProduct = escapeHTML(chat.productName || "Item Inquiry");
                     const safeMessage = escapeHTML(chat.lastMessage || "Tap to view message");
                     const timeStr = formatTime(chat.updatedAt);
-                    
-                    // Determine avatar initial (First letter of name)
                     const initial = safeName.charAt(0).toUpperCase();
 
-                    // UI rendering
                     chatListDiv.innerHTML += `
                         <a href="../chat/?id=${chatId}" class="chat-card">
                             <div class="chat-avatar">${initial}</div>
@@ -321,7 +319,7 @@
                 console.error("Error fetching chats:", error);
                 if(preloader) preloader.style.display = 'none';
                 loadingState.style.display = 'none';
-                chatListDiv.innerHTML = `<p style="text-align:center; color:red; font-size:13px;">Error loading messages. Please refresh.</p>`;
+                chatListDiv.innerHTML = `<p style="text-align:center; color:red; font-size:13px;">Error loading messages. Please check console to build Index.</p>`;
             });
         }
     </script>

@@ -241,16 +241,22 @@
             }
         });
 
-        async function loadMasterData() {
+       async function loadMasterData() {
             try {
-                // Fetch Vendors to build phonebook and email lookup
-                const vRes = await fetch(`${apiRoot}/Vendors`);
-                const vendors = await vRes.json();
-                vendors.forEach(v => {
-                    const vID = v.vendor_id || v.Vendor_ID;
+                // 🚀 FIXED: Fetch BOTH Vendor Sheets so we don't miss any emails!
+                const [v1, v2] = await Promise.all([
+                    fetch(`${apiRoot}/Vendors`).then(res => res.json().catch(()=>[])),
+                    fetch(`${apiRoot}/Vendors_v2`).then(res => res.json().catch(()=>[]))
+                ]);
+                const allVendors = [...(Array.isArray(v1)?v1:[]), ...(Array.isArray(v2)?v2:[])];
+                
+                // Build the Phone and Email books safely
+                allVendors.forEach(v => {
+                    const vID = String(v.vendor_id || v.Vendor_ID || "").toUpperCase().trim();
                     if(vID) {
-                        globalPhoneBook[vID] = String(v.whatsapp || v.Whatsapp).replace(/[^0-9]/g, '');
-                        globalEmailBook[vID] = String(v.email || v.Email).toLowerCase().trim();
+                        globalPhoneBook[vID] = String(v.whatsapp || v.Whatsapp || "").replace(/[^0-9]/g, '');
+                        // Force email to lowercase for perfect matching
+                        globalEmailBook[vID] = String(v.email || v.Email || "").toLowerCase().trim();
                     }
                 });
 
@@ -305,7 +311,8 @@
 
                     const pName = liveItem ? (liveItem.name || liveItem.Name) : savedData.name;
                     const pPrice = liveItem ? (liveItem.price || liveItem.Price) : savedData.price;
-                    const pVendor = liveItem ? (liveItem.vendor_id || liveItem.Vendor_ID) : savedData.vendor;
+                    const pVendorRaw = liveItem ? (liveItem.vendor_id || liveItem.Vendor_ID) : savedData.vendor;
+                    const pVendor = String(pVendorRaw).toUpperCase().trim();
                     let pImage = liveItem ? (liveItem.image || liveItem.Image) : savedData.image;
                     let pDesc = liveItem ? (liveItem.description || liveItem.Description) : savedData.description;
                     if(!pDesc) pDesc = "No description available.";
@@ -382,7 +389,7 @@
             document.getElementById('detail-modal').style.display = 'flex';
         };
 
-        // Create Real Firebase Chat
+       // Create Real Firebase Chat
         window.startRealChat = async function(productName, vendorId, vendorEmail) {
             const user = auth.currentUser;
             if (!user) {
@@ -396,19 +403,17 @@
             btn.disabled = true;
 
             try {
-                // 3-Day TTL
                 const expirationDate = new Date();
                 expirationDate.setDate(expirationDate.getDate() + 3);
 
-                // Use the fetched email or default to admin
                 const targetEmail = vendorEmail || "afitdgm@gmail.com";
 
-                // Generate Chat Document
+                // 🚀 FIXED: We now put the targetEmail in the participants array!
                 const chatRef = await addDoc(collection(db, "chats"), {
-                    participants: [user.uid, vendorId], 
+                    participants: [user.uid, targetEmail], 
                     customerUid: user.uid,
                     customerName: user.displayName || "AFIT Student",
-                    vendorUid: vendorId, 
+                    vendorIdString: vendorId, 
                     vendorName: vendorId, 
                     vendorEmail: targetEmail, 
                     productName: productName, 
@@ -417,7 +422,6 @@
                     expiresAt: expirationDate
                 });
 
-                // Redirect to chat room
                 window.location.href = `chat/index.html?id=${chatRef.id}`;
                 
             } catch(e) {
