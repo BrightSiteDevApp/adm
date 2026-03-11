@@ -57,62 +57,65 @@
           border-radius: 10px;
       }
 
+      /* Quick Action Buttons on Card */
+      .action-row {
+          display: flex;
+          gap: 5px;
+          margin-top: 5px;
+      }
+      .quick-chat-btn {
+          background: #eef7ff; color: #2d8eff;
+          border: none; border-radius: 8px;
+          width: 40px; display: flex; align-items: center; justify-content: center;
+          cursor: pointer; transition: 0.2s; font-size: 14px;
+      }
+      .quick-chat-btn:active { transform: scale(0.95); background: #dceefc; }
+
+      /* Modal Buttons */
+      .btn-whatsapp {
+          background: #25D366; color: white; width: 100%;
+          text-align: center; display: block; padding: 14px;
+          border-radius: 10px; text-decoration: none; font-weight: bold;
+          margin-bottom: 10px; box-shadow: 0 4px 10px rgba(37, 211, 102, 0.2);
+      }
+      .btn-inapp {
+          background: #2d8eff; color: white; width: 100%;
+          text-align: center; display: block; padding: 14px; border: none; cursor: pointer;
+          border-radius: 10px; text-decoration: none; font-weight: bold; font-size: 14px;
+          box-shadow: 0 4px 10px rgba(45, 142, 255, 0.2); font-family: inherit;
+      }
+
       /* Dark Mode Fixes */
       body.dark-mode .modal-sheet { background: #1e1e1e !important; color: white; }
       body.dark-mode .ad-desc-preview { color: #aaa; }
       body.dark-mode #m-desc { color: #ccc !important; }
       body.dark-mode .desc-box { background: #333 !important; color: #ddd; }
-      body.dark-mode .auth-title { color: #eee !important; } /* Fix for Auth Title */
+      body.dark-mode .auth-title { color: #eee !important; }
+      body.dark-mode .quick-chat-btn { background: #2a2a2a; }
 
       /* --- SKELETON LOADING STYLES --- */
       @keyframes skeleton-loading {
           0% { background-position: -200px 0; }
           100% { background-position: calc(200px + 100%) 0; }
       }
-
-      .skeleton-card {
-          background: #fff;
-          border-radius: 10px;
-          padding: 10px;
-          box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-          display: flex;
-          flex-direction: column;
-          gap: 8px;
-          height: 220px;
-          position: relative;
-      }
-
+      .skeleton-card { background: #fff; border-radius: 10px; padding: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); display: flex; flex-direction: column; gap: 8px; height: 220px; position: relative; }
       .sk-img-rect { width: 100%; height: 120px; border-radius: 8px; background: #eee; background-image: linear-gradient(90deg, #eee, #f5f5f5, #eee); background-size: 200px 100%; animation: skeleton-loading 1.5s infinite linear; }
       .sk-text-short { width: 40%; height: 15px; background: #eee; background-image: linear-gradient(90deg, #eee, #f5f5f5, #eee); background-size: 200px 100%; border-radius: 4px; animation: skeleton-loading 1.5s infinite linear; }
       .sk-text-long { width: 90%; height: 15px; background: #eee; background-image: linear-gradient(90deg, #eee, #f5f5f5, #eee); background-size: 200px 100%; border-radius: 4px; animation: skeleton-loading 1.5s infinite linear; }
       .sk-btn { width: 100%; height: 30px; margin-top: auto; background: #eee; background-image: linear-gradient(90deg, #eee, #f5f5f5, #eee); background-size: 200px 100%; border-radius: 6px; animation: skeleton-loading 1.5s infinite linear; }
-
-      /* 🆕 DARK MODE SKELETON FIXES */
-      body.dark-mode .skeleton-card {
-          background: #1e1e1e;
-          box-shadow: 0 2px 10px rgba(255,255,255,0.05);
-          border: 1px solid #333;
-      }
-      body.dark-mode .sk-img-rect,
-      body.dark-mode .sk-text-short,
-      body.dark-mode .sk-text-long,
-      body.dark-mode .sk-btn {
-          background-color: #333;
-          background-image: linear-gradient(90deg, #333, #444, #333);
-      }
+      body.dark-mode .skeleton-card { background: #1e1e1e; box-shadow: 0 2px 10px rgba(255,255,255,0.05); border: 1px solid #333; }
+      body.dark-mode .sk-img-rect, body.dark-mode .sk-text-short, body.dark-mode .sk-text-long, body.dark-mode .sk-btn { background-color: #333; background-image: linear-gradient(90deg, #333, #444, #333); }
   </style>
 </head>
 <body data-page="saved">
 
     <script>
-        if (localStorage.getItem('theme') === 'dark') {
-            document.body.classList.add('dark-mode');
-        }
+        if (localStorage.getItem('theme') === 'dark') document.body.classList.add('dark-mode');
     </script>
 
     <div id="preloader">
         <div class="loader-content">
-            <img src="img/logo-blue.png" alt="Loading..." class="loader-logo">
+            <img src="img/logo-blue.png" alt="Loading...">
             <div class="loading-bar"></div>
         </div>
     </div>
@@ -181,9 +184,13 @@
                  <span id="m-vendor" style="font-size:12px; color:#888; font-weight:bold;"></span>
             </div>
 
-            <a id="m-btn" href="#" target="_blank" class="chat-btn" style="width:100%; text-align:center; display:block; padding:15px; border-radius:10px;">
-                <i class="fab fa-whatsapp"></i> Chat with Vendor
+            <a id="btn-wa" href="#" target="_blank" class="btn-whatsapp">
+                <i class="fab fa-whatsapp"></i> Chat via WhatsApp
             </a>
+
+            <button id="btn-inapp" class="btn-inapp">
+                <i class="fas fa-comment-dots"></i> Message In-App (Secure)
+            </button>
         </div>
     </div>
 
@@ -191,12 +198,9 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getAuth, onAuthStateChanged } 
-        from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-        import { getFirestore, collection, getDocs, doc, deleteDoc, query, limit, startAfter, orderBy, getDoc } 
-        from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+        import { getFirestore, collection, getDocs, doc, deleteDoc, addDoc, query, limit, startAfter, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-        // CONFIG
         const firebaseConfig = {
             apiKey: "AIzaSyA1eQbrJpH9OtDNDN7z9oTFTRSAE7vCFbg",
             authDomain: "afit-market-auth.firebaseapp.com",
@@ -214,10 +218,10 @@
         const apiRoot = `https://opensheet.elk.sh/${sheetID}`;
         const ADMIN_PHONE = "2348144516127";
         
-        let globalPhoneBook = {};
-        let masterProductList = []; // Stores ALL products to find descriptions
+        let globalPhoneBook = {}; // Stores phone numbers
+        let globalEmailBook = {}; // Stores emails for notifications
+        let masterProductList = [];
 
-        // PAGINATION VARS
         let lastVisibleDoc = null;
         let isFetching = false;
         const BATCH_SIZE = 10;
@@ -228,50 +232,39 @@
             const skeleton = document.getElementById('saved-skeleton');
 
             if (user) {
-                // Load Master Data First
-                loadMasterData().then(() => {
-                    loadNextBatch(user.uid);
-                });
-                
-                document.getElementById('load-more-btn').addEventListener('click', () => {
-                    loadNextBatch(user.uid);
-                });
+                loadMasterData().then(() => loadNextBatch(user.uid));
+                document.getElementById('load-more-btn').addEventListener('click', () => loadNextBatch(user.uid));
             } else {
-                // 🚀 USER NOT LOGGED IN: HIDE LOADERS & SHOW SIGN IN BUTTON
                 if(preloader) preloader.style.display = 'none';
                 if(skeleton) skeleton.style.display = 'none';
                 document.getElementById('not-signed-in-state').style.display = 'block'; 
             }
         });
 
-        // 2. FETCH EVERYTHING (Vendors + Products) to enable "Smart" Saved Page
         async function loadMasterData() {
             try {
-                // Fetch Vendors
+                // Fetch Vendors to build phonebook and email lookup
                 const vRes = await fetch(`${apiRoot}/Vendors`);
                 const vendors = await vRes.json();
                 vendors.forEach(v => {
                     const vID = v.vendor_id || v.Vendor_ID;
-                    const vPhone = v.whatsapp || v.Whatsapp;
-                    if(vID) globalPhoneBook[vID] = String(vPhone).replace(/[^0-9]/g, '');
+                    if(vID) {
+                        globalPhoneBook[vID] = String(v.whatsapp || v.Whatsapp).replace(/[^0-9]/g, '');
+                        globalEmailBook[vID] = String(v.email || v.Email).toLowerCase().trim();
+                    }
                 });
 
-                // Fetch Sheet Products
                 const pRes = await fetch(`${apiRoot}/Products`);
                 const sheetProds = await pRes.json();
                 
-                // Fetch Firestore Products
                 const q = query(collection(db, "products"));
                 const snap = await getDocs(q);
                 const fireProds = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 
-                // Combine them
                 masterProductList = [...sheetProds, ...fireProds];
-
             } catch (err) { console.error("Error loading master data:", err); }
         }
 
-        // 3. Fetch Saved Items (Paginated)
         async function loadNextBatch(uid) {
             if (isFetching) return;
             isFetching = true;
@@ -286,24 +279,17 @@
             loadBtn.innerText = "Loading...";
 
             try {
-                let q;
-                const colRef = collection(db, "users", uid, "saved_items");
-
-                if (lastVisibleDoc) {
-                    q = query(colRef, limit(BATCH_SIZE), startAfter(lastVisibleDoc));
-                } else {
-                    q = query(colRef, limit(BATCH_SIZE));
-                }
+                let q = lastVisibleDoc 
+                    ? query(collection(db, "users", uid, "saved_items"), limit(BATCH_SIZE), startAfter(lastVisibleDoc))
+                    : query(collection(db, "users", uid, "saved_items"), limit(BATCH_SIZE));
 
                 const querySnapshot = await getDocs(q);
-                
-                // Hide skeleton as soon as Firebase returns data
                 if(!lastVisibleDoc) skeleton.style.display = 'none';
 
                 if (querySnapshot.empty) {
                     loadBtnDiv.style.display = 'none'; 
                     if (!lastVisibleDoc) emptyState.style.display = 'block'; 
-                    return; // exit early
+                    return;
                 }
 
                 lastVisibleDoc = querySnapshot.docs[querySnapshot.docs.length - 1];
@@ -311,41 +297,34 @@
 
                 for (const docSnap of querySnapshot.docs) {
                     const savedData = docSnap.data();
-                    const pID = docSnap.id; // The ID saved in Firestore
-                    savedItemIds.add(pID); // Keep track locally for UI
+                    const pID = docSnap.id;
+                    savedItemIds.add(pID);
                     
-                    // MAGIC: Look for the real item in our Master List
                     let liveItem = masterProductList.find(p => p.id === pID);
-                    
-                    if (!liveItem) {
-                        liveItem = masterProductList.find(p => {
-                            const genID = (p.id || ((p.vendor_id||p.Vendor_ID) + "-" + (p.name||p.Name)).replace(/\s+/g, '-').toLowerCase());
-                            return genID === pID;
-                        });
-                    }
+                    if (!liveItem) liveItem = masterProductList.find(p => (p.id || ((p.vendor_id||p.Vendor_ID) + "-" + (p.name||p.Name)).replace(/\s+/g, '-').toLowerCase()) === pID);
 
-                    // Use Live Data if available, otherwise fallback to Saved Data
                     const pName = liveItem ? (liveItem.name || liveItem.Name) : savedData.name;
                     const pPrice = liveItem ? (liveItem.price || liveItem.Price) : savedData.price;
                     const pVendor = liveItem ? (liveItem.vendor_id || liveItem.Vendor_ID) : savedData.vendor;
                     let pImage = liveItem ? (liveItem.image || liveItem.Image) : savedData.image;
-                    
                     let pDesc = liveItem ? (liveItem.description || liveItem.Description) : savedData.description;
                     if(!pDesc) pDesc = "No description available.";
 
                     const img = pImage.startsWith('http') ? pImage : `img/${pImage}`;
                     const vendorPhone = globalPhoneBook[pVendor] || ADMIN_PHONE;
+                    const vendorEmail = globalEmailBook[pVendor] || "afitdgm@gmail.com";
                     
                     const safeName = String(pName).replace(/'/g, "\\'").replace(/"/g, "&quot;");
                     const safeDesc = String(pDesc).replace(/'/g, "\\'").replace(/"/g, "&quot;").replace(/\n/g, " ");
                     const safePrice = String(pPrice).replace(/'/g, "\\'");
 
-                    const btnAction = `openDetailModal('${safeName}', '${safePrice}', '${safeDesc}', '${pVendor}', '${vendorPhone}')`;
+                    // Define Modal Click Action
+                    const btnAction = `openDetailModal('${safeName}', '${safePrice}', '${safeDesc}', '${pVendor}', '${vendorPhone}', '${vendorEmail}')`;
 
+                    // We add the fast Chat icon next to Get Item
                     grid.innerHTML += `
                     <div class="ad-card" id="card-${pID}" style="position:relative;">
-                        <button onclick="removeSavedItem('${pID}')" 
-                                style="position:absolute; top:10px; right:10px; background:rgba(255,255,255,0.9); border:none; border-radius:50%; width:30px; height:30px; display:flex; align-items:center; justify-content:center; cursor:pointer; box-shadow:0 2px 5px rgba(0,0,0,0.1); z-index:10;">
+                        <button onclick="removeSavedItem('${pID}')" style="position:absolute; top:10px; right:10px; background:rgba(255,255,255,0.9); border:none; border-radius:50%; width:30px; height:30px; display:flex; align-items:center; justify-content:center; cursor:pointer; box-shadow:0 2px 5px rgba(0,0,0,0.1); z-index:10;">
                             <i class="fas fa-trash-alt" style="color:#ff4757; font-size:14px;"></i>
                         </button>
                         <img class="ad-img" src="${img}" alt="${safeName}" onerror="this.src='img/logo-blue.png'">
@@ -354,17 +333,20 @@
                             <div class="ad-title">${pName}</div>
                             <div class="ad-desc-preview">${pDesc}</div>
                             <div class="ad-location">Vendor: ${pVendor}</div>
-                            <button onclick="${btnAction}" class="chat-btn" style="width:100%; border:none; margin-top:5px; cursor:pointer;">Get Item</button>
+                            
+                            <div class="action-row">
+                                <button onclick="${btnAction}" class="chat-btn" style="flex:1; border:none; cursor:pointer; margin:0;">Get Item</button>
+                                <button onclick="startRealChat('${safeName}', '${pVendor}', '${vendorEmail}')" class="quick-chat-btn" title="Quick Chat">
+                                    <i class="fas fa-comment-dots"></i>
+                                </button>
+                            </div>
+
                         </div>
                     </div>`;
                 }
 
-                if (querySnapshot.size < BATCH_SIZE) {
-                    loadBtnDiv.style.display = 'none';
-                } else {
-                    loadBtnDiv.style.display = 'block';
-                    loadBtn.innerText = "Load More";
-                }
+                if (querySnapshot.size < BATCH_SIZE) loadBtnDiv.style.display = 'none';
+                else { loadBtnDiv.style.display = 'block'; loadBtn.innerText = "Load More"; }
 
             } catch (err) {
                 console.error("Error loading items:", err);
@@ -379,35 +361,84 @@
             }
         }
 
-        // FUNCTION TO OPEN MODAL
-        window.openDetailModal = function(title, price, desc, vendor, phone) {
+        // ================== MODAL & CHAT LOGIC ==================
+
+        // Open Modal (Assigns BOTH button functions)
+        window.openDetailModal = function(title, price, desc, vendorId, phone, vendorEmail) {
             document.getElementById('m-title').innerText = title;
             document.getElementById('m-price').innerText = price;
             document.getElementById('m-desc').innerText = desc;
-            document.getElementById('m-vendor').innerText = "Vendor: " + vendor;
+            document.getElementById('m-vendor').innerText = "Vendor: " + vendorId;
             
+            // Button 1: WhatsApp
             const waMsg = encodeURIComponent(`Hi, I saw "${title}" on AFIT Market (Price: ${price}). Is it available?`);
-            document.getElementById('m-btn').href = `https://wa.me/${phone}?text=${waMsg}`;
+            document.getElementById('btn-wa').href = `https://wa.me/${phone}?text=${waMsg}`;
+            
+            // Button 2: In-App Chat
+            document.getElementById('btn-inapp').onclick = function() {
+                startRealChat(title, vendorId, vendorEmail);
+            };
             
             document.getElementById('detail-modal').style.display = 'flex';
         };
+
+        // Create Real Firebase Chat
+        window.startRealChat = async function(productName, vendorId, vendorEmail) {
+            const user = auth.currentUser;
+            if (!user) {
+                alert("You must be signed in to message vendors directly on the platform.");
+                window.location.href = "login.html";
+                return;
+            }
+
+            const btn = document.getElementById('btn-inapp');
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Securing chat...';
+            btn.disabled = true;
+
+            try {
+                // 3-Day TTL
+                const expirationDate = new Date();
+                expirationDate.setDate(expirationDate.getDate() + 3);
+
+                // Use the fetched email or default to admin
+                const targetEmail = vendorEmail || "afitdgm@gmail.com";
+
+                // Generate Chat Document
+                const chatRef = await addDoc(collection(db, "chats"), {
+                    participants: [user.uid, vendorId], 
+                    customerUid: user.uid,
+                    customerName: user.displayName || "AFIT Student",
+                    vendorUid: vendorId, 
+                    vendorName: vendorId, 
+                    vendorEmail: targetEmail, 
+                    productName: productName, 
+                    lastMessage: "Started a conversation...",
+                    updatedAt: serverTimestamp(),
+                    expiresAt: expirationDate
+                });
+
+                // Redirect to chat room
+                window.location.href = `chat/index.html?id=${chatRef.id}`;
+                
+            } catch(e) {
+                console.error(e);
+                alert("Failed to start chat. Check network.");
+                btn.innerHTML = '<i class="fas fa-comment-dots"></i> Message In-App (Secure)';
+                btn.disabled = false;
+            }
+        }
 
         window.removeSavedItem = async function(docID) {
             if(!confirm("Remove this item?")) return;
             const user = auth.currentUser;
             if(!user) return;
-
             const card = document.getElementById(`card-${docID}`);
             if(card) card.style.opacity = "0.5";
-
             try {
                 await deleteDoc(doc(db, "users", user.uid, "saved_items", docID));
-                if(card) {
-                    card.style.transform = "scale(0)";
-                    setTimeout(() => card.remove(), 300);
-                }
+                if(card) { card.style.transform = "scale(0)"; setTimeout(() => card.remove(), 300); }
             } catch (err) {
-                alert("Could not remove item. Check connection.");
+                alert("Could not remove item.");
                 if(card) card.style.opacity = "1";
             }
         }
