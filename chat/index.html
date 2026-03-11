@@ -242,39 +242,35 @@
             }
         });
 
-        async function initializeChat() {
+  async function initializeChat() {
             try {
-                // 1. Fetch Chat Metadata
                 const chatRef = doc(db, "chats", CHAT_ID);
                 const chatSnap = await getDoc(chatRef);
 
                 if (!chatSnap.exists()) {
-                    // Chat exists in URL but not in database yet (Customer just clicked 'Chat with Vendor' on a product)
                     isFirstMessage = true;
                     document.getElementById('h-name').innerText = "New Conversation";
                     document.getElementById('h-product').innerText = "Start typing to connect...";
                 } else {
                     const chatData = chatSnap.data();
                     
-                    // Verify user belongs in this chat
-                    if(!chatData.participants.includes(currentUser.uid)) {
+                    // 🚀 FIXED: Check if my UID or Email is allowed in this room
+                    if(!chatData.participants.includes(currentUser.uid) && !chatData.participants.includes(currentUser.email)) {
                         alert("Unauthorized access.");
                         window.location.href = "../inbox/";
                         return;
                     }
 
-                    // Determine who the "Other Person" is
-                    const isVendor = chatData.vendorUid === currentUser.uid;
+                    // 🚀 FIXED: Verify who is who via Email
+                    const isVendor = chatData.vendorEmail === currentUser.email;
                     const displayName = isVendor ? chatData.customerName : chatData.vendorName;
                     
-                    // Save vendor email in case we need to trigger an email notification
                     if(!isVendor) vendorEmailForNotification = chatData.vendorEmail;
 
                     document.getElementById('h-name').innerText = escapeHTML(displayName);
                     document.getElementById('h-product').innerText = escapeHTML(chatData.productName);
                     document.getElementById('h-avatar').innerText = displayName.charAt(0).toUpperCase();
 
-                    // 2. Start Real-time Message Listener
                     listenForMessages();
                 }
             } catch(e) {
