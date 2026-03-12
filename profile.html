@@ -170,6 +170,71 @@
       body.dark-mode .mini-vendor-card { background: #1e1e1e; border-color: #333; box-shadow: none; }
       body.dark-mode .mini-vendor-img { border-color: #333; }
       body.dark-mode .mini-vendor-name { color: #eee; }
+      /* Quick Action Buttons on Card */
+      .action-row {
+          display: flex;
+          gap: 5px;
+          margin-top: 5px;
+      }
+      .quick-chat-btn {
+          background: #eef7ff; color: #2d8eff;
+          border: none; border-radius: 8px;
+          width: 40px; display: flex; align-items: center; justify-content: center;
+          cursor: pointer; transition: 0.2s; font-size: 14px;
+      }
+      .quick-chat-btn:active { transform: scale(0.95); background: #dceefc; }
+
+      /* Modal Buttons */
+      .btn-whatsapp {
+          background: #25D366; color: white; width: 100%;
+          text-align: center; display: block; padding: 14px;
+          border-radius: 10px; text-decoration: none; font-weight: bold;
+          margin-bottom: 10px; box-shadow: 0 4px 10px rgba(37, 211, 102, 0.2);
+      }
+      .btn-inapp {
+          background: #2d8eff; color: white; width: 100%;
+          text-align: center; display: block; padding: 14px; border: none; cursor: pointer;
+          border-radius: 10px; text-decoration: none; font-weight: bold; font-size: 14px;
+          box-shadow: 0 4px 10px rgba(45, 142, 255, 0.2); font-family: inherit;
+      }
+
+      /* Dark Mode fixes for new buttons */
+      body.dark-mode .quick-chat-btn { background: #2a2a2a; }
+      /* --- VENDOR REVIEWS STYLES --- */
+      .vendor-reviews-section {
+          margin-top: 30px;
+          padding: 20px 14px;
+          background: white;
+          border-radius: 15px;
+          box-shadow: 0 4px 15px rgba(0,0,0,0.03);
+      }
+      .review-header-flex { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+      .vendor-rating-big { font-size: 28px; font-weight: 800; color: #333; display: flex; align-items: center; gap: 5px; }
+      .vendor-rating-stars { color: #f1c40f; font-size: 14px; }
+      
+      .reviews-scroll {
+          display: flex; overflow-x: auto; gap: 15px; padding-bottom: 10px;
+          scroll-snap-type: x mandatory; -webkit-overflow-scrolling: touch;
+      }
+      .reviews-scroll::-webkit-scrollbar { display: none; }
+      
+      .v-review-card {
+          min-width: 250px; max-width: 280px; background: #f9f9f9;
+          padding: 15px; border-radius: 12px; scroll-snap-align: start;
+          border: 1px solid #eee;
+      }
+      .v-reviewer-name { font-weight: bold; font-size: 13px; color: #333; margin-bottom: 2px; }
+      .v-review-date { font-size: 10px; color: #999; margin-bottom: 8px; }
+      .v-review-text { font-size: 12px; color: #555; line-height: 1.5; display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden; }
+
+      /* Star Selector in Modal */
+      .star-selector { display: flex; justify-content: center; gap: 10px; margin: 20px 0; font-size: 30px; color: #ddd; cursor: pointer; }
+      .star-selector i.active { color: #f1c40f; }
+
+      /* Dark Mode Fixes */
+      body.dark-mode .vendor-reviews-section, body.dark-mode .v-review-card { background: #1e1e1e; border-color: #333; box-shadow: none; }
+      body.dark-mode .vendor-rating-big, body.dark-mode .v-reviewer-name { color: #eee; }
+      body.dark-mode .v-review-text { color: #aaa; }
   </style>
 </head>
 <body data-page="vendor-profile">
@@ -266,12 +331,28 @@
             </div>
             
             <div style="margin-top: 15px; display: flex; gap: 20px; justify-content: center;">
-                <a href="reviews/" style="color: #2d8eff; font-size: 12px; text-decoration: none; font-weight: 600;">
-                    <i class="far fa-star"></i> Drop a Review
-                </a>
                 <a href="https://docs.google.com/forms/d/e/1FAIpQLSfy6SsEKGXykaneoLbGFatxtmAMgsemonogQaGqkFK-B9mxuA/viewform?usp=header" style="color: #d9534f; font-size: 12px; text-decoration: none;">
                     <i class="fas fa-flag"></i> Report Vendor
                 </a>
+            </div>
+        </section>
+
+        <section class="vendor-reviews-section" id="reviews-section">
+            <div class="review-header-flex">
+                <div>
+                    <h3 style="margin: 0 0 5px; font-size: 16px; color: #555;">Store Rating</h3>
+                    <div class="vendor-rating-big" id="avg-rating-display">
+                        0.0 <div class="vendor-rating-stars" id="avg-stars">☆☆☆☆☆</div>
+                    </div>
+                    <div style="font-size: 11px; color: #888;" id="total-reviews-count">0 reviews</div>
+                </div>
+                <button onclick="openReviewModal()" style="background: #2d8eff; color: white; border: none; padding: 10px 15px; border-radius: 20px; font-weight: bold; font-size: 12px; cursor: pointer; box-shadow: 0 4px 10px rgba(45,142,255,0.3);">
+                    <i class="fas fa-pen"></i> Write Review
+                </button>
+            </div>
+            
+            <div class="reviews-scroll" id="vendor-reviews-container">
+                <p style="width:100%; text-align:center; padding:20px; color:#888; font-size: 13px;">Loading reviews...</p>
             </div>
         </section>
 
@@ -325,9 +406,36 @@
                  <span id="m-category" style="font-size:12px; color:#888; font-weight:bold;"></span>
             </div>
 
-            <a id="m-btn" href="#" target="_blank" class="chat-btn" style="width:100%; text-align:center; display:block; padding:15px; border-radius:10px;">
-                <i class="fab fa-whatsapp"></i> Chat with Vendor
+            <a id="btn-wa" href="#" target="_blank" class="btn-whatsapp">
+                <i class="fab fa-whatsapp"></i> Chat via WhatsApp
             </a>
+
+            <button id="btn-inapp" class="btn-inapp">
+                <i class="fas fa-comment-dots"></i> Message In-App (Secure)
+            </button>
+        </div>
+    </div>
+
+    <div id="write-review-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:4000; justify-content:center; align-items:center; padding: 20px;">
+        <div style="background: white; width: 100%; max-width: 400px; border-radius: 20px; padding: 25px; position: relative;">
+            <span onclick="document.getElementById('write-review-modal').style.display='none'" style="position:absolute; top:15px; right:20px; font-size:24px; color:#999; cursor:pointer;">&times;</span>
+            <h3 style="margin:0 0 5px; color:#333; text-align:center;">Rate this Shop</h3>
+            <p style="font-size:12px; color:#777; text-align:center; margin-bottom:10px;">Your review helps other students buy safely.</p>
+            
+            <div class="star-selector" id="star-selector">
+                <i class="fas fa-star" data-val="1"></i>
+                <i class="fas fa-star" data-val="2"></i>
+                <i class="fas fa-star" data-val="3"></i>
+                <i class="fas fa-star" data-val="4"></i>
+                <i class="fas fa-star" data-val="5"></i>
+            </div>
+            <input type="hidden" id="selected-rating" value="0">
+            
+            <textarea id="review-text" placeholder="Share your experience with this vendor..." style="width: 100%; height: 100px; padding: 12px; border-radius: 10px; border: 1px solid #ddd; font-size: 14px; resize: none; margin-bottom: 15px; font-family: inherit; box-sizing: border-box;"></textarea>
+            
+            <button id="submit-review-btn" onclick="submitVendorReview()" style="background: #2d8eff; color: white; width: 100%; padding: 14px; border: none; border-radius: 10px; font-weight: bold; font-size: 15px; cursor: pointer; box-shadow: 0 4px 10px rgba(45,142,255,0.3);">
+                Post Review
+            </button>
         </div>
     </div>
 
@@ -353,9 +461,8 @@
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import { getAuth, onAuthStateChanged, signInWithPopup, GoogleAuthProvider } 
-    from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-    import { getFirestore, doc, setDoc, deleteDoc, collection, getDocs, getDoc, query, where, increment } 
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+    import { getFirestore, doc, setDoc, deleteDoc, collection, getDocs, getDoc, query, where, increment, addDoc, serverTimestamp, orderBy } 
     from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
     const firebaseConfig = {
@@ -376,8 +483,11 @@
     let pageVendorEmail = null; 
     let currentVendorPhone = "";
     let currentVendorID = null;
+    let currentUserData = null; // Store user data for reviews
     
-    // --- PAGINATION VARIABLES ---
+    let globalPhoneBook = {};
+    let globalEmailBook = {};
+    
     let allVendorProducts = []; 
     let currentProductIndex = 0; 
     const BATCH_SIZE = 16; 
@@ -386,7 +496,6 @@
     const apiRoot = `https://opensheet.elk.sh/${sheetID}`;
     const ADMIN_PHONE = "2349153375488"; 
 
-    // --- 🟢 SHARED LOCAL STORAGE CACHING SYSTEM (10 MIN TTL) ---
     const CACHE_TTL = 10 * 60 * 1000; 
 
     function getCachedData(key) {
@@ -401,30 +510,14 @@
     }
 
     function setCachedData(key, data) {
-        localStorage.setItem(key, JSON.stringify({
-            timestamp: Date.now(),
-            data: data
-        }));
+        localStorage.setItem(key, JSON.stringify({ timestamp: Date.now(), data: data }));
     }
-    
-    // 🎁 BONUS: Vendor can clear cache to see new uploads instantly
-    window.clearProductCache = function() {
-        localStorage.removeItem('cache_firestore_products');
-        alert("Cache cleared! Refresh the page to see your newest uploads.");
-    };
-    // --- 🟢 END CACHING SYSTEM ---
 
     function escapeHTML(str) {
         if (!str) return "";
-        return String(str)
-            .replace(/&/g, "&amp;")
-            .replace(/</g, "&lt;")
-            .replace(/>/g, "&gt;")
-            .replace(/"/g, "&quot;")
-            .replace(/'/g, "&#039;");
+        return String(str).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
     }
 
-    // Fisher-Yates Shuffle
     function shuffleArray(array) {
         for (let i = array.length - 1; i > 0; i--) {
             const j = Math.floor(Math.random() * (i + 1));
@@ -436,33 +529,30 @@
     onAuthStateChanged(auth, async (user) => {
         if (user) {
             currentUserEmail = user.email.toLowerCase().trim();
+            currentUserData = user; // Save for reviews
             checkOwner();
             try {
                 const querySnapshot = await getDocs(collection(db, "users", user.uid, "saved_items"));
                 savedItemIds.clear();
                 querySnapshot.forEach((doc) => { savedItemIds.add(doc.id); });
                 updateHeartIcons(); 
-            } catch (e) { console.error("Error loading wishlist:", e); }
+            } catch (e) {}
+        } else {
+            currentUserData = null;
         }
     });
 
     function checkOwner() {
         if (currentUserEmail && pageVendorEmail && currentUserEmail === pageVendorEmail) {
             const manageBtn = document.getElementById('btn-manage');
-            if(manageBtn) {
-                manageBtn.style.display = 'block';
-            }
+            if(manageBtn) manageBtn.style.display = 'block';
         }
     }
 
     document.addEventListener("DOMContentLoaded", () => {
         window.renderBatch = renderBatch;
 
-        // Grab the vendor ID from EITHER the old format or the new short link!
-        const urlParams = new URLSearchParams(window.location.search);
-        let vendorID = urlParams.get('vendor');
-
-        // Check for the new short link format (/v/?V005)
+        let vendorID = new URLSearchParams(window.location.search).get('vendor');
         const vendorIdFromQuery = window.location.search.substring(1);
         if (!vendorID && vendorIdFromQuery && !vendorIdFromQuery.includes('=')) {
              vendorID = vendorIdFromQuery;
@@ -473,32 +563,36 @@
             currentVendorID = vendorID; 
             loadProfile(vendorID);
         } else {
-            showError("No Store Selected", "You arrived here without selecting a vendor. Click below to discover amazing shops on campus!");
+            showError("No Store Selected", "You arrived here without selecting a vendor.");
         }
+
+        // 🚀 STAR SELECTOR LOGIC
+        const stars = document.querySelectorAll('#star-selector i');
+        stars.forEach(star => {
+            star.addEventListener('click', function() {
+                const val = this.getAttribute('data-val');
+                document.getElementById('selected-rating').value = val;
+                stars.forEach(s => {
+                    if(s.getAttribute('data-val') <= val) s.classList.add('active');
+                    else s.classList.remove('active');
+                });
+            });
+        });
     });
 
     function loadProfile(id) {
-        // ✅ CACHE ADDED: Suspended Vendors
         let suspendedData = getCachedData('cache_suspended_vendors');
         
         if (suspendedData && suspendedData.includes(id)) {
-             showSuspendedError();
-             return;
+             showError("Shop Suspended", "This vendor profile has been temporarily suspended."); return;
         } else if (!suspendedData) {
             getDoc(doc(db, "vendor_status", id)).then(docSnap => {
                 if (docSnap.exists() && docSnap.data().status === "suspended") {
-                    showSuspendedError();
-                    return;
+                    showError("Shop Suspended", "This vendor profile has been temporarily suspended."); return;
                 }
                 fetchVendorDetails(id);
             });
-        } else {
-            fetchVendorDetails(id);
-        }
-    }
-    
-    function showSuspendedError() {
-        showError("Shop Suspended", "This vendor profile has been temporarily suspended by the Admin.");
+        } else { fetchVendorDetails(id); }
     }
 
     function fetchVendorDetails(id) {
@@ -508,19 +602,23 @@
         ])
         .then(([vendors1, vendors2]) => {
             const allVendors = [...vendors1, ...vendors2];
+            allVendors.forEach(v => {
+                const vID = String(v.vendor_id || v.Vendor_ID || "").toUpperCase().trim();
+                if(vID) {
+                    globalPhoneBook[vID] = String(v.whatsapp || v.Whatsapp || "").replace(/[^0-9]/g, '');
+                    globalEmailBook[vID] = String(v.email || v.Email || "").toLowerCase().trim();
+                }
+            });
+
             const v = allVendors.find(item => (item.vendor_id || item.Vendor_ID) === id);
             
-            if(!v) { 
-                showError("Vendor Not Found", `The shop ID "${id}" does not exist.`); 
-            } else {
+            if(!v) { showError("Vendor Not Found", `The shop ID "${id}" does not exist.`); } 
+            else {
                 const isVerified = String(v.verified || v.Verified || "").toLowerCase().trim();
-                if(isVerified === "false") {
-                    showError("Pending Approval", "This vendor profile is currently awaiting verification.");
-                    return;
-                }
+                if(isVerified === "false") { showError("Pending Approval", "This vendor profile is awaiting verification."); return; }
 
                 renderVendor(v, id);
-                if (v.Email) { pageVendorEmail = v.Email.toLowerCase().trim(); checkOwner(); }
+                if (v.Email || v.email) { pageVendorEmail = String(v.Email || v.email).toLowerCase().trim(); checkOwner(); }
                 
                 document.getElementById('profile-skeleton').style.display = 'none';
                 document.getElementById('profile-content').style.display = 'block';
@@ -529,25 +627,120 @@
                 currentVendorPhone = String(rawPhone).replace(/[^0-9]/g, '');
                 
                 loadProducts(id, allVendors); 
-
-                // 🚀 TRIGGER NEW: MORE VENDORS
                 renderMoreVendors(allVendors);
-
+                loadVendorReviews(id); // 🚀 LOAD REVIEWS
                 trackStoreView(id);
             }
-        })
-        .catch(err => { 
-            console.error("Fetch Error:", err); 
-            showError("Connection Error", "Check your internet connection and try again."); 
-        });
+        }).catch(err => { showError("Connection Error", "Check your internet connection and try again."); });
     }
 
-    // 🚀 NEW: RENDER MINI VENDORS FUNCTION 🚀
+    // ==========================================
+    // 🚀 NEW VENDOR REVIEWS LOGIC
+    // ==========================================
+    async function loadVendorReviews(vendorId) {
+        const container = document.getElementById('vendor-reviews-container');
+        try {
+            const q = query(collection(db, "vendor_reviews"), where("vendorId", "==", vendorId), orderBy("timestamp", "desc"));
+            const querySnapshot = await getDocs(q);
+            
+            let totalStars = 0;
+            let reviewCount = 0;
+            let html = "";
+
+            if (querySnapshot.empty) {
+                container.innerHTML = `
+                    <div style="width:100%; text-align:center; padding: 20px;">
+                        <i class="fas fa-comment-slash" style="font-size:30px; color:#ddd; margin-bottom:10px;"></i>
+                        <p style="color:#777; font-size:13px; margin:0;">No reviews yet. Be the first!</p>
+                    </div>`;
+                return;
+            }
+
+            querySnapshot.forEach((doc) => {
+                const data = doc.data();
+                totalStars += data.rating;
+                reviewCount++;
+                
+                const starsHTML = '<i class="fas fa-star"></i>'.repeat(data.rating) + '<i class="far fa-star"></i>'.repeat(5 - data.rating);
+                const dateStr = data.timestamp ? data.timestamp.toDate().toLocaleDateString() : "Recent";
+                
+                html += `
+                <div class="v-review-card">
+                    <div style="display:flex; justify-content:space-between; align-items:start;">
+                        <div class="v-reviewer-name">${escapeHTML(data.studentName)}</div>
+                        <div style="color:#f1c40f; font-size:10px;">${starsHTML}</div>
+                    </div>
+                    <div class="v-review-date">${dateStr}</div>
+                    <div class="v-review-text">"${escapeHTML(data.reviewText)}"</div>
+                </div>`;
+            });
+
+            container.innerHTML = html;
+
+            // Calculate and display average rating
+            const avg = (totalStars / reviewCount).toFixed(1);
+            document.getElementById('avg-rating-display').innerHTML = `${avg} <div class="vendor-rating-stars">${'<i class="fas fa-star"></i>'.repeat(Math.round(avg))}</div>`;
+            document.getElementById('total-reviews-count').innerText = `${reviewCount} verified review${reviewCount !== 1 ? 's' : ''}`;
+
+        } catch (error) {
+            console.error("Error loading reviews:", error);
+            container.innerHTML = "<p style='width:100%; text-align:center; color:red; font-size:12px;'>Could not load reviews.</p>";
+        }
+    }
+
+    window.openReviewModal = function() {
+        if (!currentUserData) {
+            alert("You must be logged in to leave a review.");
+            window.location.href = "login.html";
+            return;
+        }
+        document.getElementById('write-review-modal').style.display = 'flex';
+    };
+
+    window.submitVendorReview = async function() {
+        const rating = parseInt(document.getElementById('selected-rating').value);
+        const text = document.getElementById('review-text').value.trim();
+        const btn = document.getElementById('submit-review-btn');
+
+        if (rating === 0) return alert("Please select a star rating!");
+        if (text.length < 5) return alert("Please write a brief comment.");
+
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Posting...';
+        btn.disabled = true;
+
+        try {
+            await addDoc(collection(db, "vendor_reviews"), {
+                vendorId: currentVendorID,
+                studentId: currentUserData.uid,
+                studentName: currentUserData.displayName || "AFIT Student",
+                rating: rating,
+                reviewText: text,
+                timestamp: serverTimestamp()
+            });
+
+            document.getElementById('write-review-modal').style.display = 'none';
+            document.getElementById('review-text').value = '';
+            document.getElementById('selected-rating').value = '0';
+            document.querySelectorAll('#star-selector i').forEach(s => s.classList.remove('active'));
+            
+            // Reload reviews to show the new one instantly!
+            loadVendorReviews(currentVendorID);
+            
+            btn.innerHTML = 'Post Review';
+            btn.disabled = false;
+
+        } catch (error) {
+            console.error(error);
+            alert("Failed to submit review.");
+            btn.innerHTML = 'Post Review';
+            btn.disabled = false;
+        }
+    };
+    // ==========================================
+
     function renderMoreVendors(allVendorsList) {
         const grid = document.getElementById('more-vendors-grid');
         const section = document.getElementById('more-vendors-section');
-        
-        // Filter out current vendor, unverified vendors, and get fresh suspended list
         let suspendedData = getCachedData('cache_suspended_vendors') || [];
         
         const otherVendors = allVendorsList.filter(v => {
@@ -558,11 +751,8 @@
         });
 
         if(otherVendors.length === 0) return;
-
         section.style.display = 'block';
         grid.innerHTML = "";
-
-        // Pick 4 random vendors
         const randomVendors = shuffleArray(otherVendors).slice(0, 4);
 
         randomVendors.forEach(v => {
@@ -570,9 +760,7 @@
             const vID = v.vendor_id || v.Vendor_ID;
             let vImg = v.image || v.Image || "img/person.png";
             if (!vImg.startsWith('http')) vImg = `img/${vImg}`;
-
             const safeName = escapeHTML(vName);
-
             grid.innerHTML += `
             <div class="mini-vendor-card" onclick="window.location.href='profile.html?vendor=${vID}'">
                 <img src="${vImg}" class="mini-vendor-img" onerror="this.src='img/person.png'">
@@ -594,7 +782,6 @@
         }
     }
 
-    
     function renderVendor(v, id) {
         const vName = v.business_name || v.Business_Name || v.name || v.Name || "Unknown";
         document.title = `${vName} - Profile`;
@@ -608,8 +795,6 @@
         const phone = v.whatsapp || v.Whatsapp || "";
         document.getElementById('link-phone').href = `tel:${phone}`;
         document.getElementById('btn-contact').href = `https://wa.me/${phone}`;
-        const instaLink = v.instagram || v.Instagram;
-        if(instaLink) { const insta = document.getElementById('link-insta'); insta.href = `https://instagram.com/${instaLink}`; insta.style.display = 'inline-block'; }
         
         let status = String(v.verified || v.Verified || "").toLowerCase().trim();
         const badgeSpan = document.getElementById('p-badge');
@@ -639,7 +824,6 @@
             const firestoreProducts = await loadVendorFirestoreItems();
             const allProducts = [...sheetData, ...firestoreProducts];
             
-            // Separate this vendor's products from the rest
             allVendorProducts = allProducts.filter(p => (p.vendor_id || p.Vendor_ID) === id);
             const otherVendorProducts = allProducts.filter(p => (p.vendor_id || p.Vendor_ID) !== id);
             
@@ -649,9 +833,7 @@
             if(allVendorProducts.length === 0) { 
                 grid.innerHTML = "<p style='width:100%; text-align:center; padding:20px; color:#777;'>No items listed yet.</p>"; 
                 document.getElementById('load-more-container').style.display = 'none';
-            } else {
-                renderBatch();
-            }
+            } else { renderBatch(); }
 
             renderExploreMore(otherVendorProducts, allVendorsList);
         });
@@ -694,7 +876,8 @@
 
             const btnText = isSold ? "Sold" : "Get Item";
             const btnStyle = isSold ? "background:#777; pointer-events:none;" : "";
-            const btnAction = isSold ? "" : `openDetailModal('${safeNameJS}', '${escapeHTML(pPrice)}', '${safeDescJS}', '${safeCatJS}', '${currentVendorPhone}')`;
+            
+            const btnAction = isSold ? "" : `openDetailModal('${safeNameJS}', '${escapeHTML(pPrice)}', '${safeDescJS}', '${safeCatJS}', '${currentVendorPhone}', '${pageVendorEmail}', '${currentVendorID}')`;
 
             grid.innerHTML += `
             <div class="ad-card" style="position:relative; ${opacity}">
@@ -708,35 +891,25 @@
                     <div class="ad-title">${escapeHTML(pName)}</div>
                     <div class="ad-desc-preview">${escapeHTML(pDesc)}</div>
                     <div class="ad-location">Category: ${escapeHTML(pCategory)}</div>
-                    <button onclick="${btnAction}" class="chat-btn" style="width:100%; margin-top:5px; border:none; cursor:pointer; ${btnStyle}">${btnText}</button>
+                    
+                    <div class="action-row">
+                        <button onclick="${btnAction}" class="chat-btn" style="flex:1; border:none; cursor:pointer; margin:0; ${btnStyle}">${btnText}</button>
+                        ${isSold ? '' : `<button onclick="startRealChat('${safeNameJS}', '${currentVendorID}', '${pageVendorEmail}')" class="quick-chat-btn" title="Quick Chat"><i class="fas fa-comment-dots"></i></button>`}
+                    </div>
                 </div>
             </div>`;
         });
 
         currentProductIndex = nextIndex;
-
-        if (currentProductIndex >= allVendorProducts.length) {
-            loadMoreContainer.style.display = 'none'; 
-        } else {
-            loadMoreContainer.style.display = 'block'; 
-            loadMoreBtn.innerText = "Load More"; 
-        }
+        if (currentProductIndex >= allVendorProducts.length) { loadMoreContainer.style.display = 'none'; } 
+        else { loadMoreContainer.style.display = 'block'; loadMoreBtn.innerText = "Load More"; }
     }
 
-    // 🔴 EXPLORE MORE LOGIC (Intact)
     function renderExploreMore(otherProducts, allVendorsList) {
         if(otherProducts.length === 0) return;
-        
         document.getElementById('explore-more-section').style.display = 'block';
         const exploreGrid = document.getElementById('explore-grid');
         exploreGrid.innerHTML = "";
-
-        const phoneBook = {};
-        allVendorsList.forEach(v => {
-            const vID = v.vendor_id || v.Vendor_ID;
-            const vPhone = v.whatsapp || v.Whatsapp;
-            if(vID) phoneBook[vID] = String(vPhone).replace(/[^0-9]/g, '');
-        });
 
         let activeOthers = otherProducts.filter(p => (p.status || p.Status) !== "Sold");
         let randomSelection = shuffleArray(activeOthers).slice(0, 6);
@@ -744,12 +917,14 @@
         randomSelection.forEach(p => {
             const pName = p.name || p.Name; 
             const pPrice = p.price || p.Price; 
-            const pVendor = p.vendor_id || p.Vendor_ID;
+            const pVendorRaw = p.vendor_id || p.Vendor_ID;
+            const pVendor = String(pVendorRaw).toUpperCase().trim();
             const pImage = p.image || p.Image;
             const pDesc = p.description || p.Description || "No additional details.";
             
             const pCat = p.category || p.Category || "General";
-            const pPhone = phoneBook[pVendor] || ADMIN_PHONE;
+            const pPhone = globalPhoneBook[pVendor] || ADMIN_PHONE;
+            const pEmail = globalEmailBook[pVendor] || "afitdgm@gmail.com";
             
             let pImg = pImage || "logo-blue.png"; 
             if (!String(pImg).startsWith('http')) pImg = `img/${pImg}`;
@@ -758,6 +933,8 @@
             const safeDescJS = String(pDesc).replace(/'/g, "\\'").replace(/"/g, "&quot;").replace(/\n/g, " ");
             const safeCatJS = String(pCat).replace(/'/g, "\\'").replace(/"/g, "&quot;");
 
+            const btnAction = `openDetailModal('${safeNameJS}', '${escapeHTML(pPrice)}', '${safeDescJS}', '${safeCatJS}', '${pPhone}', '${pEmail}', '${pVendor}')`;
+
             exploreGrid.innerHTML += `
             <div class="ad-card" style="position:relative;">
                 <img class="ad-img" src="${pImg}" onerror="this.src='img/logo-blue.png'">
@@ -765,13 +942,17 @@
                     <div class="ad-price">${escapeHTML(pPrice)}</div>
                     <div class="ad-title">${escapeHTML(pName)}</div>
                     <div class="ad-location">Vendor: ${pVendor}</div>
-                    <button onclick="openDetailModal('${safeNameJS}', '${escapeHTML(pPrice)}', '${safeDescJS}', '${safeCatJS}', '${pPhone}')" class="chat-btn" style="width:100%; margin-top:5px; border:none; cursor:pointer;">Get Item</button>
+                    
+                    <div class="action-row">
+                        <button onclick="${btnAction}" class="chat-btn" style="flex:1; border:none; cursor:pointer; margin:0;">Get Item</button>
+                        <button onclick="startRealChat('${safeNameJS}', '${pVendor}', '${pEmail}')" class="quick-chat-btn" title="Quick Chat"><i class="fas fa-comment-dots"></i></button>
+                    </div>
                 </div>
             </div>`;
         });
     }
 
-    window.openDetailModal = function(title, price, desc, category, phone) {
+    window.openDetailModal = function(title, price, desc, category, phone, vendorEmail, vendorId) {
         document.getElementById('m-title').innerText = title;
         document.getElementById('m-price').innerText = price;
         document.getElementById('m-desc').innerText = desc;
@@ -779,40 +960,63 @@
         
         const waMsg = encodeURIComponent(`Hi, I saw "${title}" on AFIT Market (Price: ${price}). Is it available?`);
         const targetPhone = phone || currentVendorPhone;
-        document.getElementById('m-btn').href = `https://wa.me/${targetPhone}?text=${waMsg}`;
+        document.getElementById('btn-wa').href = `https://wa.me/${targetPhone}?text=${waMsg}`;
         
+        document.getElementById('btn-inapp').onclick = function() {
+            startRealChat(title, vendorId, vendorEmail);
+        };
         document.getElementById('detail-modal').style.display = 'flex';
     };
 
-    // 🚀 THE MAGIC SWAP: NOW READS FROM THE JSON FILE INSTEAD OF EVERY DOC
-    async function loadVendorFirestoreItems() {
-        let cachedProducts = getCachedData('cache_firestore_products');
-        
-        if (cachedProducts) {
-            console.log("Loaded Firebase products from shared cache (Profile Page)");
-            return cachedProducts;
-        }
+    window.startRealChat = async function(productName, vendorId, vendorEmail) {
+        const user = auth.currentUser;
+        if (!user) { alert("You must be signed in to message vendors directly."); window.location.href = "login.html"; return; }
+
+        const btn = document.getElementById('btn-inapp');
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Securing chat...';
+        btn.disabled = true;
 
         try {
-            console.log("Fetching Master Product List (Profile Page)...");
+            const expirationDate = new Date();
+            expirationDate.setDate(expirationDate.getDate() + 3);
+            const targetEmail = vendorEmail || "afitdgm@gmail.com";
+
+            const chatRef = await addDoc(collection(db, "chats"), {
+                participants: [user.uid, targetEmail], 
+                customerUid: user.uid,
+                customerEmail: user.email, 
+                customerName: user.displayName || "AFIT Student",
+                vendorUid: vendorId, 
+                vendorName: vendorId, 
+                vendorEmail: targetEmail, 
+                productName: productName, 
+                lastMessage: "Started a conversation...",
+                updatedAt: serverTimestamp(),
+                expiresAt: expirationDate
+            });
+
+            window.location.href = `chat/?id=${chatRef.id}`;
+        } catch(e) {
+            console.error(e); alert("Failed to start chat. Check network.");
+            btn.innerHTML = '<i class="fas fa-comment-dots"></i> Message In-App (Secure)'; btn.disabled = false;
+        }
+    }
+
+    async function loadVendorFirestoreItems() {
+        let cachedProducts = getCachedData('cache_firestore_products');
+        if (cachedProducts) return cachedProducts;
+
+        try {
             const docRef = doc(db, "aggregations", "master_product_list");
             const docSnap = await getDoc(docRef);
-
             if (docSnap.exists()) {
                 const data = docSnap.data().items || [];
                 setCachedData('cache_firestore_products', data);
                 return data;
-            } else {
-                console.warn("Master document not found.");
-                return [];
-            }
-        } catch(e) { 
-            console.error("Aggregation Error:", e); 
-            return []; 
-        }
+            } else { return []; }
+        } catch(e) { return []; }
     }
 
-    // 🚀 UPGRADED ERROR FUNCTION 🚀
     function showError(title, msg) {
         document.getElementById('profile-skeleton').style.display = 'none'; 
         const errorBox = document.getElementById('error-message');
@@ -822,21 +1026,9 @@
     }
     
    window.shareVendor = function() {
-        // 1. Build the clean, short URL using the vendor ID
         const shortUrl = `${window.location.origin}/v/?${currentVendorID}`;
-        
-        // 2. Share the short URL!
-        if (navigator.share) { 
-            navigator.share({ 
-                title: document.title, 
-                url: shortUrl 
-            }); 
-        } else { 
-            // Fallback for desktop browsers: Copy the short link to clipboard
-            navigator.clipboard.writeText(shortUrl).then(() => {
-                alert("Short link copied to clipboard!"); 
-            });
-        }
+        if (navigator.share) { navigator.share({ title: document.title, url: shortUrl }); } 
+        else { navigator.clipboard.writeText(shortUrl).then(() => { alert("Short link copied to clipboard!"); }); }
     }
 
     window.toggleSave = async function(id, name, price, image, vendor) {
@@ -857,11 +1049,8 @@
         document.querySelectorAll('.save-btn').forEach(btn => {
             const id = btn.id.replace('save-', '');
             const icon = btn.querySelector('i');
-            if (savedItemIds.has(id)) {
-                icon.classList.replace('far', 'fas'); icon.style.color = '#ff4757';
-            } else {
-                icon.classList.replace('fas', 'far'); icon.style.color = '#777';
-            }
+            if (savedItemIds.has(id)) { icon.classList.replace('far', 'fas'); icon.style.color = '#ff4757'; } 
+            else { icon.classList.replace('fas', 'far'); icon.style.color = '#777'; }
         });
     }
 </script>
