@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login - AFIT Digital Market</title>
+    <title>My Account - AFIT Digital Market</title>
     
     <link rel="stylesheet" href="asset/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -23,14 +23,13 @@
 
         /* --- SMOOTH ANIMATIONS --- */
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        
         .fade-in-element { animation: fadeIn 0.4s ease-out forwards; }
 
-        /* --- LOGIN CARD --- */
+        /* --- LOGIN CARD (Logged out state) --- */
         .card-box {
             background: white; padding: 40px 30px; border-radius: 20px;
             box-shadow: 0 10px 30px rgba(0,0,0,0.08); text-align: center;
-            max-width: 400px; width: 100%; display: none; /* Hidden until loaded */
+            max-width: 400px; width: 100%; display: none;
         }
         
         .welcome-title { font-size: 24px; font-weight: 800; color: #2d8eff; margin-bottom: 10px; }
@@ -46,65 +45,73 @@
         .google-btn:hover { box-shadow: 0 6px 15px rgba(0,0,0,0.1); transform: translateY(-2px); }
         .google-btn:active { transform: scale(0.98); }
 
-        /* --- USER DASHBOARD --- */
-        .user-area { display: none; width: 100%; max-width: 450px; }
+        /* --- 🚀 NEW MODERN USER DASHBOARD --- */
+        .user-area { display: none; width: 100%; max-width: 450px; margin: 0 auto; }
         
-        .profile-header {
-            background: white; padding: 25px; border-radius: 20px;
-            box-shadow: 0 5px 20px rgba(0,0,0,0.05); text-align: center;
-            margin-bottom: 20px; position: relative; overflow: hidden;
+        /* Sleek Profile Card */
+        .modern-profile-card {
+            background: white; border-radius: 24px; padding: 30px 20px;
+            text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.04);
+            margin-bottom: 20px; position: relative;
         }
+        .modern-profile-card .user-img {
+            width: 80px; height: 80px; border-radius: 50%; object-fit: cover;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1); margin-bottom: 12px; border: 3px solid white; background: #eee;
+        }
+        .modern-profile-card .user-name { font-size: 22px; font-weight: 800; color: #333; margin: 0 0 5px; }
+        .modern-profile-card .user-email { font-size: 13px; color: #777; margin: 0 0 15px; }
+        .status-badge { 
+            display: inline-flex; align-items: center; gap: 5px; background: #e6fffa; 
+            color: #00b894; font-size: 11px; font-weight: bold; padding: 5px 12px; border-radius: 20px; 
+        }
+
+        /* iOS Style Menu Group */
+        .menu-group {
+            background: white; border-radius: 24px; padding: 10px 0;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.04); margin-bottom: 25px;
+        }
+        .menu-item {
+            display: flex; align-items: center; padding: 15px 20px;
+            text-decoration: none; color: #333; transition: background 0.2s;
+            border-bottom: 1px solid #f4f7f6;
+        }
+        .menu-item:last-child { border-bottom: none; }
+        .menu-item:active { background: #f9f9f9; }
         
-        .profile-header::before {
-            content: ""; position: absolute; top:0; left:0; width:100%; height:80px;
-            background: #2d8eff; z-index: 0;
+        .menu-icon-wrap {
+            width: 40px; height: 40px; border-radius: 12px; display: flex;
+            align-items: center; justify-content: center; font-size: 18px; margin-right: 15px;
         }
-        
-        .user-img {
-            width: 90px; height: 90px; border-radius: 50%; border: 4px solid white;
-            object-fit: cover; position: relative; z-index: 1; margin-top: 20px;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.1); background: #eee;
-        }
-        .user-name { font-size: 20px; font-weight: bold; margin-top: 10px; color: #333; position: relative; z-index: 1; }
-        .user-email { font-size: 13px; color: #777; margin-bottom: 5px; position: relative; z-index: 1; }
+        .menu-text { flex: 1; font-weight: 600; font-size: 15px; }
+        .menu-arrow { color: #ccc; font-size: 14px; }
 
-        .action-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
-        .action-card {
-            background: white; padding: 20px; border-radius: 15px; text-align: center;
-            text-decoration: none; color: #333; box-shadow: 0 4px 10px rgba(0,0,0,0.05);
-            transition: transform 0.2s; border: 1px solid transparent;
+        /* Modern Logout Button */
+        .logout-btn-modern {
+            background: #fff5f6; color: #ff4757; border: none;
+            padding: 16px; border-radius: 20px; width: 100%; font-weight: bold; font-size: 16px;
+            cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px;
+            transition: all 0.2s; box-shadow: 0 4px 10px rgba(255, 71, 87, 0.1);
         }
-        .action-card:active { transform: scale(0.96); }
-        .action-icon {
-            font-size: 24px; margin-bottom: 10px; color: #2d8eff;
-            background: #eef7ff; width: 50px; height: 50px; border-radius: 50%;
-            display: flex; align-items: center; justify-content: center; margin: 0 auto 10px;
-        }
-        .action-title { font-size: 14px; font-weight: 600; }
+        .logout-btn-modern:active { transform: scale(0.98); box-shadow: none; }
 
-        .logout-btn {
-            background: #fff5f6; color: #ff4757; border: 1px solid #ff4757;
-            padding: 12px; border-radius: 30px; width: 100%; font-weight: bold;
-            margin-top: 25px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;
-            transition: all 0.2s;
-        }
-        .logout-btn:active { transform: scale(0.98); }
-
-        /* --- PRELOADER (Fixes the flicker) --- */
+        /* --- PRELOADER --- */
         #auth-loader { text-align: center; padding: 50px 20px; }
 
         /* --- DARK MODE FIXES --- */
         body.dark-mode { background: #121212; }
         body.dark-mode .card-box, 
-        body.dark-mode .profile-header, 
-        body.dark-mode .action-card { background: #1e1e1e; box-shadow: 0 10px 30px rgba(0,0,0,0.5); border-color: #333; }
+        body.dark-mode .modern-profile-card, 
+        body.dark-mode .menu-group { background: #1e1e1e; box-shadow: 0 10px 30px rgba(0,0,0,0.5); border-color: #333; }
         body.dark-mode .welcome-text, body.dark-mode .user-email { color: #aaa; }
-        body.dark-mode .user-name, body.dark-mode .action-card { color: #eee; }
+        body.dark-mode .user-name, body.dark-mode .menu-item { color: #eee; }
         body.dark-mode h4 { color: #ccc !important; }
         body.dark-mode .google-btn { background: #2a2a2a; color: #fff; border-color: #444; }
-        body.dark-mode .action-icon { background: #2a2a2a !important; }
-        body.dark-mode .logout-btn { background: rgba(255, 71, 87, 0.1); }
-        body.dark-mode .user-img { border-color: #1e1e1e; }
+        
+        body.dark-mode .menu-item { border-bottom-color: #2a2a2a; }
+        body.dark-mode .menu-item:active { background: #222; }
+        body.dark-mode .status-badge { background: rgba(0, 184, 148, 0.1); }
+        body.dark-mode .logout-btn-modern { background: #2a1618; box-shadow: none; }
+        body.dark-mode .modern-profile-card .user-img { border-color: #1e1e1e; }
     </style>
 </head>
 <body>
@@ -143,35 +150,48 @@
 
             <div id="user-area" class="user-area fade-in-element">
                 
-                <div class="profile-header">
+                <div class="modern-profile-card">
                     <img id="user-pic" class="user-img" src="" alt="Profile" onerror="this.src='img/person.png'">
                     <h3 id="user-name" class="user-name"></h3>
                     <p id="user-email" class="user-email"></p>
-                    <div style="font-size:11px; color:#2d8eff; font-weight:bold; margin-top:5px;">● Active Session</div>
+                    <div class="status-badge">
+                        <i class="fas fa-circle" style="font-size:8px;"></i> Active Session
+                    </div>
                 </div>
 
-                <h4 style="margin: 0 0 15px 5px; color:#555;">What would you like to do?</h4>
+                <div class="menu-group">
+                    <a href="index.html" class="menu-item">
+                        <div class="menu-icon-wrap" style="background:#eef7ff; color:#2d8eff;"><i class="fas fa-home"></i></div>
+                        <div class="menu-text">Home Page</div>
+                        <i class="fas fa-chevron-right menu-arrow"></i>
+                    </a>
+                    
+                    <a href="inbox/" class="menu-item">
+                        <div class="menu-icon-wrap" style="background:#eef7ff; color:#2d8eff;"><i class="fas fa-envelope"></i></div>
+                        <div class="menu-text">Messages / Inbox</div>
+                        <i class="fas fa-chevron-right menu-arrow"></i>
+                    </a>
 
-                <div class="action-grid">
-                    <a href="index.html" class="action-card">
-                        <div class="action-icon"><i class="fas fa-home"></i></div>
-                        <div class="action-title">Go Home</div>
+                    <a href="vendors/" class="menu-item">
+                        <div class="menu-icon-wrap" style="background:#f3e5f5; color:#9c27b0;"><i class="fas fa-store"></i></div>
+                        <div class="menu-text">Browse Shops</div>
+                        <i class="fas fa-chevron-right menu-arrow"></i>
                     </a>
-                    <a href="vendors/" class="action-card">
-                        <div class="action-icon" style="color:#9c27b0; background:#f3e5f5;"><i class="fas fa-store"></i></div>
-                        <div class="action-title">Browse Shops</div>
+
+                    <a href="saved.html" class="menu-item">
+                        <div class="menu-icon-wrap" style="background:#fff5f6; color:#ff4757;"><i class="fas fa-heart"></i></div>
+                        <div class="menu-text">Saved Items</div>
+                        <i class="fas fa-chevron-right menu-arrow"></i>
                     </a>
-                    <a href="saved.html" class="action-card">
-                        <div class="action-icon" style="color:#ff4757; background:#fff5f6;"><i class="fas fa-heart"></i></div>
-                        <div class="action-title">Saved Items</div>
-                    </a>
-                    <a href="requests.html" class="action-card">
-                        <div class="action-icon" style="color:#ffa502; background:#fff8e1;"><i class="fas fa-bullhorn"></i></div>
-                        <div class="action-title">My Requests</div>
+
+                    <a href="requests.html" class="menu-item">
+                        <div class="menu-icon-wrap" style="background:#fff8e1; color:#ffa502;"><i class="fas fa-bullhorn"></i></div>
+                        <div class="menu-text">My Requests</div>
+                        <i class="fas fa-chevron-right menu-arrow"></i>
                     </a>
                 </div>
 
-                <button id="btn-logout" class="logout-btn">
+                <button id="btn-logout" class="logout-btn-modern">
                     <i class="fas fa-sign-out-alt"></i> Log Out
                 </button>
 
@@ -252,7 +272,7 @@
                                     <p>We are absolutely thrilled to have you here! You can now:</p>
                                     <ul>
                                         <li>❤️ Save your favorite items to your wishlist</li>
-                                        <li>💬 Contact campus vendors directly on WhatsApp</li>
+                                        <li>💬 Contact campus vendors securely via In-App Chat</li>
                                         <li>📢 Post public requests for items you need to buy</li>
                                     </ul>
                                     <p>Happy hunting!</p>
@@ -263,10 +283,7 @@
                     });
                 }
 
-                // Smart Redirect after successful login!
-                if(redirectTo) {
-                    window.location.href = redirectTo;
-                }
+                if(redirectTo) { window.location.href = redirectTo; }
 
             } catch (error) {
                 alert("Login failed: " + error.message);
@@ -293,7 +310,6 @@
                 userEmail.innerText = user.email;
                 userPic.src = user.photoURL || "img/person.png";
                 
-                // Extra check for smart redirect if they were already logged in
                 if(redirectTo) window.location.href = redirectTo;
 
             } else {

@@ -124,6 +124,38 @@
         body.dark-mode .auth-title { color: #eee !important; }
         body.dark-mode .delete-chat-btn { background: #3a1c1e; color: #ff6b81; }
         body.dark-mode .delete-chat-btn:hover { background: #ff4757; color: white; }
+        /* --- INBOX SKELETON LOADER --- */
+        .skeleton-pulse {
+            animation: skeleton-loading 1.5s infinite ease-in-out;
+            background-color: #eee;
+            background-image: linear-gradient(90deg, #eee, #f5f5f5, #eee);
+            background-size: 200px 100%;
+            background-repeat: no-repeat;
+        }
+        @keyframes skeleton-loading {
+            0% { background-position: -200px 0; }
+            100% { background-position: calc(200px + 100%) 0; }
+        }
+        .sk-chat-card { display: flex; gap: 15px; padding: 15px; background: white; margin-bottom: 10px; border-radius: 12px; box-shadow: 0 2px 5px rgba(0,0,0,0.02); }
+        .sk-avatar { width: 50px; height: 50px; border-radius: 50%; flex-shrink: 0; }
+        .sk-lines { flex: 1; display: flex; flex-direction: column; gap: 8px; justify-content: center; }
+        .sk-line { height: 12px; border-radius: 4px; }
+        
+        /* --- FIXED ROLE BADGES --- */
+        .role-badge {
+            display: inline-flex; align-items: center; gap: 4px;
+            font-size: 10px; font-weight: bold; padding: 4px 8px; 
+            border-radius: 6px; white-space: nowrap; 
+            flex-shrink: 0; /* 🚀 Stops it from getting squished! */
+        }
+        .badge-sell { background: #e6fffa; color: #00b894; }
+        .badge-buy { background: #f3e8ff; color: #6c5ce7; }
+
+        /* Dark Mode Support for Skeletons & Badges */
+        body.dark-mode .skeleton-pulse { background-color: #222; background-image: linear-gradient(90deg, #222, #333, #222); }
+        body.dark-mode .sk-chat-card { background: #1e1e1e; box-shadow: none; border: 1px solid #333; }
+        body.dark-mode .badge-sell { background: rgba(0, 184, 148, 0.15); }
+        body.dark-mode .badge-buy { background: rgba(108, 92, 231, 0.15); }
     </style>
 </head>
 <body>
@@ -141,7 +173,7 @@
 
     <div class="header">
         <div style="flex: 1; display: flex; justify-content: flex-start;">
-            <a href="../account.html" class="back-btn" style="text-decoration: none; color: #333; font-weight: 600;">
+            <a href="../" class="back-btn" style="text-decoration: none; color: #333; font-weight: 600;">
                 <i class="fas fa-arrow-left"></i> 
             </a>
         </div>
@@ -157,9 +189,31 @@
 
     <div class="chat-list-container">
 
-        <div id="loading-state">
-            <i class="fas fa-circle-notch fa-spin" style="font-size:30px; color:#2d8eff; margin-bottom:15px;"></i>
-            <p style="color:#777; font-size:13px;">Loading your chats...</p>
+        <div id="skeleton-state" style="display: none; padding: 0 15px;">
+            <div class="sk-chat-card">
+                <div class="skeleton-pulse sk-avatar"></div>
+                <div class="sk-lines">
+                    <div class="skeleton-pulse sk-line" style="width: 40%;"></div>
+                    <div class="skeleton-pulse sk-line" style="width: 60%;"></div>
+                    <div class="skeleton-pulse sk-line" style="width: 80%;"></div>
+                </div>
+            </div>
+            <div class="sk-chat-card">
+                <div class="skeleton-pulse sk-avatar"></div>
+                <div class="sk-lines">
+                    <div class="skeleton-pulse sk-line" style="width: 50%;"></div>
+                    <div class="skeleton-pulse sk-line" style="width: 70%;"></div>
+                    <div class="skeleton-pulse sk-line" style="width: 90%;"></div>
+                </div>
+            </div>
+            <div class="sk-chat-card">
+                <div class="skeleton-pulse sk-avatar"></div>
+                <div class="sk-lines">
+                    <div class="skeleton-pulse sk-line" style="width: 30%;"></div>
+                    <div class="skeleton-pulse sk-line" style="width: 50%;"></div>
+                    <div class="skeleton-pulse sk-line" style="width: 75%;"></div>
+                </div>
+            </div>
         </div>
 
         <div id="not-signed-in-state">
@@ -173,7 +227,7 @@
             <i class="far fa-comments" style="font-size:45px; margin-bottom:15px; color:#ccc;"></i>
             <h3 class="auth-title" style="margin:0 0 10px 0; color:#333;">No Messages Yet</h3>
             <p style="font-size: 14px; color:#777; line-height: 1.5;">When you contact a vendor or a customer messages you, it will appear here.</p>
-            <a href="../index.html" class="btn-submit" style="display:inline-block; background:#2d8eff; color:white; padding:12px 30px; border-radius:10px; text-decoration:none; margin-top:15px; font-weight:bold;">Explore Market</a>
+            <a href="../" class="btn-submit" style="display:inline-block; background:#2d8eff; color:white; padding:12px 30px; border-radius:10px; text-decoration:none; margin-top:15px; font-weight:bold;">Explore Market</a>
         </div>
 
         <div id="chat-list"></div>
@@ -182,7 +236,7 @@
 
     <script src="../asset/script.js"></script>
 
-   <script type="module">
+  <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
         import { getFirestore, collection, query, where, orderBy, onSnapshot, doc, deleteDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
@@ -218,14 +272,14 @@
 
         onAuthStateChanged(auth, (user) => {
             const preloader = document.getElementById('preloader');
-            const loadingState = document.getElementById('loading-state');
+            const skeletonState = document.getElementById('skeleton-state'); // 🚀 Targeted the new skeleton
             
             if (user) {
-                loadingState.style.display = 'block';
+                skeletonState.style.display = 'block';
                 loadInbox(user.uid);
             } else {
                 if(preloader) preloader.style.display = 'none';
-                loadingState.style.display = 'none';
+                skeletonState.style.display = 'none';
                 document.getElementById('not-signed-in-state').style.display = 'block'; 
             }
         });
@@ -233,7 +287,7 @@
         function loadInbox(currentUid) {
             const chatListDiv = document.getElementById('chat-list');
             const emptyState = document.getElementById('empty-state');
-            const loadingState = document.getElementById('loading-state');
+            const skeletonState = document.getElementById('skeleton-state');
             const preloader = document.getElementById('preloader');
 
             const myEmail = auth.currentUser.email ? auth.currentUser.email.toLowerCase().trim() : "";
@@ -247,7 +301,7 @@
 
             unsubscribe = onSnapshot(q, (snapshot) => {
                 if(preloader) preloader.style.display = 'none';
-                loadingState.style.display = 'none';
+                skeletonState.style.display = 'none'; // Hide skeleton when loaded
 
                 if (snapshot.empty) {
                     chatListDiv.innerHTML = "";
@@ -262,7 +316,6 @@
                     const chat = docSnap.data();
                     const chatId = docSnap.id;
                     
-                    // Determine if the logged-in user is the vendor for THIS specific product
                     const isVendor = chat.vendorEmail === myEmail;
                     const displayName = isVendor ? chat.customerName : chat.vendorName;
                     
@@ -274,11 +327,12 @@
 
                     const updatedIsoString = chat.updatedAt ? chat.updatedAt.toDate().toISOString() : new Date().toISOString();
 
-                    // 🚀 NEW: Dynamic Buying/Selling Badges
+                    // 🚀 FIXED: New Role Badges using the new CSS classes!
                     const roleBadge = isVendor 
-                        ? `<span style="background: #e6fffa; color: #00b894; padding: 3px 6px; border-radius: 4px; margin-right: 5px; font-weight: bold;"><i class="fas fa-tag"></i> Selling</span>` 
-                        : `<span style="background: #f3e8ff; color: #6c5ce7; padding: 3px 6px; border-radius: 4px; margin-right: 5px; font-weight: bold;"><i class="fas fa-shopping-bag"></i> Buying</span>`;
+                        ? `<span class="role-badge badge-sell"><i class="fas fa-tag"></i> Selling</span>` 
+                        : `<span class="role-badge badge-buy"><i class="fas fa-shopping-bag"></i> Buying</span>`;
 
+                    // 🚀 FIXED: Gap added to chat-product row, flex: 1 added to product title
                     chatListDiv.innerHTML += `
                         <a href="../chat/?id=${chatId}" class="chat-card">
                             <div class="chat-avatar">${initial}</div>
@@ -287,9 +341,9 @@
                                     <div class="chat-name">${safeName}</div>
                                     <div class="chat-time">${timeStr}</div>
                                 </div>
-                                <div class="chat-product" style="background:none; padding:0; display:flex; align-items:center; margin-bottom: 4px;">
+                                <div class="chat-product" style="background:none; padding:0; display:flex; align-items:center; gap: 8px; margin-bottom: 4px;">
                                     ${roleBadge} 
-                                    <span style="color:#555; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 150px;">${safeProduct}</span>
+                                    <span style="color:#555; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; flex: 1;">${safeProduct}</span>
                                 </div>
                                 <div class="chat-preview">${safeMessage}</div>
                             </div>
@@ -303,7 +357,7 @@
             }, (error) => {
                 console.error("Error fetching chats:", error);
                 if(preloader) preloader.style.display = 'none';
-                loadingState.style.display = 'none';
+                skeletonState.style.display = 'none';
                 chatListDiv.innerHTML = `<p style="text-align:center; color:red; font-size:13px;">Error loading messages. Please refresh.</p>`;
             });
         }

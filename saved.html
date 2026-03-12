@@ -47,7 +47,6 @@
           position: relative;
       }
 
-      /* Description Box Style */
       .desc-box {
           max-height: 200px; 
           overflow-y: auto; 
@@ -58,32 +57,38 @@
       }
 
       /* Quick Action Buttons on Card */
-      .action-row {
-          display: flex;
-          gap: 5px;
-          margin-top: 5px;
-      }
+      .action-row { display: flex; gap: 5px; margin-top: 5px; }
       .quick-chat-btn {
-          background: #eef7ff; color: #2d8eff;
-          border: none; border-radius: 8px;
+          background: #eef7ff; color: #2d8eff; border: none; border-radius: 8px;
           width: 40px; display: flex; align-items: center; justify-content: center;
           cursor: pointer; transition: 0.2s; font-size: 14px;
       }
       .quick-chat-btn:active { transform: scale(0.95); background: #dceefc; }
 
-      /* Modal Buttons */
       .btn-whatsapp {
-          background: #25D366; color: white; width: 100%;
-          text-align: center; display: block; padding: 14px;
-          border-radius: 10px; text-decoration: none; font-weight: bold;
-          margin-bottom: 10px; box-shadow: 0 4px 10px rgba(37, 211, 102, 0.2);
+          background: #25D366; color: white; width: 100%; text-align: center; display: block; padding: 14px;
+          border-radius: 10px; text-decoration: none; font-weight: bold; margin-bottom: 10px; box-shadow: 0 4px 10px rgba(37, 211, 102, 0.2);
       }
       .btn-inapp {
-          background: #2d8eff; color: white; width: 100%;
-          text-align: center; display: block; padding: 14px; border: none; cursor: pointer;
-          border-radius: 10px; text-decoration: none; font-weight: bold; font-size: 14px;
-          box-shadow: 0 4px 10px rgba(45, 142, 255, 0.2); font-family: inherit;
+          background: #2d8eff; color: white; width: 100%; text-align: center; display: block; padding: 14px; border: none; cursor: pointer;
+          border-radius: 10px; text-decoration: none; font-weight: bold; font-size: 14px; box-shadow: 0 4px 10px rgba(45, 142, 255, 0.2); font-family: inherit;
       }
+
+      /* 🚀 NEW MODERN EMPTY STATE STYLES */
+      .empty-icon-wrap {
+          width: 80px; height: 80px; background: #ffeef0; color: #ff4757;
+          border-radius: 50%; display: flex; align-items: center; justify-content: center;
+          font-size: 35px; margin: 0 auto 20px; box-shadow: 0 10px 20px rgba(255, 71, 87, 0.1);
+      }
+      .empty-title { font-size: 22px; font-weight: 800; color: #333; margin: 0 0 10px; }
+      .empty-text { font-size: 14px; color: #777; line-height: 1.5; margin: 0 auto 25px; max-width: 280px; }
+      .modern-shop-btn {
+          display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+          background: #2d8eff; color: white; text-decoration: none; font-weight: bold;
+          padding: 14px 30px; border-radius: 30px; font-size: 15px;
+          box-shadow: 0 4px 15px rgba(45, 142, 255, 0.3); transition: transform 0.2s;
+      }
+      .modern-shop-btn:active { transform: scale(0.95); }
 
       /* Dark Mode Fixes */
       body.dark-mode .modal-sheet { background: #1e1e1e !important; color: white; }
@@ -92,12 +97,13 @@
       body.dark-mode .desc-box { background: #333 !important; color: #ddd; }
       body.dark-mode .auth-title { color: #eee !important; }
       body.dark-mode .quick-chat-btn { background: #2a2a2a; }
+      
+      body.dark-mode .empty-title { color: #eee; }
+      body.dark-mode .empty-text { color: #aaa; }
+      body.dark-mode .empty-icon-wrap { background: rgba(255, 71, 87, 0.1); }
 
       /* --- SKELETON LOADING STYLES --- */
-      @keyframes skeleton-loading {
-          0% { background-position: -200px 0; }
-          100% { background-position: calc(200px + 100%) 0; }
-      }
+      @keyframes skeleton-loading { 0% { background-position: -200px 0; } 100% { background-position: calc(200px + 100%) 0; } }
       .skeleton-card { background: #fff; border-radius: 10px; padding: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); display: flex; flex-direction: column; gap: 8px; height: 220px; position: relative; }
       .sk-img-rect { width: 100%; height: 120px; border-radius: 8px; background: #eee; background-image: linear-gradient(90deg, #eee, #f5f5f5, #eee); background-size: 200px 100%; animation: skeleton-loading 1.5s infinite linear; }
       .sk-text-short { width: 40%; height: 15px; background: #eee; background-image: linear-gradient(90deg, #eee, #f5f5f5, #eee); background-size: 200px 100%; border-radius: 4px; animation: skeleton-loading 1.5s infinite linear; }
@@ -150,10 +156,15 @@
             <a href="login.html" class="chat-btn" style="display:inline-block; width:auto; margin-top:20px; padding: 12px 30px;">Sign In Now</a>
         </div>
 
-        <div id="empty-state" style="display:none; text-align:center; padding:50px; color:#888;">
-            <i class="far fa-heart" style="font-size:40px; margin-bottom:15px; opacity:0.5;"></i>
-            <p>You haven't saved any items yet.</p>
-            <a href="index.html" class="chat-btn" style="display:inline-block; width:auto; margin-top:15px;">Start Shopping</a>
+        <div id="empty-state" style="display:none; text-align:center; padding:60px 20px;">
+            <div class="empty-icon-wrap">
+                <i class="far fa-heart"></i>
+            </div>
+            <h3 class="empty-title">No Saved Items</h3>
+            <p class="empty-text">You haven't saved anything yet. Discover amazing campus deals and save them here for later!</p>
+            <a href="index.html" class="modern-shop-btn">
+                <i class="fas fa-shopping-bag"></i> Start Shopping
+            </a>
         </div>
 
         <footer class="site-footer">
@@ -218,8 +229,8 @@
         const apiRoot = `https://opensheet.elk.sh/${sheetID}`;
         const ADMIN_PHONE = "2348144516127";
         
-        let globalPhoneBook = {}; // Stores phone numbers
-        let globalEmailBook = {}; // Stores emails for notifications
+        let globalPhoneBook = {}; 
+        let globalEmailBook = {}; 
         let masterProductList = [];
 
         let lastVisibleDoc = null;
@@ -243,19 +254,16 @@
 
        async function loadMasterData() {
             try {
-                // 🚀 FIXED: Fetch BOTH Vendor Sheets so we don't miss any emails!
                 const [v1, v2] = await Promise.all([
                     fetch(`${apiRoot}/Vendors`).then(res => res.json().catch(()=>[])),
                     fetch(`${apiRoot}/Vendors_v2`).then(res => res.json().catch(()=>[]))
                 ]);
                 const allVendors = [...(Array.isArray(v1)?v1:[]), ...(Array.isArray(v2)?v2:[])];
                 
-                // Build the Phone and Email books safely
                 allVendors.forEach(v => {
                     const vID = String(v.vendor_id || v.Vendor_ID || "").toUpperCase().trim();
                     if(vID) {
                         globalPhoneBook[vID] = String(v.whatsapp || v.Whatsapp || "").replace(/[^0-9]/g, '');
-                        // Force email to lowercase for perfect matching
                         globalEmailBook[vID] = String(v.email || v.Email || "").toLowerCase().trim();
                     }
                 });
@@ -325,10 +333,8 @@
                     const safeDesc = String(pDesc).replace(/'/g, "\\'").replace(/"/g, "&quot;").replace(/\n/g, " ");
                     const safePrice = String(pPrice).replace(/'/g, "\\'");
 
-                    // Define Modal Click Action
                     const btnAction = `openDetailModal('${safeName}', '${safePrice}', '${safeDesc}', '${pVendor}', '${vendorPhone}', '${vendorEmail}')`;
 
-                    // We add the fast Chat icon next to Get Item
                     grid.innerHTML += `
                     <div class="ad-card" id="card-${pID}" style="position:relative;">
                         <button onclick="removeSavedItem('${pID}')" style="position:absolute; top:10px; right:10px; background:rgba(255,255,255,0.9); border:none; border-radius:50%; width:30px; height:30px; display:flex; align-items:center; justify-content:center; cursor:pointer; box-shadow:0 2px 5px rgba(0,0,0,0.1); z-index:10;">
@@ -368,20 +374,15 @@
             }
         }
 
-        // ================== MODAL & CHAT LOGIC ==================
-
-        // Open Modal (Assigns BOTH button functions)
         window.openDetailModal = function(title, price, desc, vendorId, phone, vendorEmail) {
             document.getElementById('m-title').innerText = title;
             document.getElementById('m-price').innerText = price;
             document.getElementById('m-desc').innerText = desc;
             document.getElementById('m-vendor').innerText = "Vendor: " + vendorId;
             
-            // Button 1: WhatsApp
             const waMsg = encodeURIComponent(`Hi, I saw "${title}" on AFIT Market (Price: ${price}). Is it available?`);
             document.getElementById('btn-wa').href = `https://wa.me/${phone}?text=${waMsg}`;
             
-            // Button 2: In-App Chat
             document.getElementById('btn-inapp').onclick = function() {
                 startRealChat(title, vendorId, vendorEmail);
             };
@@ -389,7 +390,6 @@
             document.getElementById('detail-modal').style.display = 'flex';
         };
 
-       // Create Real Firebase Chat
         window.startRealChat = async function(productName, vendorId, vendorEmail) {
             const user = auth.currentUser;
             if (!user) {
@@ -408,7 +408,6 @@
 
                 const targetEmail = vendorEmail || "afitdgm@gmail.com";
 
-                // 🚀 FIXED: We now put the targetEmail in the participants array!
                 const chatRef = await addDoc(collection(db, "chats"), {
                     participants: [user.uid, targetEmail], 
                     customerUid: user.uid,
@@ -433,6 +432,7 @@
             }
         }
 
+        // 🚀 THE FIX: Check if grid is empty after deleting
         window.removeSavedItem = async function(docID) {
             if(!confirm("Remove this item?")) return;
             const user = auth.currentUser;
@@ -441,7 +441,20 @@
             if(card) card.style.opacity = "0.5";
             try {
                 await deleteDoc(doc(db, "users", user.uid, "saved_items", docID));
-                if(card) { card.style.transform = "scale(0)"; setTimeout(() => card.remove(), 300); }
+                savedItemIds.delete(docID);
+                
+                if(card) { 
+                    card.style.transform = "scale(0)"; 
+                    setTimeout(() => {
+                        card.remove();
+                        // Check if the grid is now empty
+                        const grid = document.getElementById('saved-grid');
+                        if (grid.children.length === 0) {
+                            grid.style.display = 'none';
+                            document.getElementById('empty-state').style.display = 'block';
+                        }
+                    }, 300); 
+                }
             } catch (err) {
                 alert("Could not remove item.");
                 if(card) card.style.opacity = "1";

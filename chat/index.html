@@ -209,7 +209,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-        import { getFirestore, doc, getDoc, setDoc, addDoc, collection, query, orderBy, onSnapshot, serverTimestamp, increment } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getFirestore, doc, getDoc, setDoc, addDoc, collection, query, orderBy, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyA1eQbrJpH9OtDNDN7z9oTFTRSAE7vCFbg",
@@ -245,8 +245,17 @@
             return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
         }
 
+        // 1. Make text secure from hackers
         function escapeHTML(str) {
             return String(str).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+        }
+
+        // 2. 🚀 NEW: Find URLs and turn them into clickable links
+        function linkify(text) {
+            const urlRegex = /(https?:\/\/[^\s]+)/g;
+            return text.replace(urlRegex, function(url) {
+                return `<a href="${url}" target="_blank" style="color: inherit; text-decoration: underline; font-weight: bold;">${url}</a>`;
+            });
         }
 
         onAuthStateChanged(auth, async (user) => {
@@ -294,7 +303,6 @@
             
             onSnapshot(q, (snapshot) => {
                 
-                // Trigger Lead Capture Form
                 if (snapshot.size === 0 && !isVendor) {
                     introOverlay.style.display = 'flex';
                     document.getElementById('chat-form').style.display = 'none';
@@ -303,7 +311,6 @@
                     document.getElementById('chat-form').style.display = 'flex';
                 }
 
-                // Clear previous messages 
                 const existingMessages = chatArea.querySelectorAll('.msg-row');
                 existingMessages.forEach(el => el.remove());
                 
@@ -314,8 +321,13 @@
                     
                     let mediaHTML = msg.imageUrl ? `<img src="${msg.imageUrl}" class="bubble-img" onclick="window.open('${msg.imageUrl}', '_blank')">` : "";
                     
-                    // 🚀 TEXT ALIGNMENT FIX: Wraps text in a div to enforce formatting
-                    let textHTML = msg.text ? `<div class="msg-text-content">${escapeHTML(msg.text)}</div>` : "";
+                    let textHTML = "";
+                    if (msg.text) {
+                        // 🚀 Apply security first, then convert links!
+                        let safeText = escapeHTML(msg.text);
+                        safeText = linkify(safeText);
+                        textHTML = `<div class="msg-text-content">${safeText}</div>`;
+                    }
 
                     chatArea.innerHTML += `
                         <div class="msg-row ${isMine ? 'mine' : 'theirs'}">
@@ -332,7 +344,6 @@
             });
         }
 
-        // ================= IMAGE HANDLING =================
         window.previewImage = function(input) {
             if (input.files && input.files[0]) {
                 selectedImageFile = input.files[0];
@@ -360,8 +371,6 @@
             const data = await res.json();
             return data.data.url;
         }
-
-        // ================= MESSAGE LOGIC =================
         
         window.sendIntroMessage = async function() {
             const name = document.getElementById('intro-name').value.trim();
@@ -370,7 +379,6 @@
 
             if(!name || !phone || !msg) return alert("Please fill all fields to start the chat.");
 
-            // Removed the asterisks formatting from the lead capture to make it look cleaner in the bubble
             const formattedText = `📞 Contact Info:\nName: ${name}\nWhatsApp: ${phone}\n\nMessage:\n${msg}`;
             
             introOverlay.style.display = 'none';
@@ -396,7 +404,7 @@
             sendBtn.disabled = true;
         }
 
-       async function processSendMessage(text, imageFile) {
+        async function processSendMessage(text, imageFile) {
             try {
                 let uploadedImgUrl = null;
                 if(imageFile) { uploadedImgUrl = await uploadToImgBB(imageFile); }
@@ -408,7 +416,6 @@
                     timestamp: serverTimestamp()
                 };
 
-                // 1. Save the message
                 await addDoc(collection(db, "chats", CHAT_ID, "messages"), messageData);
 
                 let chatUpdateData = {
@@ -416,7 +423,6 @@
                     updatedAt: serverTimestamp()
                 };
 
-                // 2. Trigger Email to Vendor (if first message)
                 if (!isVendor && !chatDataObj.customerHasMessaged) {
                     chatUpdateData.customerHasMessaged = true;
                     if(chatDataObj.vendorEmail) {
@@ -428,7 +434,6 @@
                     }
                 }
 
-                // 3. Trigger Email to Customer (if first reply)
                 if (isVendor && !chatDataObj.vendorHasReplied) {
                     chatUpdateData.vendorHasReplied = true;
                     if(chatDataObj.customerEmail) {
@@ -440,10 +445,8 @@
                     }
                 }
 
-                // 4. Update the main chat document
                 await setDoc(doc(db, "chats", CHAT_ID), chatUpdateData, { merge: true });
                 
-                // 5. Clear the input box properly
                 msgInput.value = "";
                 clearImageSelection();
 
@@ -454,7 +457,7 @@
                 alert("Failed to send message. Check network.");
             }
         }
-        
+
         async function triggerEmail(toEmail, subject, bodyHtml) {
             try {
                 await addDoc(collection(db, "mail"), {
