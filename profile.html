@@ -634,18 +634,20 @@
         }).catch(err => { showError("Connection Error", "Check your internet connection and try again."); });
     }
 
-    // ==========================================
-    // 🚀 NEW VENDOR REVIEWS LOGIC
+// ==========================================
+    // 🚀 NEW VENDOR REVIEWS LOGIC (INDEX BYPASS FIX)
     // ==========================================
     async function loadVendorReviews(vendorId) {
         const container = document.getElementById('vendor-reviews-container');
         try {
-            const q = query(collection(db, "vendor_reviews"), where("vendorId", "==", vendorId), orderBy("timestamp", "desc"));
+            // 🚀 FIX: Removed orderBy from Firebase query to bypass the Index error
+            const q = query(collection(db, "vendor_reviews"), where("vendorId", "==", vendorId));
             const querySnapshot = await getDocs(q);
             
             let totalStars = 0;
             let reviewCount = 0;
             let html = "";
+            let reviewsArray = [];
 
             if (querySnapshot.empty) {
                 container.innerHTML = `
@@ -656,8 +658,19 @@
                 return;
             }
 
+            // Push all reviews into an array
             querySnapshot.forEach((doc) => {
-                const data = doc.data();
+                reviewsArray.push(doc.data());
+            });
+
+            // 🚀 FIX: Sort them locally using JavaScript instead of Firebase!
+            reviewsArray.sort((a, b) => {
+                const timeA = a.timestamp ? a.timestamp.seconds : 0;
+                const timeB = b.timestamp ? b.timestamp.seconds : 0;
+                return timeB - timeA; // Newest first
+            });
+
+            reviewsArray.forEach((data) => {
                 totalStars += data.rating;
                 reviewCount++;
                 
@@ -684,7 +697,7 @@
 
         } catch (error) {
             console.error("Error loading reviews:", error);
-            container.innerHTML = "<p style='width:100%; text-align:center; color:red; font-size:12px;'>Could not load reviews.</p>";
+            container.innerHTML = "<p style='width:100%; text-align:center; color:red; font-size:12px;'>Could not load reviews. Check console.</p>";
         }
     }
 
