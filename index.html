@@ -518,7 +518,6 @@
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
     import { getAuth, onAuthStateChanged, signInWithPopup, GoogleAuthProvider, getAdditionalUserInfo } 
     from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-    // 🚀 Added addDoc and serverTimestamp for chat
     import { getFirestore, doc, setDoc, deleteDoc, collection, getDocs, query, getDoc, where, addDoc, orderBy, limit, serverTimestamp } 
     from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
@@ -543,7 +542,7 @@
     let allProducts = [];
     let allVendors = [];
     let globalPhoneBook = {}; 
-    let globalEmailBook = {}; // 🚀 Added Email Book
+    let globalEmailBook = {}; 
     let suspendedVendors = new Set(); 
 
     const algoliaClient = algoliasearch('IQSHEYK1XF', 'b78824ffc8318be2ef8c725cf902386a');
@@ -683,6 +682,7 @@
        if (additionalInfo && additionalInfo.isNewUser) {
            await addDoc(collection(db, "mail"), {
                to: result.user.email,
+               createdAt: serverTimestamp(),
                message: {
                    subject: "Welcome to AFIT Digital Market! 🎉",
                    html: `<div style="font-family: Arial, sans-serif; color: #333; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eaeaea; border-radius: 10px;"><h2 style="color: #0056b3;">Welcome to AFIT Digital Market! 🎓</h2><p>Hi ${result.user.displayName || "there"},</p><p>We are absolutely thrilled to have you here! You can now:</p><ul><li>❤️ Save your favorite items to your wishlist</li><li>💬 Contact campus vendors directly on WhatsApp</li><li>📢 Post public requests for items you need to buy</li></ul><p>Happy hunting!</p><p><strong>- The AFIT Digital Market Team</strong></p></div>`
@@ -718,7 +718,6 @@
                return !isSuspended && verifyStatus !== "false";
            });
 
-           // 🚀 Map Phone and Email globally
            allVendors.forEach(v => {
                const vID = String(v.vendor_id || v.Vendor_ID).toUpperCase().trim();
                if(vID) {
@@ -859,7 +858,13 @@
 
    window.toggleSave = async function(id, name, price, image, vendor) {
        const user = auth.currentUser;
-       if (!user) { document.getElementById('login-modal').style.display = 'flex'; return; }
+       if (!user) { 
+            const loginModal = document.getElementById('login-modal');
+            const pTag = loginModal.querySelector('p');
+            if(pTag) pTag.innerText = "Please login to save items.";
+            loginModal.style.display = 'flex'; 
+            return; 
+       }
        const btn = document.getElementById(`save-${id}`);
        const icon = btn.querySelector('i');
        const userRef = doc(db, "users", user.uid, "saved_items", id);
@@ -867,7 +872,7 @@
        if (savedItemIds.has(id)) {
            savedItemIds.delete(id); await deleteDoc(userRef);
        } else {
-           savedItemIds.add(id); await setDoc(userRef, { product_id: id, name, price, image, vendor, saved_at: new Date() });
+           savedItemIds.add(id); await setDoc(userRef, { product_id: id, name: name, price: price, image: image, vendor: vendor, saved_at: new Date() });
        }
        updateHeartIcons(); 
    };
@@ -881,15 +886,17 @@
        });
    }
 
-   // 🚀 MODIFIED TO ACCEPT VENDOR PARAMS FOR CHAT
+   // 🚀 FIXED: MODAL LAUNCHER (Updated button ID reference)
    window.viewProduct = function(name, price, desc, img, phone, category, vendorId, vendorEmail) {
        document.getElementById('m-title').innerText = name;
        document.getElementById('m-price').innerText = price;
        document.getElementById('m-desc').innerText = desc || "No description provided.";
        document.getElementById('m-category').innerText = "Category: " + category;
-       document.getElementById('m-btn').href = `https://wa.me/${phone}?text=${encodeURIComponent(`Hi, I saw "${name}" on AFIT Market. Is it available?`)}`;
        
-       // Wire up the new Chat button
+       // Fixed the button ID here!
+       const waMsg = encodeURIComponent(`Hi, I saw "${name}" on AFIT Market (Price: ${price}). Is it available?`);
+       document.getElementById('btn-wa').href = `https://wa.me/${phone}?text=${waMsg}`;
+       
        document.getElementById('btn-inapp').onclick = function() {
            startRealChat(name, vendorId, vendorEmail);
        };
@@ -911,10 +918,11 @@
                    const sVendor = String(p.vendor_id || p.Vendor_ID).toUpperCase().trim();
                    const sPhone = globalPhoneBook[sVendor] || ADMIN_PHONE;
                    const sEmail = globalEmailBook[sVendor] || "afitdgm@gmail.com";
-                   const safeName = sName.replace(/'/g, "\\'");
-                   const safeDesc = (p.description || "No description").replace(/'/g, "\\'").replace(/\n/g, " ");
+                   
+                   // Double-escape quotes for safe HTML injection
+                   const safeName = sName.replace(/'/g, "\\'").replace(/"/g, "&quot;");
+                   const safeDesc = (p.description || "No description").replace(/'/g, "\\'").replace(/"/g, "&quot;").replace(/\n/g, " ");
 
-                   // Pass the full data down to similar items too!
                    similarGrid.innerHTML += `
                    <div class="sim-card" onclick="viewProduct('${safeName}', '${sPrice}', '${safeDesc}', '${sImg}', '${sPhone}', '${category}', '${sVendor}', '${sEmail}')">
                        <img src="${sImg}" class="sim-img" onerror="this.src='img/logo-blue.png'">
@@ -927,10 +935,15 @@
        document.getElementById('detail-modal').style.display = 'flex';
    };
 
-   // 🚀 IN-APP CHAT CREATOR
    window.startRealChat = async function(productName, vendorId, vendorEmail) {
        const user = auth.currentUser;
-       if (!user) { document.getElementById('login-modal').style.display = 'flex'; return; }
+       if (!user) { 
+            const loginModal = document.getElementById('login-modal');
+            const pTag = loginModal.querySelector('p');
+            if(pTag) pTag.innerText = "Please login to securely message this vendor.";
+            loginModal.style.display = 'flex'; 
+            return; 
+       }
 
        const btn = document.getElementById('btn-inapp');
        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Securing chat...';
@@ -1003,8 +1016,10 @@
                
                const img = p.image.startsWith('http') ? p.image : `img/${p.image}`;
                const category = "General"; 
-               const safeName = p.name.replace(/'/g, "\\'");
-               const safeDesc = (liveDesc || "No description.").replace(/'/g, "\\'").replace(/\n/g, " ");
+               
+               // Security Escaping
+               const safeName = p.name.replace(/'/g, "\\'").replace(/"/g, "&quot;");
+               const safeDesc = (liveDesc || "No description.").replace(/'/g, "\\'").replace(/"/g, "&quot;").replace(/\n/g, " ");
 
                container.innerHTML += `
                <div class="ad-card" style="min-width: 140px;"> 
@@ -1077,11 +1092,13 @@
                storyDiv.className = 'story-item';
                storyDiv.innerHTML = `<div class="story-ring"><img src="${img}" class="story-img" alt="${pName}" onerror="this.src='img/logo-blue.png'"></div><div class="story-name">${pName}</div>`;
                
-               const safeDesc = pDesc.replace(/'/g, "\\'").replace(/\n/g, " ");
+               // Security Escaping
+               const safeName = String(pName).replace(/'/g, "\\'").replace(/"/g, "&quot;");
+               const safeDesc = pDesc.replace(/'/g, "\\'").replace(/"/g, "&quot;").replace(/\n/g, " ");
                
                storyDiv.addEventListener('click', () => {
                   viewProduct(pName, pPrice, pDesc, img, vendorPhone, pCat, pVendor, vendorEmail);
-                  addToHistory(pID, pName, pPrice, pImage, pVendor, safeDesc);
+                  addToHistory(pID, safeName, pPrice, pImage, pVendor, safeDesc);
                });
                container.appendChild(storyDiv);
            });
@@ -1154,8 +1171,9 @@
            const heartClass = isSaved ? 'fas' : 'far';
            const heartColor = isSaved ? '#ff4757' : '#777';
 
-           const safeName = pName.replace(/'/g, "\\'");
-           const safeDesc = pDesc.replace(/'/g, "\\'").replace(/\n/g, " ");
+           // Security Escaping
+           const safeName = pName.replace(/'/g, "\\'").replace(/"/g, "&quot;");
+           const safeDesc = pDesc.replace(/'/g, "\\'").replace(/"/g, "&quot;").replace(/\n/g, " ");
 
            const isSold = pStatus === "Sold";
            const opacity = isSold ? 'opacity:0.6;' : '';
