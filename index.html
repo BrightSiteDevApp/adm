@@ -894,7 +894,7 @@
        document.getElementById('m-category').innerText = "Category: " + category;
        
        // Fixed the button ID here!
-       const waMsg = encodeURIComponent(`Hi, I saw "${name}" on AFIT Market (Price: ${price}). Is it available?`);
+       const waMsg = encodeURIComponent(`Hi, I saw "${name}" on AFIT Digital Market (Price: ${price}). Is it available?`);
        document.getElementById('btn-wa').href = `https://wa.me/${phone}?text=${waMsg}`;
        
        document.getElementById('btn-inapp').onclick = function() {
