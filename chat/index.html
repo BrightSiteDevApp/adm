@@ -396,7 +396,7 @@
             sendBtn.disabled = true;
         }
 
-        async function processSendMessage(text, imageFile) {
+       async function processSendMessage(text, imageFile) {
             try {
                 let uploadedImgUrl = null;
                 if(imageFile) { uploadedImgUrl = await uploadToImgBB(imageFile); }
@@ -408,6 +408,7 @@
                     timestamp: serverTimestamp()
                 };
 
+                // 1. Save the message
                 await addDoc(collection(db, "chats", CHAT_ID, "messages"), messageData);
 
                 let chatUpdateData = {
@@ -415,7 +416,7 @@
                     updatedAt: serverTimestamp()
                 };
 
-                // Trigger 1: Email Vendor
+                // 2. Trigger Email to Vendor (if first message)
                 if (!isVendor && !chatDataObj.customerHasMessaged) {
                     chatUpdateData.customerHasMessaged = true;
                     if(chatDataObj.vendorEmail) {
@@ -427,7 +428,7 @@
                     }
                 }
 
-                // Trigger 2: Email Customer
+                // 3. Trigger Email to Customer (if first reply)
                 if (isVendor && !chatDataObj.vendorHasReplied) {
                     chatUpdateData.vendorHasReplied = true;
                     if(chatDataObj.customerEmail) {
@@ -439,14 +440,10 @@
                     }
                 }
 
-                // Update Red Dot Counter
-                const receiverUid = isVendor ? chatDataObj.customerUid : chatDataObj.participants.find(uid => uid !== currentUser.uid);
-                if (receiverUid) {
-                    await setDoc(doc(db, "users", receiverUid), { unreadCount: increment(1) }, { merge: true });
-                }
-
+                // 4. Update the main chat document
                 await setDoc(doc(db, "chats", CHAT_ID), chatUpdateData, { merge: true });
                 
+                // 5. Clear the input box properly
                 msgInput.value = "";
                 clearImageSelection();
 
@@ -454,10 +451,10 @@
 
             } catch(error) {
                 console.error("Send failed:", error);
-                alert("Failed to send message.");
+                alert("Failed to send message. Check network.");
             }
         }
-
+        
         async function triggerEmail(toEmail, subject, bodyHtml) {
             try {
                 await addDoc(collection(db, "mail"), {

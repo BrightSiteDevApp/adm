@@ -182,12 +182,10 @@
 
     <script src="../asset/script.js"></script>
 
-    <script type="module">
+   <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-        
-        // 🚀 ADDED deleteDoc and doc to imports
-        import { getFirestore, collection, query, where, orderBy, onSnapshot, doc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getFirestore, collection, query, where, orderBy, onSnapshot, doc, deleteDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyA1eQbrJpH9OtDNDN7z9oTFTRSAE7vCFbg",
@@ -260,10 +258,11 @@
                 emptyState.style.display = 'none';
                 chatListDiv.innerHTML = ""; 
 
-                snapshot.forEach((doc) => {
-                    const chat = doc.data();
-                    const chatId = doc.id;
+                snapshot.forEach((docSnap) => {
+                    const chat = docSnap.data();
+                    const chatId = docSnap.id;
                     
+                    // Determine if the logged-in user is the vendor for THIS specific product
                     const isVendor = chat.vendorEmail === myEmail;
                     const displayName = isVendor ? chat.customerName : chat.vendorName;
                     
@@ -273,8 +272,12 @@
                     const timeStr = formatTime(chat.updatedAt);
                     const initial = safeName.charAt(0).toUpperCase();
 
-                    // Extract the ISO string so we can safely pass it to the delete function
                     const updatedIsoString = chat.updatedAt ? chat.updatedAt.toDate().toISOString() : new Date().toISOString();
+
+                    // 🚀 NEW: Dynamic Buying/Selling Badges
+                    const roleBadge = isVendor 
+                        ? `<span style="background: #e6fffa; color: #00b894; padding: 3px 6px; border-radius: 4px; margin-right: 5px; font-weight: bold;"><i class="fas fa-tag"></i> Selling</span>` 
+                        : `<span style="background: #f3e8ff; color: #6c5ce7; padding: 3px 6px; border-radius: 4px; margin-right: 5px; font-weight: bold;"><i class="fas fa-shopping-bag"></i> Buying</span>`;
 
                     chatListDiv.innerHTML += `
                         <a href="../chat/?id=${chatId}" class="chat-card">
@@ -284,7 +287,10 @@
                                     <div class="chat-name">${safeName}</div>
                                     <div class="chat-time">${timeStr}</div>
                                 </div>
-                                <div class="chat-product"><i class="fas fa-box" style="font-size:10px; margin-right:3px;"></i>${safeProduct}</div>
+                                <div class="chat-product" style="background:none; padding:0; display:flex; align-items:center; margin-bottom: 4px;">
+                                    ${roleBadge} 
+                                    <span style="color:#555; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 150px;">${safeProduct}</span>
+                                </div>
                                 <div class="chat-preview">${safeMessage}</div>
                             </div>
                             
@@ -302,32 +308,25 @@
             });
         }
 
-        // 🚀 THE SECURE DELETION LOGIC
         window.attemptDeleteChat = async function(e, chatId, updatedIsoString) {
-            e.preventDefault(); // Stop the browser from clicking the <a> tag and opening the chat
+            e.preventDefault(); 
             e.stopPropagation();
 
             const lastUpdateDate = new Date(updatedIsoString);
             const now = new Date();
-            
-            // Calculate how many minutes have passed since the last message
             const diffMs = now - lastUpdateDate;
             const diffMins = Math.floor(diffMs / (1000 * 60));
 
-            // If less than 30 minutes, BLOCK the deletion
             if (diffMins < 30) {
                 const minsLeft = 30 - diffMins;
                 alert(`SECURITY PROTOCOL:\n\nTo protect our users from fraud, conversations cannot be deleted until 30 minutes after the last message was sent.\n\nPlease try again in ${minsLeft} minute(s).`);
                 return;
             }
 
-            // If 30+ minutes, ask for final confirmation
             const confirmDelete = confirm("⚠️ WARNING ⚠️\n\nIf you delete this chat, it will be PERMANENTLY removed for both you and the other person. All messages and images will be lost.\n\nAre you absolutely sure?");
             
             if (confirmDelete) {
                 try {
-                    // Delete the main document. 
-                    // Because we are using onSnapshot, the chat will instantly vanish from the screen!
                     await deleteDoc(doc(db, "chats", chatId));
                 } catch (error) {
                     console.error("Error deleting chat:", error);
