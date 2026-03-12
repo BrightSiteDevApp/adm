@@ -200,6 +200,15 @@
       body.dark-mode .login-box h3 { color: #ffffff !important; }
       body.dark-mode .login-box p { color: #bbbbbb !important; }
       body.dark-mode #popup-google-btn { background: #2a2a2a !important; color: #ffffff !important; border-color: #444 !important; }
+      /* 🚀 NEW CHAT ACTION BUTTONS */
+      .action-row { display: flex; gap: 5px; align-items: center; }
+      .quick-chat-btn { background: #eef7ff; color: #2d8eff; border: none; border-radius: 8px; width: 40px; height: 35px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.2s; font-size: 14px; }
+      .quick-chat-btn:active { transform: scale(0.95); background: #dceefc; }
+      .btn-whatsapp { background: #25D366; color: white; width: 100%; text-align: center; display: block; padding: 14px; border-radius: 10px; text-decoration: none; font-weight: bold; margin-bottom: 10px; box-shadow: 0 4px 10px rgba(37, 211, 102, 0.2); }
+      .btn-inapp { background: #2d8eff; color: white; width: 100%; text-align: center; display: block; padding: 14px; border: none; cursor: pointer; border-radius: 10px; font-weight: bold; font-size: 14px; box-shadow: 0 4px 10px rgba(45, 142, 255, 0.2); font-family: inherit; }
+
+      /* Dark Mode Fixes */
+      body.dark-mode .quick-chat-btn { background: #2a2a2a; }
   </style>
   
 </head>
@@ -210,12 +219,29 @@
     <div class="header">
         <div class="header-top">
           <a href="/"> <img src="img/logo-white.png" alt="AFIT Market" class="site-logo"> </a>
-          <div style="display: flex; gap: 10px; align-items: center;">
-              <div class="notification-icon-box" id="theme-toggle"><i class="fas fa-moon"></i></div>
-              <div class="notification-icon-box" id="notif-btn"><i class="far fa-bell"></i></div>
-              <a href="saved.html" class="notification-icon-box" style="text-decoration:none; color:inherit;"><i class="far fa-heart"></i></a>
-              <a href="account.html" class="notification-icon-box" id="header-profile-btn" style="overflow: hidden; padding: 0;"><i class="far fa-user" style="padding: 8px;"></i></a>
-          </div>
+         <div style="display: flex; gap: 15px; align-items: center;">
+    
+    <div class="notification-icon-box" id="theme-toggle" style="cursor: pointer; color: white; font-size: 18px;">
+        <i class="fas fa-moon"></i>
+    </div>
+    
+    <div class="notification-icon-box" id="notif-btn" style="cursor: pointer; color: white; font-size: 18px;">
+        <i class="fas fa-bell"></i>
+    </div>
+    
+    <a href="inbox/" class="notification-icon-box" style="text-decoration: none; color: white; font-size: 18px;">
+        <i class="fas fa-comment-dots"></i>
+    </a>
+    
+    <a href="saved.html" class="notification-icon-box" style="text-decoration: none; color: white; font-size: 18px;">
+        <i class="fas fa-heart"></i>
+    </a>
+    
+    <a href="account.html" class="notification-icon-box" id="header-profile-btn" style="text-decoration: none; color: white; font-size: 18px; display: flex; align-items: center;">
+        <i class="fas fa-user-circle" style="font-size: 22px;"></i>
+    </a>
+    
+</div>
         </div>
         <div class="search-box">
           <select id="search-type">
@@ -450,9 +476,13 @@
                  <span id="m-category" style="font-size:12px; color:#888; font-weight:bold;"></span>
             </div>
 
-            <a id="m-btn" href="#" target="_blank" class="chat-btn" style="width:100%; text-align:center; display:block; padding:15px; border-radius:10px;">
-                <i class="fab fa-whatsapp"></i> Chat with Vendor
+            <a id="btn-wa" href="#" target="_blank" class="btn-whatsapp">
+                <i class="fab fa-whatsapp"></i> Chat via WhatsApp
             </a>
+
+            <button id="btn-inapp" class="btn-inapp">
+                <i class="fas fa-comment-dots"></i> Message In-App (Secure)
+            </button>
 
             <div id="similar-wrapper" style="display:none; margin-top: 20px; border-top: 1px solid #eee; padding-top: 10px;">
                 <div style="font-size: 12px; font-weight: bold; color: #555; margin-bottom: 10px;">You might also like</div>
@@ -479,7 +509,6 @@
   <script src="asset/script.js"></script>
 
 <script type="module">
-
     if ('serviceWorker' in navigator) {
         navigator.serviceWorker.register('sw.js')
         .then(reg => console.log("SW Registered!", reg))
@@ -487,11 +516,10 @@
     }
 
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    
     import { getAuth, onAuthStateChanged, signInWithPopup, GoogleAuthProvider, getAdditionalUserInfo } 
     from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-    
-    import { getFirestore, doc, setDoc, deleteDoc, collection, getDocs, query, getDoc, where, addDoc, orderBy, limit } 
+    // 🚀 Added addDoc and serverTimestamp for chat
+    import { getFirestore, doc, setDoc, deleteDoc, collection, getDocs, query, getDoc, where, addDoc, orderBy, limit, serverTimestamp } 
     from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
     const firebaseConfig = {
@@ -515,6 +543,7 @@
     let allProducts = [];
     let allVendors = [];
     let globalPhoneBook = {}; 
+    let globalEmailBook = {}; // 🚀 Added Email Book
     let suspendedVendors = new Set(); 
 
     const algoliaClient = algoliasearch('IQSHEYK1XF', 'b78824ffc8318be2ef8c725cf902386a');
@@ -534,21 +563,12 @@
     }
 
     function setCachedData(key, data) {
-        localStorage.setItem(key, JSON.stringify({
-            timestamp: Date.now(),
-            data: data
-        }));
+        localStorage.setItem(key, JSON.stringify({ timestamp: Date.now(), data: data }));
     }
 
-    // --- SECURITY HELPER ---
     function escapeHTML(str) {
         if (!str) return "";
-        return String(str)
-            .replace(/&/g, "&amp;")
-            .replace(/</g, "&lt;")
-            .replace(/>/g, "&gt;")
-            .replace(/"/g, "&quot;")
-            .replace(/'/g, "&#039;");
+        return String(str).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
     } 
 
    let deferredPrompt;
@@ -559,25 +579,20 @@
    const isInStandaloneMode = ('standalone' in window.navigator) && (window.navigator.standalone) || window.matchMedia('(display-mode: standalone)').matches;
 
    if (isMagicLink && !isInStandaloneMode) {
-       if (isIos) {
-           document.getElementById('ios-install-overlay').style.display = 'flex';
-       } else {
-           document.getElementById('magic-install-overlay').style.display = 'flex';
-       }
+       if (isIos) document.getElementById('ios-install-overlay').style.display = 'flex';
+       else document.getElementById('magic-install-overlay').style.display = 'flex';
    }
 
    window.addEventListener('beforeinstallprompt', (e) => {
        console.log('App is installable...');
        e.preventDefault();
        deferredPrompt = e;
-       
        if (!isMagicLink && !isIos) {
            setTimeout(() => {
                const popup = document.getElementById('install-popup');
                if(popup) popup.style.display = 'block';
            }, 4000);
        }
-
        const footerBtn = document.getElementById('manual-install-btn');
        if(footerBtn) footerBtn.style.display = 'inline-block';
    });
@@ -588,16 +603,13 @@
            document.getElementById('install-popup').style.display = 'none';
            return;
        }
-
        if (!deferredPrompt) {
            alert("App is already installed or your browser doesn't support installation (Try using Chrome).");
            return;
        }
        deferredPrompt.prompt();
        const { outcome } = await deferredPrompt.userChoice;
-       console.log(`User response to install: ${outcome}`);
        deferredPrompt = null;
-       
        document.getElementById('install-popup').style.display = 'none';
        document.getElementById('manual-install-btn').style.display = 'none';
        document.getElementById('magic-install-overlay').style.display = 'none';
@@ -609,7 +621,6 @@
    if(magicBtn) magicBtn.addEventListener('click', triggerAppInstall);
    
    window.addEventListener('appinstalled', () => {
-       console.log('App was successfully installed');
        document.getElementById('install-popup').style.display = 'none';
        document.getElementById('manual-install-btn').style.display = 'none';
        document.getElementById('magic-install-overlay').style.display = 'none';
@@ -625,7 +636,6 @@
    async function loadAnnouncement() {
        try {
            let alertData = getCachedData('cache_global_alert');
-           
            if (!alertData) {
                const docSnap = await getDoc(doc(db, "settings", "global_alert"));
                if(docSnap.exists()) {
@@ -633,7 +643,6 @@
                    setCachedData('cache_global_alert', alertData);
                }
            }
-
            if(alertData && alertData.active) {
                const banner = document.getElementById('global-announcement');
                document.getElementById('announce-text').innerText = alertData.message;
@@ -672,49 +681,27 @@
 
        const additionalInfo = getAdditionalUserInfo(result);
        if (additionalInfo && additionalInfo.isNewUser) {
-           console.log("New user detected! Preparing welcome email...");
-           
            await addDoc(collection(db, "mail"), {
                to: result.user.email,
                message: {
                    subject: "Welcome to AFIT Digital Market! 🎉",
-                   html: `
-                       <div style="font-family: Arial, sans-serif; color: #333; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eaeaea; border-radius: 10px;">
-                           <h2 style="color: #0056b3;">Welcome to AFIT Digital Market! 🎓</h2>
-                           <p>Hi ${result.user.displayName || "there"},</p>
-                           <p>We are absolutely thrilled to have you here! You can now:</p>
-                           <ul>
-                               <li>❤️ Save your favorite items to your wishlist</li>
-                               <li>💬 Contact campus vendors directly on WhatsApp</li>
-                               <li>📢 Post public requests for items you need to buy</li>
-                           </ul>
-                           <p>Happy hunting!</p>
-                           <p><strong>- The AFIT Digital Market Team</strong></p>
-                       </div>
-                   `
+                   html: `<div style="font-family: Arial, sans-serif; color: #333; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eaeaea; border-radius: 10px;"><h2 style="color: #0056b3;">Welcome to AFIT Digital Market! 🎓</h2><p>Hi ${result.user.displayName || "there"},</p><p>We are absolutely thrilled to have you here! You can now:</p><ul><li>❤️ Save your favorite items to your wishlist</li><li>💬 Contact campus vendors directly on WhatsApp</li><li>📢 Post public requests for items you need to buy</li></ul><p>Happy hunting!</p><p><strong>- The AFIT Digital Market Team</strong></p></div>`
                }
            });
-           console.log("Welcome email sent to database!");
        }
-   } catch (error) {
-       alert("Login failed: " + error.message);
-   }
-});
+   } catch (error) { alert("Login failed: " + error.message); }
+  });
 
    async function initData() {
        try {
            let suspendedData = getCachedData('cache_suspended_vendors');
-           
            if (!suspendedData) {
                const qSuspended = query(collection(db, "vendor_status"), where("status", "==", "suspended"));
                const suspendedSnap = await getDocs(qSuspended);
                suspendedData = [];
-               suspendedSnap.forEach(doc => { 
-                   suspendedData.push(doc.id); 
-               });
+               suspendedSnap.forEach(doc => { suspendedData.push(doc.id); });
                setCachedData('cache_suspended_vendors', suspendedData);
            }
-           
            suspendedData.forEach(id => suspendedVendors.add(id));
 
            const [vendors1, vendors2] = await Promise.all([
@@ -728,14 +715,16 @@
                const vid = v.vendor_id || v.Vendor_ID;
                const isSuspended = suspendedVendors.has(vid);
                const verifyStatus = String(v.verified || v.Verified || "").toLowerCase().trim();
-               const isHidden = verifyStatus === "false";
-               return !isSuspended && !isHidden;
+               return !isSuspended && verifyStatus !== "false";
            });
 
+           // 🚀 Map Phone and Email globally
            allVendors.forEach(v => {
-               const vID = v.vendor_id || v.Vendor_ID;
-               const vPhone = v.whatsapp || v.Whatsapp;
-               if(vID) globalPhoneBook[vID] = String(vPhone).replace(/[^0-9]/g, '');
+               const vID = String(v.vendor_id || v.Vendor_ID).toUpperCase().trim();
+               if(vID) {
+                   globalPhoneBook[vID] = String(v.whatsapp || v.Whatsapp).replace(/[^0-9]/g, '');
+                   globalEmailBook[vID] = String(v.email || v.Email || "").toLowerCase().trim();
+               }
            });
 
            const randomVendors = shuffle(allVendors).slice(0, 20); 
@@ -746,7 +735,7 @@
            const firestoreProducts = await loadFirestoreProducts(); 
            
            let combined = [...sheetProducts, ...firestoreProducts];
-           allProducts = combined.filter(p => !suspendedVendors.has(p.vendor_id || p.Vendor_ID));
+           allProducts = combined.filter(p => !suspendedVendors.has(String(p.vendor_id || p.Vendor_ID).toUpperCase().trim()));
            
            renderStories(allProducts, globalPhoneBook);
            
@@ -769,101 +758,55 @@
        } catch (err) { console.error("Init Error:", err); }
    }
 
-   // 🚀 THE MAGIC SWAP: NOW READS FROM THE JSON FILE INSTEAD OF 1000 DOCS
    async function loadFirestoreProducts() {
        let cachedProducts = getCachedData('cache_firestore_products');
-       
-       if (cachedProducts) {
-           return cachedProducts;
-       }
-
+       if (cachedProducts) return cachedProducts;
        try {
-           console.log("Fetching Master Product List (1 read only!)...");
            const docRef = doc(db, "aggregations", "master_product_list");
            const docSnap = await getDoc(docRef);
-
            if (docSnap.exists()) {
                const data = docSnap.data().items || [];
                setCachedData('cache_firestore_products', data); 
                return data;
-           } else {
-               console.warn("Master document not found.");
-               return [];
-           }
-       } catch(e) { 
-           console.error("Aggregation Error:", e);
-           return []; 
-       }
+           } else return [];
+       } catch(e) { return []; }
    }
 
    async function loadRecentBlogs() {
         const container = document.getElementById('home-blog-grid');
         if(!container) return;
-
         try {
             let cachedBlogs = getCachedData('cache_home_blogs');
-            if(cachedBlogs) {
-                renderHomeBlogs(cachedBlogs);
-                return;
-            }
-        } catch(e) { console.log("Cache empty or blocked"); }
+            if(cachedBlogs) { renderHomeBlogs(cachedBlogs); return; }
+        } catch(e) { }
 
         try {
             const q = query(collection(db, "blogs"), orderBy("timestamp", "desc"), limit(2));
             const snap = await getDocs(q);
-            
-            if(snap.empty) {
-                renderHomeBlogs([]); 
-                return;
-            }
-            
+            if(snap.empty) { renderHomeBlogs([]); return; }
             const blogs = snap.docs.map(doc => {
                 const data = doc.data();
                 return {
-                    id: doc.id,
-                    title: data.title || "Campus Update",
-                    snippet: data.snippet || "Click to read more...",
-                    category: data.category || "News",
-                    image: data.image || "img/logo-blue.png",
-                    _timestamp: data.timestamp ? data.timestamp.seconds : null
+                    id: doc.id, title: data.title || "Campus Update", snippet: data.snippet || "Click to read more...",
+                    category: data.category || "News", image: data.image || "img/logo-blue.png", _timestamp: data.timestamp ? data.timestamp.seconds : null
                 };
             });
-            
-            try {
-                setCachedData('cache_home_blogs', blogs);
-            } catch(e) { console.log("Private browsing blocked storage."); }
-
+            try { setCachedData('cache_home_blogs', blogs); } catch(e) {}
             renderHomeBlogs(blogs);
-            
-        } catch(e) {
-            console.error("Failed to load home blogs:", e);
-            container.innerHTML = `<p style='text-align:center; font-size:12px; color:#ff4757;'>Error: ${e.message}</p>`;
-        }
+        } catch(e) { container.innerHTML = `<p style='text-align:center; font-size:12px; color:#ff4757;'>Error: ${e.message}</p>`; }
     }
 
     function renderHomeBlogs(blogs) {
         const container = document.getElementById('home-blog-grid');
         container.innerHTML = "";
-        
-        if (!blogs || blogs.length === 0) {
-            container.innerHTML = "<p style='text-align:center; font-size:12px; color:#777; padding: 20px 0;'>No news available right now.</p>";
-            return;
-        }
-
+        if (!blogs || blogs.length === 0) { container.innerHTML = "<p style='text-align:center; font-size:12px; color:#777; padding: 20px 0;'>No news available right now.</p>"; return; }
         blogs.forEach(b => {
             const cat = b.category || "News";
-            
             let displayDate = "Recent";
-            if (b._timestamp) {
-                displayDate = new Date(b._timestamp * 1000).toLocaleDateString();
-            } else if (b.timestamp && b.timestamp.seconds) {
-                displayDate = new Date(b.timestamp.seconds * 1000).toLocaleDateString();
-            }
-
+            if (b._timestamp) displayDate = new Date(b._timestamp * 1000).toLocaleDateString();
             const safeTitle = escapeHTML(b.title);
             const safeSnippet = escapeHTML(b.snippet);
             let img = b.image || "img/logo-blue.png";
-            
             container.innerHTML += `
             <a href="blogs/index.html?post=${b.id}" class="home-blog-card">
                 <img src="${img}" class="home-blog-img" onerror="this.src='img/logo-blue.png'">
@@ -879,35 +822,25 @@
    async function loadReviews() {
        const container = document.getElementById('reviews-slider');
        if (!container) return;
-
        try {
            let reviewsData = getCachedData('cache_reviews');
-
            if (!reviewsData) {
                const q = query(collection(db, "reviews"), where("status", "==", "approved"));
                const snapshot = await getDocs(q);
                reviewsData = [];
-               snapshot.forEach(doc => {
-                   reviewsData.push(doc.data());
-               });
+               snapshot.forEach(doc => { reviewsData.push(doc.data()); });
                setCachedData('cache_reviews', reviewsData);
            }
-
            if (reviewsData.length > 0) {
                container.innerHTML = ""; 
                const shuffled = shuffle(reviewsData).slice(0, 5);
-
                shuffled.forEach(r => {
                    const starCount = r.rating || 5;
                    const starString = '<i class="fas fa-star" style="color:#FFD700;"></i>'.repeat(starCount);
                    let img = r.image || "img/person.png";
                    if (!img.startsWith('http') && !img.startsWith('img/')) img = `img/${img}`;
-
                    let shortReview = r.review;
-                   if (shortReview.length > 65) {
-                       shortReview = shortReview.substring(0, 65) + "...";
-                   }
-
+                   if (shortReview.length > 65) shortReview = shortReview.substring(0, 65) + "...";
                    container.innerHTML += `
                    <div class="review-card">
                        <div class="review-header">
@@ -920,12 +853,8 @@
                        <div class="review-text">"${shortReview}"</div>
                    </div>`;
                });
-           } else {
-                container.innerHTML = "<p style='padding:20px; text-align:center; color:#777; font-size:12px;'>No reviews yet. Check back soon!</p>";
-           }
-       } catch (e) {
-           console.error("Error loading reviews:", e);
-       }
+           } else { container.innerHTML = "<p style='padding:20px; text-align:center; color:#777; font-size:12px;'>No reviews yet. Check back soon!</p>"; }
+       } catch (e) {}
    }
 
    window.toggleSave = async function(id, name, price, image, vendor) {
@@ -936,11 +865,9 @@
        const userRef = doc(db, "users", user.uid, "saved_items", id);
 
        if (savedItemIds.has(id)) {
-           savedItemIds.delete(id);
-           await deleteDoc(userRef);
+           savedItemIds.delete(id); await deleteDoc(userRef);
        } else {
-           savedItemIds.add(id);
-           await setDoc(userRef, { product_id: id, name, price, image, vendor, saved_at: new Date() });
+           savedItemIds.add(id); await setDoc(userRef, { product_id: id, name, price, image, vendor, saved_at: new Date() });
        }
        updateHeartIcons(); 
    };
@@ -949,25 +876,24 @@
        document.querySelectorAll('.save-btn').forEach(btn => {
            const id = btn.id.replace('save-', '');
            const icon = btn.querySelector('i');
-           if (savedItemIds.has(id)) {
-               icon.classList.remove('far');
-               icon.classList.add('fas');
-               icon.style.color = '#ff4757';
-           } else {
-               icon.classList.remove('fas');
-               icon.classList.add('far');
-               icon.style.color = '#777';
-           }
+           if (savedItemIds.has(id)) { icon.classList.remove('far'); icon.classList.add('fas'); icon.style.color = '#ff4757'; } 
+           else { icon.classList.remove('fas'); icon.classList.add('far'); icon.style.color = '#777'; }
        });
    }
 
-   window.viewProduct = function(name, price, desc, img, phone, category) {
+   // 🚀 MODIFIED TO ACCEPT VENDOR PARAMS FOR CHAT
+   window.viewProduct = function(name, price, desc, img, phone, category, vendorId, vendorEmail) {
        document.getElementById('m-title').innerText = name;
        document.getElementById('m-price').innerText = price;
        document.getElementById('m-desc').innerText = desc || "No description provided.";
        document.getElementById('m-category').innerText = "Category: " + category;
        document.getElementById('m-btn').href = `https://wa.me/${phone}?text=${encodeURIComponent(`Hi, I saw "${name}" on AFIT Market. Is it available?`)}`;
        
+       // Wire up the new Chat button
+       document.getElementById('btn-inapp').onclick = function() {
+           startRealChat(name, vendorId, vendorEmail);
+       };
+
        const similarWrapper = document.getElementById('similar-wrapper');
        const similarGrid = document.getElementById('m-similar-grid'); 
        similarGrid.innerHTML = "";
@@ -982,13 +908,15 @@
                    const sName = p.name || p.Name;
                    const sPrice = p.price || p.Price;
                    const sImg = (p.image || p.Image).startsWith('http') ? (p.image || p.Image) : `img/${p.image || p.Image}`;
-                   const sVendor = p.vendor_id || p.Vendor_ID;
+                   const sVendor = String(p.vendor_id || p.Vendor_ID).toUpperCase().trim();
                    const sPhone = globalPhoneBook[sVendor] || ADMIN_PHONE;
+                   const sEmail = globalEmailBook[sVendor] || "afitdgm@gmail.com";
                    const safeName = sName.replace(/'/g, "\\'");
                    const safeDesc = (p.description || "No description").replace(/'/g, "\\'").replace(/\n/g, " ");
 
+                   // Pass the full data down to similar items too!
                    similarGrid.innerHTML += `
-                   <div class="sim-card" onclick="viewProduct('${safeName}', '${sPrice}', '${safeDesc}', '${sImg}', '${sPhone}', '${category}')">
+                   <div class="sim-card" onclick="viewProduct('${safeName}', '${sPrice}', '${safeDesc}', '${sImg}', '${sPhone}', '${category}', '${sVendor}', '${sEmail}')">
                        <img src="${sImg}" class="sim-img" onerror="this.src='img/logo-blue.png'">
                        <div class="sim-price">${sPrice}</div>
                    </div>`;
@@ -998,6 +926,44 @@
 
        document.getElementById('detail-modal').style.display = 'flex';
    };
+
+   // 🚀 IN-APP CHAT CREATOR
+   window.startRealChat = async function(productName, vendorId, vendorEmail) {
+       const user = auth.currentUser;
+       if (!user) { document.getElementById('login-modal').style.display = 'flex'; return; }
+
+       const btn = document.getElementById('btn-inapp');
+       btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Securing chat...';
+       btn.disabled = true;
+
+       try {
+           const expirationDate = new Date();
+           expirationDate.setDate(expirationDate.getDate() + 3);
+           const targetEmail = vendorEmail || "afitdgm@gmail.com";
+
+           const chatRef = await addDoc(collection(db, "chats"), {
+               participants: [user.uid, targetEmail], 
+               customerUid: user.uid,
+               customerEmail: user.email, 
+               customerName: user.displayName || "AFIT Student",
+               vendorUid: vendorId, 
+               vendorName: vendorId, 
+               vendorEmail: targetEmail, 
+               productName: productName, 
+               lastMessage: "Started a conversation...",
+               updatedAt: serverTimestamp(),
+               expiresAt: expirationDate
+           });
+
+           window.location.href = `chat/?id=${chatRef.id}`;
+           
+       } catch(e) {
+           console.error(e);
+           alert("Failed to start chat. Check network.");
+           btn.innerHTML = '<i class="fas fa-comment-dots"></i> Message In-App (Secure)';
+           btn.disabled = false;
+       }
+   }
 
    window.closeProductModal = function() {
        document.getElementById('detail-modal').style.display = 'none';
@@ -1031,7 +997,10 @@
                const liveItem = allProducts.find(prod => prod.id === p.id);
                const liveDesc = liveItem ? (liveItem.description || liveItem.Description) : p.desc;
                
-               const vendorPhone = globalPhoneBook[p.vendor] || ADMIN_PHONE;
+               const vID = String(p.vendor).toUpperCase().trim();
+               const vendorPhone = globalPhoneBook[vID] || ADMIN_PHONE;
+               const vendorEmail = globalEmailBook[vID] || "afitdgm@gmail.com";
+               
                const img = p.image.startsWith('http') ? p.image : `img/${p.image}`;
                const category = "General"; 
                const safeName = p.name.replace(/'/g, "\\'");
@@ -1040,17 +1009,18 @@
                container.innerHTML += `
                <div class="ad-card" style="min-width: 140px;"> 
                    <img class="ad-img" src="${img}" alt="${p.name}" onerror="this.src='img/logo-blue.png'"
-                        onclick="viewProduct('${safeName}', '${p.price}', '${safeDesc}', '${img}', '${vendorPhone}', '${category}')">
+                        onclick="viewProduct('${safeName}', '${p.price}', '${safeDesc}', '${img}', '${vendorPhone}', '${category}', '${vID}', '${vendorEmail}')">
                    <div class="ad-info">
                        <div class="ad-price" style="font-size:12px;">${p.price}</div>
                        <div class="ad-title" style="font-size:11px;">${p.name}</div>
-                       <button onclick="viewProduct('${safeName}', '${p.price}', '${safeDesc}', '${img}', '${vendorPhone}', '${category}')" class="chat-btn" style="width:100%; border:none; margin-top:5px; padding:4px 10px; font-size:10px; cursor:pointer;">Get</button>
+                       <div class="action-row">
+                          <button onclick="viewProduct('${safeName}', '${p.price}', '${safeDesc}', '${img}', '${vendorPhone}', '${category}', '${vID}', '${vendorEmail}')" class="chat-btn" style="flex:1; border:none; margin-top:5px; padding:4px 10px; font-size:10px; cursor:pointer;">Get</button>
+                          <button onclick="startRealChat('${safeName}', '${vID}', '${vendorEmail}')" class="quick-chat-btn" style="margin-top:5px; width:30px; height:24px; font-size:10px;" title="Quick Chat"><i class="fas fa-comment-dots"></i></button>
+                       </div>
                    </div>
                </div>`;
            });
-       } else if(section) {
-           section.style.display = 'none';
-       }
+       } else if(section) { section.style.display = 'none'; }
    }
 
    function loadAds() {
@@ -1095,11 +1065,12 @@
                const pName = p.name || p.Name;
                const pImage = p.image || p.Image;
                const pPrice = p.price || p.Price;
-               const pVendor = p.vendor_id || p.Vendor_ID;
+               const pVendor = String(p.vendor_id || p.Vendor_ID).toUpperCase().trim();
                const pDesc = p.description || p.Description || ""; 
                const pCat = p.category || p.Category || "General";
                const img = pImage.startsWith('http') ? pImage : `img/${pImage}`;
                const vendorPhone = phoneBook[pVendor] || ADMIN_PHONE;
+               const vendorEmail = globalEmailBook[pVendor] || "afitdgm@gmail.com";
                const pID = p.id;
                
                const storyDiv = document.createElement('div');
@@ -1109,7 +1080,7 @@
                const safeDesc = pDesc.replace(/'/g, "\\'").replace(/\n/g, " ");
                
                storyDiv.addEventListener('click', () => {
-                  viewProduct(pName, pPrice, pDesc, img, vendorPhone, pCat);
+                  viewProduct(pName, pPrice, pDesc, img, vendorPhone, pCat, pVendor, vendorEmail);
                   addToHistory(pID, pName, pPrice, pImage, pVendor, safeDesc);
                });
                container.appendChild(storyDiv);
@@ -1119,7 +1090,6 @@
 
    function shuffle(array) { return array.sort(() => 0.5 - Math.random()); }
    
-   // 🚀 THE FIX IS RIGHT HERE: ADDED ALGOLIA FILTERING
    function setupMainSearch() {
        const searchInput = document.getElementById('main-search');
        const searchType = document.getElementById('search-type');
@@ -1128,30 +1098,20 @@
        if(searchInput) {
            searchInput.addEventListener('input', (e) => { 
                clearTimeout(searchTimeout); 
-               
                searchTimeout = setTimeout(async () => {
                    const queryVal = e.target.value.toLowerCase().trim();
-                   
-                   if(queryVal === "") {
-                       initData(); 
-                       return;
-                   }
-                   
+                   if(queryVal === "") { initData(); return; }
                    const type = searchType.value; 
                    
                    if (type === 'product') {
                        try {
                            const { hits } = await algoliaIndex.search(queryVal);
-                           
-                           // 🔥 NEW: Filter out suspended vendors from Algolia results
                            const validHits = hits.filter(hit => {
                                const vendorId = hit.vendor_id || hit.Vendor_ID;
                                return !suspendedVendors.has(vendorId);
                            });
-                           
                            renderItems(validHits); 
                        } catch (err) {
-                           console.error("Algolia search error:", err);
                            renderItems(allProducts.filter(p => (p.name || p.Name).toLowerCase().includes(queryVal)));
                        }
                    } else if (type === 'vendor') {
@@ -1162,21 +1122,13 @@
 
            searchInput.addEventListener('keyup', function(e) {
                if (e.key === 'Enter' || e.keyCode === 13) {
-                   e.preventDefault(); 
-                   this.blur(); 
-                   
+                   e.preventDefault(); this.blur(); 
                    const type = searchType.value;
-                   if(type === 'product') {
-                        document.getElementById('items-section-container').scrollIntoView({behavior: 'smooth'});
-                   } else {
-                        document.getElementById('vendor-section-container').scrollIntoView({behavior: 'smooth'});
-                   }
+                   if(type === 'product') document.getElementById('items-section-container').scrollIntoView({behavior: 'smooth'});
+                   else document.getElementById('vendor-section-container').scrollIntoView({behavior: 'smooth'});
                }
            });
-           
-           searchInput.addEventListener('search', function(e) {
-                this.blur();
-           });
+           searchInput.addEventListener('search', function(e) { this.blur(); });
        }
    }
 
@@ -1187,7 +1139,7 @@
        data.forEach(p => {
            const pName = p.name || p.Name;
            const pPrice = p.price || p.Price;
-           const pVendor = p.vendor_id || p.Vendor_ID;
+           const pVendor = String(p.vendor_id || p.Vendor_ID).toUpperCase().trim();
            const pImage = p.image || p.Image;
            const pDesc = p.description || p.Description || "";
            const pCat = p.category || p.Category || "General";
@@ -1197,6 +1149,7 @@
 
            const img = pImage.startsWith('http') ? pImage : `img/${pImage}`;
            const vendorPhone = globalPhoneBook[pVendor] || ADMIN_PHONE;
+           const vendorEmail = globalEmailBook[pVendor] || "afitdgm@gmail.com";
            const isSaved = savedItemIds.has(pID);
            const heartClass = isSaved ? 'fas' : 'far';
            const heartColor = isSaved ? '#ff4757' : '#777';
@@ -1210,7 +1163,7 @@
            let badge = isSold ? '<span style="background:red; color:white; font-size:9px; padding:2px 5px; position:absolute; top:10px; left:10px; border-radius:4px; z-index:10;">SOLD</span>' : 
                        isFeatured ? '<span style="background:#f1c40f; color:white; font-size:9px; padding:2px 5px; position:absolute; top:10px; left:10px; border-radius:4px; z-index:10; font-weight:bold;">⭐ Sponsored</span>' : '';
 
-           const clickAction = isSold ? "" : `onclick="viewProduct('${safeName}', '${pPrice}', '${safeDesc}', '${img}', '${vendorPhone}', '${pCat}'); addToHistory('${pID}', '${safeName}', '${pPrice}', '${pImage}', '${pVendor}', '${safeDesc}')"`;
+           const clickAction = isSold ? "" : `onclick="viewProduct('${safeName}', '${pPrice}', '${safeDesc}', '${img}', '${vendorPhone}', '${pCat}', '${pVendor}', '${vendorEmail}'); addToHistory('${pID}', '${safeName}', '${pPrice}', '${pImage}', '${pVendor}', '${safeDesc}')"`;
            const btnText = isSold ? "Sold" : "Get";
            const btnStyle = isSold ? "background:#777; pointer-events:none;" : "";
 
@@ -1228,7 +1181,11 @@
                    <div class="ad-title">${pName}</div>
                    <div class="ad-desc-preview">${pDesc}</div>
                    <div class="ad-location">Vendor: ${pVendor}</div>
-                   <button ${clickAction} class="chat-btn" style="width:100%; border:none; margin-top:5px; cursor:pointer; padding: 10px; ${btnStyle}">${btnText}</button>
+                   
+                   <div class="action-row">
+                       <button ${clickAction} class="chat-btn" style="flex:1; border:none; margin-top:5px; cursor:pointer; padding: 10px; ${btnStyle}">${btnText}</button>
+                       ${isSold ? '' : `<button onclick="startRealChat('${safeName}', '${pVendor}', '${vendorEmail}')" class="quick-chat-btn" style="margin-top:5px;" title="Quick Chat"><i class="fas fa-comment-dots"></i></button>`}
+                   </div>
                </div>
            </div>`;
        });
@@ -1261,5 +1218,4 @@
    }
 </script>
 </body> 
-
 </html>

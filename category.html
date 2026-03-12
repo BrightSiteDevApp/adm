@@ -75,6 +75,34 @@
       /* 🆕 DARK MODE FIX FOR DESCRIPTION BOX */
       body.dark-mode .modal-desc-box { background: #2a2a2a !important; }
       body.dark-mode #m-desc { color: #ddd !important; }
+      /* 🚀 NEW CHAT ACTION BUTTONS */
+      .action-row {
+          display: flex;
+          gap: 5px;
+          margin-top: 5px;
+      }
+      .quick-chat-btn {
+          background: #eef7ff; color: #2d8eff;
+          border: none; border-radius: 8px;
+          width: 40px; display: flex; align-items: center; justify-content: center;
+          cursor: pointer; transition: 0.2s; font-size: 14px;
+      }
+      .quick-chat-btn:active { transform: scale(0.95); background: #dceefc; }
+
+      .btn-whatsapp {
+          background: #25D366; color: white; width: 100%;
+          text-align: center; display: block; padding: 14px;
+          border-radius: 10px; text-decoration: none; font-weight: bold;
+          margin-bottom: 10px; box-shadow: 0 4px 10px rgba(37, 211, 102, 0.2);
+      }
+      .btn-inapp {
+          background: #2d8eff; color: white; width: 100%;
+          text-align: center; display: block; padding: 14px; border: none; cursor: pointer;
+          border-radius: 10px; text-decoration: none; font-weight: bold; font-size: 14px;
+          box-shadow: 0 4px 10px rgba(45, 142, 255, 0.2); font-family: inherit;
+      }
+      
+      body.dark-mode .quick-chat-btn { background: #2a2a2a; }
   </style>
 </head>
 <body>
@@ -133,9 +161,13 @@
                  <span id="m-condition" style="font-size:12px; padding:4px 10px; background:#eee; border-radius:10px; color:#555;"></span>
             </div>
 
-            <a id="m-btn" href="#" target="_blank" class="chat-btn" style="width:100%; text-align:center; display:block; padding:15px; border-radius:10px;">
-                <i class="fab fa-whatsapp"></i> Chat with Vendor
+            <a id="btn-wa" href="#" target="_blank" class="btn-whatsapp">
+                <i class="fab fa-whatsapp"></i> Chat via WhatsApp
             </a>
+
+            <button id="btn-inapp" class="btn-inapp">
+                <i class="fas fa-comment-dots"></i> Message In-App (Secure)
+            </button>
         </div>
     </div>
 
@@ -152,8 +184,8 @@
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
     import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-    // 🚀 Added 'getDoc' to the imports to read the Master File!
-    import { getFirestore, doc, setDoc, deleteDoc, collection, getDocs, query, where, limit, getDoc } 
+    // 🚀 Added addDoc & serverTimestamp
+    import { getFirestore, doc, setDoc, deleteDoc, collection, getDocs, query, where, limit, getDoc, addDoc, serverTimestamp } 
     from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
     const firebaseConfig = {
@@ -181,9 +213,8 @@
     const INITIAL_LOAD = 30;
     const LOAD_STEP = 20;
 
-    // --- 🟢 SHARED LOCAL STORAGE CACHING SYSTEM (10 MIN TTL) ---
+    // --- CACHING SYSTEM ---
     const CACHE_TTL = 10 * 60 * 1000; 
-
     function getCachedData(key) {
         const cached = localStorage.getItem(key);
         if (!cached) return null;
@@ -194,27 +225,15 @@
         }
         return parsed.data; 
     }
-
     function setCachedData(key, data) {
-        localStorage.setItem(key, JSON.stringify({
-            timestamp: Date.now(),
-            data: data
-        }));
+        localStorage.setItem(key, JSON.stringify({ timestamp: Date.now(), data: data }));
     }
-    // --- 🟢 END CACHING SYSTEM ---
 
-    // --- UTILS ---
     function escapeHTML(str) {
         if (!str) return "";
-        return String(str)
-            .replace(/&/g, "&amp;")
-            .replace(/</g, "&lt;")
-            .replace(/>/g, "&gt;")
-            .replace(/"/g, "&quot;")
-            .replace(/'/g, "&#039;");
+        return String(str).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
     }
 
-    // Fisher-Yates Shuffle Algorithm (True Randomness)
     function shuffleArray(array) {
         for (let i = array.length - 1; i > 0; i--) {
             const j = Math.floor(Math.random() * (i + 1));
@@ -234,17 +253,11 @@
         }
     });
 
-    // 🚀 THE MAGIC SWAP: NOW READS FROM THE JSON FILE INSTEAD OF 1000 DOCS
     async function loadFirestoreProducts() {
         let cachedProducts = getCachedData('cache_firestore_products');
-        
-        if (cachedProducts) {
-            console.log("Loaded Firebase products from shared cache (Category Page)");
-            return cachedProducts;
-        }
+        if (cachedProducts) return cachedProducts;
 
         try {
-            console.log("Fetching Master Product List (Category Page)...");
             const docRef = doc(db, "aggregations", "master_product_list");
             const docSnap = await getDoc(docRef);
 
@@ -252,34 +265,23 @@
                 const data = docSnap.data().items || [];
                 setCachedData('cache_firestore_products', data);
                 return data;
-            } else {
-                console.warn("Master document not found.");
-                return [];
-            }
-        } catch(e) { 
-            console.error("Aggregation Error:", e);
-            return []; 
-        }
+            } else { return []; }
+        } catch(e) { return []; }
     }
 
     document.addEventListener("DOMContentLoaded", async () => {
-        // Setup Load More
         document.getElementById('load-more-btn').addEventListener('click', renderNextBatch);
         
-       // --- UPGRADED LOCAL FUZZY SEARCH (Category Specific) ---
         const catSearchInput = document.getElementById('cat-search');
         let searchTimeout;
 
         catSearchInput.addEventListener('input', (e) => {
             clearTimeout(searchTimeout);
-            
             searchTimeout = setTimeout(() => {
                 const term = e.target.value.toLowerCase().trim();
-                
                 if(!term) {
-                    filteredList = allCategoryItems; // Reset to random list
+                    filteredList = allCategoryItems; 
                 } else {
-                    // Smart local search: Check name AND description
                     filteredList = allCategoryItems.filter(p => {
                         const name = String(p.name || p.Name || "").toLowerCase();
                         const desc = String(p.description || p.Description || "").toLowerCase();
@@ -287,26 +289,17 @@
                     });
                 }
                 
-                // Reset Rendering
                 currentCount = 0;
                 document.getElementById('category-grid').innerHTML = "";
                 document.getElementById('result-count').innerText = `${filteredList.length} items found`;
                 renderNextBatch();
-            }, 300); // 300ms Debounce to prevent jumping
+            }, 300); 
         });
 
-        // Bulletproof mobile keyboard close
         catSearchInput.addEventListener('keyup', function(e) {
-            if (e.key === 'Enter' || e.keyCode === 13) {
-                e.preventDefault();
-                this.blur(); // Forces keyboard to close
-            }
+            if (e.key === 'Enter' || e.keyCode === 13) { e.preventDefault(); this.blur(); }
         });
-
-        // Some mobile keyboards use a special "search" event instead of Enter
-        catSearchInput.addEventListener('search', function(e) {
-             this.blur();
-        });
+        catSearchInput.addEventListener('search', function(e) { this.blur(); });
  
         const params = new URLSearchParams(window.location.search);
         let category = params.get('cat');
@@ -317,54 +310,52 @@
             document.getElementById('page-title').innerText = displayTitle;
             
             try {
-                // ✅ CACHE ADDED: Suspended Vendors
                 let suspendedData = getCachedData('cache_suspended_vendors');
-                
                 if (!suspendedData) {
-                    // 🚀 THE PRIMARY READ-SAVER FIX: Only fetch suspended vendors
                     const qSuspended = query(collection(db, "vendor_status"), where("status", "==", "suspended"));
                     const suspendedSnap = await getDocs(qSuspended);
                     suspendedData = [];
-                    suspendedSnap.forEach(doc => { 
-                        suspendedData.push(doc.id); 
-                    });
+                    suspendedSnap.forEach(doc => { suspendedData.push(doc.id); });
                     setCachedData('cache_suspended_vendors', suspendedData);
                 }
                 const suspendedVendors = new Set(suspendedData);
 
-                // Fetch BOTH Vendor Sheets
                 const [v1, v2] = await Promise.all([
                     fetch(`${apiRoot}/Vendors`).then(res => res.json().catch(() => [])),
                     fetch(`${apiRoot}/Vendors_v2`).then(res => res.json().catch(() => []))
                 ]);
                 const allVendors = [...(Array.isArray(v1)?v1:[]), ...(Array.isArray(v2)?v2:[])];
 
+                // 🚀 CREATE BOTH PHONE AND EMAIL BOOKS
                 const phoneBook = {};
+                const emailBook = {};
                 allVendors.forEach(v => {
-                    const vID = v.vendor_id || v.Vendor_ID;
-                    const vPhone = v.whatsapp || v.Whatsapp;
-                    if(vID) phoneBook[vID] = String(vPhone).replace(/[^0-9]/g, '');
+                    const vID = String(v.vendor_id || v.Vendor_ID).toUpperCase().trim();
+                    if(vID) {
+                        phoneBook[vID] = String(v.whatsapp || v.Whatsapp).replace(/[^0-9]/g, '');
+                        emailBook[vID] = String(v.email || v.Email || "").toLowerCase().trim();
+                    }
                 });
 
                 const sheetProductsRes = await fetch(`${apiRoot}/Products`);
                 const sheetProducts = await sheetProductsRes.json();
-                const firestoreProducts = await loadFirestoreProducts(); // Now uses cache & limits!
+                const firestoreProducts = await loadFirestoreProducts(); 
 
                 let combined = [...sheetProducts, ...firestoreProducts];
                 
-                // Filter by Category
                 let categoryItems = combined.filter(p => 
-                    !suspendedVendors.has(p.vendor_id || p.Vendor_ID) &&
+                    !suspendedVendors.has(String(p.vendor_id || p.Vendor_ID).toUpperCase().trim()) &&
                     String(p.category || p.Category).toLowerCase().trim() === category.toLowerCase().trim()
-                ).map(p => ({
-                    ...p,
-                    phone: phoneBook[p.vendor_id || p.Vendor_ID] || ADMIN_PHONE
-                }));
+                ).map(p => {
+                    const vID = String(p.vendor_id || p.Vendor_ID).toUpperCase().trim();
+                    return {
+                        ...p,
+                        phone: phoneBook[vID] || ADMIN_PHONE,
+                        email: emailBook[vID] || "afitdgm@gmail.com" // 🚀 Add Email mapping
+                    }
+                });
 
-                // 🎲 SHUFFLE ITEMS HERE (This makes it random every refresh)
                 allCategoryItems = shuffleArray(categoryItems);
-
-                // Initial State
                 filteredList = allCategoryItems;
 
                 const grid = document.getElementById('category-grid');
@@ -378,9 +369,7 @@
                     return;
                 }
 
-                // Render First Batch
                 renderNextBatch();
-
                 document.getElementById('preloader').style.display = 'none';
             } catch (err) { console.error(err); }
         }
@@ -391,7 +380,6 @@
         const loadMoreContainer = document.getElementById('load-more-container');
         const loadMoreBtn = document.getElementById('load-more-btn');
 
-        // Determine batch size (30 for first, 20 for rest)
         const batchSize = (currentCount === 0) ? INITIAL_LOAD : LOAD_STEP;
         const nextItems = filteredList.slice(currentCount, currentCount + batchSize);
 
@@ -399,7 +387,8 @@
             const pName = p.name || p.Name;
             const pPrice = p.price || p.Price;
             const pDesc = p.description || p.Description || "No additional details."; 
-            const pVendor = p.vendor_id || p.Vendor_ID;
+            const pVendorRaw = p.vendor_id || p.Vendor_ID;
+            const pVendor = String(pVendorRaw).toUpperCase().trim();
             const pImage = p.image || p.Image;
             const pStatus = p.status || p.Status || "Active";
             const pCond = p.condition || "Used";
@@ -411,7 +400,6 @@
             const heartClass = isSaved ? 'fas' : 'far';
             const heartColor = isSaved ? '#ff4757' : '#777';
 
-            // Safe Strings
             const safeNameJS = pName.replace(/'/g, "\\'").replace(/"/g, "&quot;");
             const safeDescJS = pDesc.replace(/'/g, "\\'").replace(/"/g, "&quot;").replace(/\n/g, " ");
             const safeNameHTML = escapeHTML(pName);
@@ -420,12 +408,13 @@
             const isSold = pStatus === "Sold";
             const opacity = isSold ? 'opacity:0.6;' : '';
             const badge = isSold ? '<span style="background:red; color:white; font-size:9px; padding:2px 5px; position:absolute; top:10px; left:10px; border-radius:4px; z-index:10;">SOLD</span>' : '';
-            
+            const condBadge = (!isSold && pCond === "New") ? `<span style="background:#00b894; color:white; font-size:9px; padding:2px 5px; border-radius:4px; position:absolute; top:10px; left:10px; z-index:10;">NEW</span>` : '';
+
+            // 🚀 PASS PARAMS TO MODAL
+            const pEmail = p.email || "afitdgm@gmail.com";
+            const btnAction = isSold ? "" : `openDetailModal('${safeNameJS}', '${safePrice}', '${safeDescJS}', '${pVendor}', '${pCond}', '${p.phone}', '${pEmail}')`;
             const btnText = isSold ? "Sold" : "Get Item";
             const btnStyle = isSold ? "background:#777; pointer-events:none;" : "";
-            const btnAction = isSold ? "" : `openDetailModal('${safeNameJS}', '${safePrice}', '${safeDescJS}', '${pVendor}', '${pCond}', '${p.phone}')`;
-
-            const condBadge = (!isSold && pCond === "New") ? `<span style="background:#00b894; color:white; font-size:9px; padding:2px 5px; border-radius:4px; position:absolute; top:10px; left:10px; z-index:10;">NEW</span>` : '';
 
             grid.innerHTML += `
             <div class="ad-card" style="position:relative; ${opacity}">
@@ -435,13 +424,17 @@
                         style="position:absolute; top:10px; right:10px; background:white; border:none; border-radius:50%; width:30px; height:30px; display:flex; align-items:center; justify-content:center; cursor:pointer; box-shadow:0 2px 5px rgba(0,0,0,0.2); z-index:10;">
                     <i class="${heartClass} fa-heart" style="color:${heartColor}; font-size:16px;"></i>
                 </button>
-                <img class="ad-img" src="${img}" alt="${safeNameHTML}" onerror="this.src='../img/logo-blue.png'">
+                <img class="ad-img" src="${img}" alt="${safeNameHTML}" onerror="this.src='img/logo-blue.png'">
                 <div class="ad-info">
                     <div class="ad-price">${safePrice}</div>
                     <div class="ad-title">${safeNameHTML}</div>
                     <div class="ad-desc-preview">${escapeHTML(pDesc)}</div>
                     <div class="ad-location">Vendor: ${pVendor}</div>
-                    <button onclick="${btnAction}" class="chat-btn" style="width:100%; margin-top:5px; border:none; cursor:pointer; ${btnStyle}">${btnText}</button>
+                    
+                    <div class="action-row">
+                        <button onclick="${btnAction}" class="chat-btn" style="flex:1; border:none; cursor:pointer; margin:0; ${btnStyle}">${btnText}</button>
+                        ${isSold ? '' : `<button onclick="startRealChat('${safeNameJS}', '${pVendor}', '${pEmail}')" class="quick-chat-btn" title="Quick Chat"><i class="fas fa-comment-dots"></i></button>`}
+                    </div>
                 </div>
             </div>`;
         });
@@ -456,18 +449,69 @@
         }
     }
 
-    window.openDetailModal = function(title, price, desc, vendor, cond, phone) {
+    // ==========================================
+    // 🚀 IN-APP CHAT LOGIC
+    // ==========================================
+    window.openDetailModal = function(title, price, desc, vendorId, cond, phone, vendorEmail) {
         document.getElementById('m-title').innerText = title;
         document.getElementById('m-price').innerText = price;
         document.getElementById('m-desc').innerText = desc;
-        document.getElementById('m-vendor').innerText = "Vendor: " + vendor;
+        document.getElementById('m-vendor').innerText = "Vendor: " + vendorId;
         document.getElementById('m-condition').innerText = cond;
         
         const waMsg = encodeURIComponent(`Hi, I saw "${title}" on AFIT Market (Price: ${price}). Is it available?`);
-        document.getElementById('m-btn').href = `https://wa.me/${phone}?text=${waMsg}`;
+        document.getElementById('btn-wa').href = `https://wa.me/${phone}?text=${waMsg}`;
+        
+        // Setup Chat Secure Action
+        document.getElementById('btn-inapp').onclick = function() {
+            startRealChat(title, vendorId, vendorEmail);
+        };
         
         document.getElementById('detail-modal').style.display = 'flex';
     };
+
+    window.startRealChat = async function(productName, vendorId, vendorEmail) {
+        const user = auth.currentUser;
+        if (!user) {
+            alert("You must be signed in to message vendors directly on the platform.");
+            window.location.href = "login.html";
+            return;
+        }
+
+        const btn = document.getElementById('btn-inapp');
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Securing chat...';
+        btn.disabled = true;
+
+        try {
+            const expirationDate = new Date();
+            expirationDate.setDate(expirationDate.getDate() + 3);
+            const targetEmail = vendorEmail || "afitdgm@gmail.com";
+
+            const chatRef = await addDoc(collection(db, "chats"), {
+                participants: [user.uid, targetEmail], 
+                customerUid: user.uid,
+                customerEmail: user.email, 
+                customerName: user.displayName || "AFIT Student",
+                vendorUid: vendorId, 
+                vendorName: vendorId, 
+                vendorEmail: targetEmail, 
+                productName: productName, 
+                lastMessage: "Started a conversation...",
+                updatedAt: serverTimestamp(),
+                expiresAt: expirationDate
+            });
+
+            // 🚀 Notice: Root folder routing!
+            window.location.href = `chat/?id=${chatRef.id}`;
+            
+        } catch(e) {
+            console.error(e);
+            alert("Failed to start chat. Check network.");
+            btn.innerHTML = '<i class="fas fa-comment-dots"></i> Message In-App (Secure)';
+            btn.disabled = false;
+        }
+    }
+    // ==========================================
 
     window.toggleSave = async function(id, name, price, image, vendor) {
         const user = auth.currentUser;
