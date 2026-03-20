@@ -103,6 +103,65 @@
       }
       
       body.dark-mode .quick-chat-btn { background: #2a2a2a; }
+      /* --- 🚀 IMAGE CAROUSEL & FULLSCREEN STYLES --- */
+      .modal-image-container {
+          width: 100%; height: 250px; border-radius: 15px;
+          overflow: hidden; position: relative; margin-bottom: 15px;
+          background: #f5f5f5; box-shadow: inset 0 2px 10px rgba(0,0,0,0.05);
+      }
+      .carousel-scroll {
+          display: flex; overflow-x: auto; scroll-snap-type: x mandatory;
+          height: 100%; -webkit-overflow-scrolling: touch; scrollbar-width: none;
+      }
+      .carousel-scroll::-webkit-scrollbar { display: none; }
+      .carousel-img {
+          flex: 0 0 100%; width: 100%; height: 100%;
+          object-fit: cover; scroll-snap-align: center;
+      }
+      .carousel-dots {
+          position: absolute; bottom: 10px; left: 0; width: 100%;
+          display: flex; justify-content: center; gap: 6px; z-index: 10;
+      }
+      .dot { width: 8px; height: 8px; background: rgba(255, 255, 255, 0.5); border-radius: 50%; transition: background 0.3s; }
+      .dot.active { background: white; box-shadow: 0 1px 3px rgba(0,0,0,0.3); }
+      .swipe-hint {
+          position: absolute; top: 10px; right: 10px; background: rgba(0,0,0,0.6);
+          color: white; font-size: 10px; padding: 4px 10px; border-radius: 12px;
+          z-index: 10; backdrop-filter: blur(4px); font-weight: bold;
+      }
+      
+      .fs-gallery-modal {
+          display: none; position: fixed; top: 0; left: 0;
+          width: 100%; height: 100%; background: rgba(0,0,0,0.95);
+          z-index: 5000; flex-direction: column; backdrop-filter: blur(10px);
+      }
+      .fs-header { padding: 20px; display: flex; justify-content: flex-end; }
+      .fs-close-btn {
+          background: rgba(255,255,255,0.2); border: none; color: white;
+          width: 40px; height: 40px; border-radius: 50%; font-size: 24px; cursor: pointer;
+          display: flex; align-items: center; justify-content: center; transition: 0.2s;
+      }
+      .fs-close-btn:active { transform: scale(0.9); background: rgba(255,255,255,0.4); }
+      .fs-carousel {
+          flex: 1; display: flex; overflow-x: auto; scroll-snap-type: x mandatory;
+          -webkit-overflow-scrolling: touch; scrollbar-width: none; align-items: center;
+      }
+      .fs-carousel::-webkit-scrollbar { display: none; }
+      .fs-img { flex: 0 0 100%; width: 100%; max-height: 85vh; object-fit: contain; scroll-snap-align: center; }
+      .fs-counter { text-align: center; color: white; padding: 20px; font-size: 15px; font-weight: bold; letter-spacing: 2px; }
+
+      .modal-close-btn {
+          position: absolute; top: 15px; right: 15px;
+          background: rgba(0,0,0,0.05); border: none;
+          width: 35px; height: 35px; border-radius: 50%; font-size: 22px; color: #555; cursor: pointer;
+          display: flex; align-items: center; justify-content: center; z-index: 50; transition: 0.2s;
+      }
+      
+      /* 🚀 FIX: Lock modal height and allow internal scrolling */
+      .modal-sheet { max-height: 85vh; overflow-y: auto; }
+
+      body.dark-mode .modal-image-container { background: #222; }
+      body.dark-mode .modal-close-btn { background: rgba(255,255,255,0.1); color: #ccc; }
   </style>
 </head>
 <body>
@@ -146,29 +205,36 @@
 
     <div id="detail-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:3000; justify-content:center; align-items:end;">
         <div class="modal-sheet">
-            <div style="display:flex; justify-content:space-between; align-items:start;">
-                <h3 id="m-title" style="margin:0; font-size:18px; width:90%; line-height:1.3;">...</h3>
-                <button onclick="document.getElementById('detail-modal').style.display='none'" style="background:none; border:none; font-size:24px; color:#555; cursor:pointer;">&times;</button>
+            <button class="modal-close-btn" onclick="document.getElementById('detail-modal').style.display='none'">&times;</button>
+            <div style="margin-bottom: 15px; padding-right: 40px;">
+                <h3 id="m-title" style="margin:0; font-size:18px; line-height:1.3;">...</h3>
             </div>
-            <p id="m-price" style="color:#2d8eff; font-weight:bold; font-size:20px; margin:10px 0;">...</p>
             
+            <div class="modal-image-container">
+                <div id="m-carousel" class="carousel-scroll"></div>
+                <div id="m-carousel-dots" class="carousel-dots"></div>
+                <div id="m-swipe-hint" class="swipe-hint" style="display:none;"><i class="fas fa-hand-pointer"></i> Swipe</div>
+            </div>
+
+            <p id="m-price" style="color:#2d8eff; font-weight:bold; font-size:20px; margin:10px 0;">...</p>
             <div class="modal-desc-box">
                  <p id="m-desc" style="color:#555; font-size:14px; line-height:1.5; margin:0;">...</p>
             </div>
-
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
                  <span id="m-vendor" style="font-size:12px; color:#888; font-weight:bold;"></span>
                  <span id="m-condition" style="font-size:12px; padding:4px 10px; background:#eee; border-radius:10px; color:#555;"></span>
             </div>
-
-            <a id="btn-wa" href="#" target="_blank" class="btn-whatsapp">
-                <i class="fab fa-whatsapp"></i> Chat via WhatsApp
-            </a>
-
-            <button id="btn-inapp" class="btn-inapp">
-                <i class="fas fa-comment-dots"></i> Message In-App (Secure)
-            </button>
+            <a id="btn-wa" href="#" target="_blank" class="btn-whatsapp"><i class="fab fa-whatsapp"></i> Chat via WhatsApp</a>
+            <button id="btn-inapp" class="btn-inapp"><i class="fas fa-comment-dots"></i> Message In-App (Secure)</button>
         </div>
+    </div>
+
+    <div id="fs-gallery" class="fs-gallery-modal">
+        <div class="fs-header">
+            <button class="fs-close-btn" onclick="document.getElementById('fs-gallery').style.display='none'">&times;</button>
+        </div>
+        <div id="fs-carousel-container" class="fs-carousel"></div>
+        <div id="fs-counter" class="fs-counter">1 / 1</div>
     </div>
 
     <footer class="site-footer">
@@ -184,7 +250,6 @@
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
     import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-    // 🚀 Added addDoc & serverTimestamp
     import { getFirestore, doc, setDoc, deleteDoc, collection, getDocs, query, where, limit, getDoc, addDoc, serverTimestamp } 
     from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
@@ -326,7 +391,6 @@
                 ]);
                 const allVendors = [...(Array.isArray(v1)?v1:[]), ...(Array.isArray(v2)?v2:[])];
 
-                // 🚀 CREATE BOTH PHONE AND EMAIL BOOKS
                 const phoneBook = {};
                 const emailBook = {};
                 allVendors.forEach(v => {
@@ -351,7 +415,7 @@
                     return {
                         ...p,
                         phone: phoneBook[vID] || ADMIN_PHONE,
-                        email: emailBook[vID] || "afitdgm@gmail.com" // 🚀 Add Email mapping
+                        email: emailBook[vID] || "afitdgm@gmail.com" 
                     }
                 });
 
@@ -389,13 +453,16 @@
             const pDesc = p.description || p.Description || "No additional details."; 
             const pVendorRaw = p.vendor_id || p.Vendor_ID;
             const pVendor = String(pVendorRaw).toUpperCase().trim();
-            const pImage = p.image || p.Image;
+            const pImageString = p.image || p.Image || "img/logo-blue.png";
             const pStatus = p.status || p.Status || "Active";
             const pCond = p.condition || "Used";
             
             const pID = p.id || (pVendor + "-" + pName).replace(/\s+/g, '-').toLowerCase();
 
-            const img = pImage.startsWith('http') ? pImage : `img/${pImage}`;
+            // 🚀 MAGIC FIX: Extract only the FIRST image for the grid
+            const firstImage = String(pImageString).split(',')[0].trim();
+            const img = firstImage.startsWith('http') ? firstImage : `img/${firstImage}`;
+            
             const isSaved = savedItemIds.has(pID);
             const heartClass = isSaved ? 'fas' : 'far';
             const heartColor = isSaved ? '#ff4757' : '#777';
@@ -404,22 +471,26 @@
             const safeDescJS = pDesc.replace(/'/g, "\\'").replace(/"/g, "&quot;").replace(/\n/g, " ");
             const safeNameHTML = escapeHTML(pName);
             const safePrice = escapeHTML(pPrice);
+            
+            // Encode the full image string to pass to the modal!
+            const safeImgStrJS = String(pImageString).replace(/'/g, "\\'").replace(/"/g, "&quot;");
 
             const isSold = pStatus === "Sold";
             const opacity = isSold ? 'opacity:0.6;' : '';
             const badge = isSold ? '<span style="background:red; color:white; font-size:9px; padding:2px 5px; position:absolute; top:10px; left:10px; border-radius:4px; z-index:10;">SOLD</span>' : '';
             const condBadge = (!isSold && pCond === "New") ? `<span style="background:#00b894; color:white; font-size:9px; padding:2px 5px; border-radius:4px; position:absolute; top:10px; left:10px; z-index:10;">NEW</span>` : '';
 
-            // 🚀 PASS PARAMS TO MODAL
             const pEmail = p.email || "afitdgm@gmail.com";
-            const btnAction = isSold ? "" : `openDetailModal('${safeNameJS}', '${safePrice}', '${safeDescJS}', '${pVendor}', '${pCond}', '${p.phone}', '${pEmail}')`;
+            
+            // 🚀 Pass FULL string of images to openDetailModal
+            const btnAction = isSold ? "" : `openDetailModal('${safeNameJS}', '${safePrice}', '${safeDescJS}', '${pVendor}', '${pCond}', '${p.phone}', '${pEmail}', '${safeImgStrJS}')`;
             const btnText = isSold ? "Sold" : "Get Item";
             const btnStyle = isSold ? "background:#777; pointer-events:none;" : "";
 
             grid.innerHTML += `
             <div class="ad-card" style="position:relative; ${opacity}">
                 ${badge} ${condBadge}
-                <button onclick="toggleSave('${pID}', '${safeNameJS}', '${safePrice}', '${pImage}', '${pVendor}')" 
+                <button onclick="toggleSave('${pID}', '${safeNameJS}', '${safePrice}', '${firstImage}', '${pVendor}')" 
                         class="save-btn" id="save-${pID}"
                         style="position:absolute; top:10px; right:10px; background:white; border:none; border-radius:50%; width:30px; height:30px; display:flex; align-items:center; justify-content:center; cursor:pointer; box-shadow:0 2px 5px rgba(0,0,0,0.2); z-index:10;">
                     <i class="${heartClass} fa-heart" style="color:${heartColor}; font-size:16px;"></i>
@@ -450,19 +521,60 @@
     }
 
     // ==========================================
-    // 🚀 IN-APP CHAT LOGIC
+    // 🚀 IN-APP CHAT LOGIC & CAROUSEL MODAL
     // ==========================================
-    window.openDetailModal = function(title, price, desc, vendorId, cond, phone, vendorEmail) {
+    window.openDetailModal = function(title, price, desc, vendorId, cond, phone, vendorEmail, imageString) {
         document.getElementById('m-title').innerText = title;
         document.getElementById('m-price').innerText = price;
         document.getElementById('m-desc').innerText = desc;
         document.getElementById('m-vendor').innerText = "Vendor: " + vendorId;
         document.getElementById('m-condition').innerText = cond;
         
+        // 🚀 Carousel Generator
+        const carousel = document.getElementById('m-carousel');
+        const dotsContainer = document.getElementById('m-carousel-dots');
+        const swipeHint = document.getElementById('m-swipe-hint');
+        
+        carousel.innerHTML = "";
+        dotsContainer.innerHTML = "";
+        
+        let images = [];
+        if(imageString) {
+            images = imageString.split(',').map(img => img.trim()).filter(img => img.length > 0);
+        }
+        if(images.length === 0) images = ['img/logo-blue.png'];
+        
+        // 🚀 SAFE STRING FOR FULLSCREEN CLICK
+        const safeImgStringForClick = images.join(',').replace(/'/g, "\\'");
+
+        images.forEach((imgSrc, index) => {
+            const finalSrc = imgSrc.startsWith('http') ? imgSrc : `img/${imgSrc}`;
+            carousel.innerHTML += `<img src="${finalSrc}" class="carousel-img" onerror="this.src='img/logo-blue.png'" onclick="openFullscreenGallery('${safeImgStringForClick}', ${index})" style="cursor:zoom-in;">`;
+            if(images.length > 1) {
+                dotsContainer.innerHTML += `<div class="dot ${index === 0 ? 'active' : ''}" id="dot-${index}"></div>`;
+            }
+        });
+        
+        if(images.length > 1) {
+            swipeHint.style.display = 'block';
+            carousel.onscroll = function() {
+                const scrollPos = carousel.scrollLeft;
+                const width = carousel.clientWidth;
+                if(width > 0) {
+                    const activeIndex = Math.round(scrollPos / width);
+                    document.querySelectorAll('.dot').forEach((d, i) => {
+                        d.classList.toggle('active', i === activeIndex);
+                    });
+                }
+            };
+        } else {
+            swipeHint.style.display = 'none';
+            carousel.onscroll = null;
+        }
+
         const waMsg = encodeURIComponent(`Hi, I saw "${title}" on AFIT Market (Price: ${price}). Is it available?`);
         document.getElementById('btn-wa').href = `https://wa.me/${phone}?text=${waMsg}`;
         
-        // Setup Chat Secure Action
         document.getElementById('btn-inapp').onclick = function() {
             startRealChat(title, vendorId, vendorEmail);
         };
@@ -470,46 +582,60 @@
         document.getElementById('detail-modal').style.display = 'flex';
     };
 
+    // 🚀 NEW FULLSCREEN GALLERY LOGIC
+    window.openFullscreenGallery = function(imageString, startIndex) {
+        const fsModal = document.getElementById('fs-gallery');
+        const fsCarousel = document.getElementById('fs-carousel-container');
+        const fsCounter = document.getElementById('fs-counter');
+        
+        fsCarousel.innerHTML = "";
+        const images = imageString.split(',');
+        
+        images.forEach((imgSrc) => {
+            const finalSrc = imgSrc.startsWith('http') ? imgSrc : `img/${imgSrc}`;
+            fsCarousel.innerHTML += `<img src="${finalSrc}" class="fs-img" onerror="this.src='img/logo-blue.png'">`;
+        });
+        
+        fsModal.style.display = 'flex';
+        
+        setTimeout(() => {
+            const width = fsCarousel.clientWidth;
+            fsCarousel.scrollLeft = width * startIndex;
+            fsCounter.innerText = `${startIndex + 1} / ${images.length}`;
+        }, 10);
+        
+        fsCarousel.onscroll = function() {
+            const width = fsCarousel.clientWidth;
+            if(width > 0) {
+                const activeIndex = Math.round(fsCarousel.scrollLeft / width);
+                fsCounter.innerText = `${activeIndex + 1} / ${images.length}`;
+            }
+        };
+    };
+
+   // 🚀 NEW: Just redirect with parameters, DO NOT create a document!
     window.startRealChat = async function(productName, vendorId, vendorEmail) {
         const user = auth.currentUser;
         if (!user) {
-            alert("You must be signed in to message vendors directly on the platform.");
-            window.location.href = "login.html";
+            const loginModal = document.getElementById('login-modal');
+            if (loginModal) {
+                const pTag = loginModal.querySelector('p');
+                if(pTag) pTag.innerText = "Please login to securely message this vendor.";
+                loginModal.style.display = 'flex'; 
+            } else {
+                alert("You must be signed in to message vendors directly on the platform.");
+                window.location.href = "login.html";
+            }
             return;
         }
 
-        const btn = document.getElementById('btn-inapp');
-        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Securing chat...';
-        btn.disabled = true;
+        // Encode the variables so they are safe to put in a URL
+        const safeProd = encodeURIComponent(productName);
+        const safeVenId = encodeURIComponent(vendorId);
+        const safeVenEmail = encodeURIComponent(vendorEmail || "afitdgm@gmail.com");
 
-        try {
-            const expirationDate = new Date();
-            expirationDate.setDate(expirationDate.getDate() + 3);
-            const targetEmail = vendorEmail || "afitdgm@gmail.com";
-
-            const chatRef = await addDoc(collection(db, "chats"), {
-                participants: [user.uid, targetEmail], 
-                customerUid: user.uid,
-                customerEmail: user.email, 
-                customerName: user.displayName || "AFIT Student",
-                vendorUid: vendorId, 
-                vendorName: vendorId, 
-                vendorEmail: targetEmail, 
-                productName: productName, 
-                lastMessage: "Started a conversation...",
-                updatedAt: serverTimestamp(),
-                expiresAt: expirationDate
-            });
-
-            // 🚀 Notice: Root folder routing!
-            window.location.href = `chat/?id=${chatRef.id}`;
-            
-        } catch(e) {
-            console.error(e);
-            alert("Failed to start chat. Check network.");
-            btn.innerHTML = '<i class="fas fa-comment-dots"></i> Message In-App (Secure)';
-            btn.disabled = false;
-        }
+        // Since this page is in the root folder, we point straight to chat/index.html
+        window.location.href = `chat/index.html?vendorId=${safeVenId}&vendorEmail=${safeVenEmail}&product=${safeProd}`;
     }
     // ==========================================
 

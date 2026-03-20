@@ -532,7 +532,7 @@
                 const activeCount = snapLimit.size;
 
                 if (activeCount >= 2) {
-                    alert("🚫 LIMIT REACHED!\nYou have 2 active requests. Please delete an old request before posting a new one to prevent spam.");
+                    alert("LIMIT REACHED!\nYou have 2 active requests. Please delete an old request before posting a new one to prevent spam.");
                     btn.innerText = "Publish Request";
                     btn.disabled = false;
                     return;
@@ -547,7 +547,7 @@
 
                 if(cooldownEnd && now < parseInt(cooldownEnd)) {
                      const remainingMins = Math.ceil((parseInt(cooldownEnd) - now) / 60000);
-                     alert(`🚫 COOLDOWN ACTIVE!\nYou posted frequently. Please wait ${remainingMins} minutes before posting again.`);
+                     alert(`COOLDOWN ACTIVE!\nYou posted frequently. Please wait ${remainingMins} minutes before posting again.`);
                      btn.innerText = "Publish Request";
                      btn.disabled = false;
                      return;
@@ -555,7 +555,7 @@
 
                 if (lastPostTime && (now - parseInt(lastPostTime)) < 5 * 60 * 1000) {
                     const waitLeft = Math.ceil((300000 - (now - parseInt(lastPostTime))) / 60000);
-                    alert(`⏳ PLEASE WAIT!\nYou must wait ${waitLeft} minutes between requests.`);
+                    alert(` PLEASE WAIT!\nYou must wait ${waitLeft} minutes between requests.`);
                     btn.innerText = "Publish Request";
                     btn.disabled = false;
                     return;

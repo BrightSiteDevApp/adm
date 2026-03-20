@@ -235,6 +235,65 @@
       body.dark-mode .vendor-reviews-section, body.dark-mode .v-review-card { background: #1e1e1e; border-color: #333; box-shadow: none; }
       body.dark-mode .vendor-rating-big, body.dark-mode .v-reviewer-name { color: #eee; }
       body.dark-mode .v-review-text { color: #aaa; }
+      /* --- 🚀 IMAGE CAROUSEL & FULLSCREEN STYLES --- */
+      .modal-image-container {
+          width: 100%; height: 250px; border-radius: 15px;
+          overflow: hidden; position: relative; margin-bottom: 15px;
+          background: #f5f5f5; box-shadow: inset 0 2px 10px rgba(0,0,0,0.05);
+      }
+      .carousel-scroll {
+          display: flex; overflow-x: auto; scroll-snap-type: x mandatory;
+          height: 100%; -webkit-overflow-scrolling: touch; scrollbar-width: none;
+      }
+      .carousel-scroll::-webkit-scrollbar { display: none; }
+      .carousel-img {
+          flex: 0 0 100%; width: 100%; height: 100%;
+          object-fit: cover; scroll-snap-align: center;
+      }
+      .carousel-dots {
+          position: absolute; bottom: 10px; left: 0; width: 100%;
+          display: flex; justify-content: center; gap: 6px; z-index: 10;
+      }
+      .dot { width: 8px; height: 8px; background: rgba(255, 255, 255, 0.5); border-radius: 50%; transition: background 0.3s; }
+      .dot.active { background: white; box-shadow: 0 1px 3px rgba(0,0,0,0.3); }
+      .swipe-hint {
+          position: absolute; top: 10px; right: 10px; background: rgba(0,0,0,0.6);
+          color: white; font-size: 10px; padding: 4px 10px; border-radius: 12px;
+          z-index: 10; backdrop-filter: blur(4px); font-weight: bold;
+      }
+      
+      .fs-gallery-modal {
+          display: none; position: fixed; top: 0; left: 0;
+          width: 100%; height: 100%; background: rgba(0,0,0,0.95);
+          z-index: 5000; flex-direction: column; backdrop-filter: blur(10px);
+      }
+      .fs-header { padding: 20px; display: flex; justify-content: flex-end; }
+      .fs-close-btn {
+          background: rgba(255,255,255,0.2); border: none; color: white;
+          width: 40px; height: 40px; border-radius: 50%; font-size: 24px; cursor: pointer;
+          display: flex; align-items: center; justify-content: center; transition: 0.2s;
+      }
+      .fs-close-btn:active { transform: scale(0.9); background: rgba(255,255,255,0.4); }
+      .fs-carousel {
+          flex: 1; display: flex; overflow-x: auto; scroll-snap-type: x mandatory;
+          -webkit-overflow-scrolling: touch; scrollbar-width: none; align-items: center;
+      }
+      .fs-carousel::-webkit-scrollbar { display: none; }
+      .fs-img { flex: 0 0 100%; width: 100%; max-height: 85vh; object-fit: contain; scroll-snap-align: center; }
+      .fs-counter { text-align: center; color: white; padding: 20px; font-size: 15px; font-weight: bold; letter-spacing: 2px; }
+
+      .modal-close-btn {
+          position: absolute; top: 15px; right: 15px;
+          background: rgba(0,0,0,0.05); border: none;
+          width: 35px; height: 35px; border-radius: 50%; font-size: 22px; color: #555; cursor: pointer;
+          display: flex; align-items: center; justify-content: center; z-index: 50; transition: 0.2s;
+      }
+      
+      /* 🚀 FIX: Lock modal height and allow internal scrolling */
+      .modal-sheet { max-height: 85vh; overflow-y: auto; }
+
+      body.dark-mode .modal-image-container { background: #222; }
+      body.dark-mode .modal-close-btn { background: rgba(255,255,255,0.1); color: #ccc; }
   </style>
 </head>
 <body data-page="vendor-profile">
@@ -392,28 +451,35 @@
     
     <div id="detail-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:3000; justify-content:center; align-items:end;">
         <div class="modal-sheet">
-            <div style="display:flex; justify-content:space-between; align-items:start;">
-                <h3 id="m-title" style="margin:0; font-size:18px; width:90%; line-height:1.3;">...</h3>
-                <button onclick="document.getElementById('detail-modal').style.display='none'" style="background:none; border:none; font-size:24px; color:#555; cursor:pointer;">&times;</button>
+            <button class="modal-close-btn" onclick="document.getElementById('detail-modal').style.display='none'">&times;</button>
+            <div style="margin-bottom: 15px; padding-right: 40px;">
+                <h3 id="m-title" style="margin:0; font-size:18px; line-height:1.3;">...</h3>
             </div>
-            <p id="m-price" style="color:#2d8eff; font-weight:bold; font-size:20px; margin:10px 0;">...</p>
             
+            <div class="modal-image-container">
+                <div id="m-carousel" class="carousel-scroll"></div>
+                <div id="m-carousel-dots" class="carousel-dots"></div>
+                <div id="m-swipe-hint" class="swipe-hint" style="display:none;"><i class="fas fa-hand-pointer"></i> Swipe</div>
+            </div>
+
+            <p id="m-price" style="color:#2d8eff; font-weight:bold; font-size:20px; margin:10px 0;">...</p>
             <div class="desc-box">
                  <p id="m-desc" style="color:#555; font-size:14px; line-height:1.5; margin:0;">...</p>
             </div>
-
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
                  <span id="m-category" style="font-size:12px; color:#888; font-weight:bold;"></span>
             </div>
-
-            <a id="btn-wa" href="#" target="_blank" class="btn-whatsapp">
-                <i class="fab fa-whatsapp"></i> Chat via WhatsApp
-            </a>
-
-            <button id="btn-inapp" class="btn-inapp">
-                <i class="fas fa-comment-dots"></i> Message In-App (Secure)
-            </button>
+            <a id="btn-wa" href="#" target="_blank" class="btn-whatsapp"><i class="fab fa-whatsapp"></i> Chat via WhatsApp</a>
+            <button id="btn-inapp" class="btn-inapp"><i class="fas fa-comment-dots"></i> Message In-App (Secure)</button>
         </div>
+    </div>
+
+    <div id="fs-gallery" class="fs-gallery-modal">
+        <div class="fs-header">
+            <button class="fs-close-btn" onclick="document.getElementById('fs-gallery').style.display='none'">&times;</button>
+        </div>
+        <div id="fs-carousel-container" class="fs-carousel"></div>
+        <div id="fs-counter" class="fs-counter">1 / 1</div>
     </div>
 
     <div id="write-review-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:4000; justify-content:center; align-items:center; padding: 20px;">
@@ -483,7 +549,7 @@
     let pageVendorEmail = null; 
     let currentVendorPhone = "";
     let currentVendorID = null;
-    let currentUserData = null; // Store user data for reviews
+    let currentUserData = null; 
     
     let globalPhoneBook = {};
     let globalEmailBook = {};
@@ -502,10 +568,7 @@
         const cached = localStorage.getItem(key);
         if (!cached) return null;
         const parsed = JSON.parse(cached);
-        if (Date.now() - parsed.timestamp > CACHE_TTL) {
-            localStorage.removeItem(key); 
-            return null;
-        }
+        if (Date.now() - parsed.timestamp > CACHE_TTL) { localStorage.removeItem(key); return null; }
         return parsed.data; 
     }
 
@@ -529,7 +592,7 @@
     onAuthStateChanged(auth, async (user) => {
         if (user) {
             currentUserEmail = user.email.toLowerCase().trim();
-            currentUserData = user; // Save for reviews
+            currentUserData = user; 
             checkOwner();
             try {
                 const querySnapshot = await getDocs(collection(db, "users", user.uid, "saved_items"));
@@ -566,7 +629,6 @@
             showError("No Store Selected", "You arrived here without selecting a vendor.");
         }
 
-        // 🚀 STAR SELECTOR LOGIC
         const stars = document.querySelectorAll('#star-selector i');
         stars.forEach(star => {
             star.addEventListener('click', function() {
@@ -582,7 +644,6 @@
 
     function loadProfile(id) {
         let suspendedData = getCachedData('cache_suspended_vendors');
-        
         if (suspendedData && suspendedData.includes(id)) {
              showError("Shop Suspended", "This vendor profile has been temporarily suspended."); return;
         } else if (!suspendedData) {
@@ -628,85 +689,50 @@
                 
                 loadProducts(id, allVendors); 
                 renderMoreVendors(allVendors);
-                loadVendorReviews(id); // 🚀 LOAD REVIEWS
+                loadVendorReviews(id); 
                 trackStoreView(id);
             }
         }).catch(err => { showError("Connection Error", "Check your internet connection and try again."); });
     }
 
-// ==========================================
-    // 🚀 NEW VENDOR REVIEWS LOGIC (INDEX BYPASS FIX)
-    // ==========================================
     async function loadVendorReviews(vendorId) {
         const container = document.getElementById('vendor-reviews-container');
         try {
-            // 🚀 FIX: Removed orderBy from Firebase query to bypass the Index error
             const q = query(collection(db, "vendor_reviews"), where("vendorId", "==", vendorId));
             const querySnapshot = await getDocs(q);
             
-            let totalStars = 0;
-            let reviewCount = 0;
-            let html = "";
-            let reviewsArray = [];
+            let totalStars = 0; let reviewCount = 0; let html = ""; let reviewsArray = [];
 
             if (querySnapshot.empty) {
-                container.innerHTML = `
-                    <div style="width:100%; text-align:center; padding: 20px;">
-                        <i class="fas fa-comment-slash" style="font-size:30px; color:#ddd; margin-bottom:10px;"></i>
-                        <p style="color:#777; font-size:13px; margin:0;">No reviews yet. Be the first!</p>
-                    </div>`;
+                container.innerHTML = `<div style="width:100%; text-align:center; padding: 20px;"><i class="fas fa-comment-slash" style="font-size:30px; color:#ddd; margin-bottom:10px;"></i><p style="color:#777; font-size:13px; margin:0;">No reviews yet. Be the first!</p></div>`;
                 return;
             }
 
-            // Push all reviews into an array
-            querySnapshot.forEach((doc) => {
-                reviewsArray.push(doc.data());
-            });
+            querySnapshot.forEach((doc) => { reviewsArray.push(doc.data()); });
 
-            // 🚀 FIX: Sort them locally using JavaScript instead of Firebase!
             reviewsArray.sort((a, b) => {
                 const timeA = a.timestamp ? a.timestamp.seconds : 0;
                 const timeB = b.timestamp ? b.timestamp.seconds : 0;
-                return timeB - timeA; // Newest first
+                return timeB - timeA; 
             });
 
             reviewsArray.forEach((data) => {
-                totalStars += data.rating;
-                reviewCount++;
-                
+                totalStars += data.rating; reviewCount++;
                 const starsHTML = '<i class="fas fa-star"></i>'.repeat(data.rating) + '<i class="far fa-star"></i>'.repeat(5 - data.rating);
                 const dateStr = data.timestamp ? data.timestamp.toDate().toLocaleDateString() : "Recent";
-                
-                html += `
-                <div class="v-review-card">
-                    <div style="display:flex; justify-content:space-between; align-items:start;">
-                        <div class="v-reviewer-name">${escapeHTML(data.studentName)}</div>
-                        <div style="color:#f1c40f; font-size:10px;">${starsHTML}</div>
-                    </div>
-                    <div class="v-review-date">${dateStr}</div>
-                    <div class="v-review-text">"${escapeHTML(data.reviewText)}"</div>
-                </div>`;
+                html += `<div class="v-review-card"><div style="display:flex; justify-content:space-between; align-items:start;"><div class="v-reviewer-name">${escapeHTML(data.studentName)}</div><div style="color:#f1c40f; font-size:10px;">${starsHTML}</div></div><div class="v-review-date">${dateStr}</div><div class="v-review-text">"${escapeHTML(data.reviewText)}"</div></div>`;
             });
 
             container.innerHTML = html;
-
-            // Calculate and display average rating
             const avg = (totalStars / reviewCount).toFixed(1);
             document.getElementById('avg-rating-display').innerHTML = `${avg} <div class="vendor-rating-stars">${'<i class="fas fa-star"></i>'.repeat(Math.round(avg))}</div>`;
             document.getElementById('total-reviews-count').innerText = `${reviewCount} verified review${reviewCount !== 1 ? 's' : ''}`;
 
-        } catch (error) {
-            console.error("Error loading reviews:", error);
-            container.innerHTML = "<p style='width:100%; text-align:center; color:red; font-size:12px;'>Could not load reviews. Check console.</p>";
-        }
+        } catch (error) { container.innerHTML = "<p style='width:100%; text-align:center; color:red; font-size:12px;'>Could not load reviews. Check console.</p>"; }
     }
 
     window.openReviewModal = function() {
-        if (!currentUserData) {
-            alert("You must be logged in to leave a review.");
-            window.location.href = "login.html";
-            return;
-        }
+        if (!currentUserData) { alert("You must be logged in to leave a review."); window.location.href = "login.html"; return; }
         document.getElementById('write-review-modal').style.display = 'flex';
     };
 
@@ -718,42 +744,26 @@
         if (rating === 0) return alert("Please select a star rating!");
         if (text.length < 5) return alert("Please write a brief comment.");
 
-        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Posting...';
-        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Posting...'; btn.disabled = true;
 
         try {
             await addDoc(collection(db, "vendor_reviews"), {
-                vendorId: currentVendorID,
-                studentId: currentUserData.uid,
-                studentName: currentUserData.displayName || "AFIT Student",
-                rating: rating,
-                reviewText: text,
-                timestamp: serverTimestamp()
+                vendorId: currentVendorID, studentId: currentUserData.uid, studentName: currentUserData.displayName || "AFIT Student",
+                rating: rating, reviewText: text, timestamp: serverTimestamp()
             });
 
             document.getElementById('write-review-modal').style.display = 'none';
-            document.getElementById('review-text').value = '';
-            document.getElementById('selected-rating').value = '0';
+            document.getElementById('review-text').value = ''; document.getElementById('selected-rating').value = '0';
             document.querySelectorAll('#star-selector i').forEach(s => s.classList.remove('active'));
             
-            // Reload reviews to show the new one instantly!
             loadVendorReviews(currentVendorID);
-            
-            btn.innerHTML = 'Post Review';
-            btn.disabled = false;
+            btn.innerHTML = 'Post Review'; btn.disabled = false;
 
-        } catch (error) {
-            console.error(error);
-            alert("Failed to submit review.");
-            btn.innerHTML = 'Post Review';
-            btn.disabled = false;
-        }
+        } catch (error) { alert("Failed to submit review."); btn.innerHTML = 'Post Review'; btn.disabled = false; }
     };
-    // ==========================================
 
     function renderMoreVendors(allVendorsList) {
-        const grid = document.getElementById('more-vendors-grid');
-        const section = document.getElementById('more-vendors-section');
+        const grid = document.getElementById('more-vendors-grid'); const section = document.getElementById('more-vendors-section');
         let suspendedData = getCachedData('cache_suspended_vendors') || [];
         
         const otherVendors = allVendorsList.filter(v => {
@@ -764,50 +774,37 @@
         });
 
         if(otherVendors.length === 0) return;
-        section.style.display = 'block';
-        grid.innerHTML = "";
+        section.style.display = 'block'; grid.innerHTML = "";
         const randomVendors = shuffleArray(otherVendors).slice(0, 4);
 
         randomVendors.forEach(v => {
             const vName = v.business_name || v.Business_Name || v.name || v.Name || "Vendor";
             const vID = v.vendor_id || v.Vendor_ID;
-            let vImg = v.image || v.Image || "img/person.png";
-            if (!vImg.startsWith('http')) vImg = `img/${vImg}`;
-            const safeName = escapeHTML(vName);
-            grid.innerHTML += `
-            <div class="mini-vendor-card" onclick="window.location.href='profile.html?vendor=${vID}'">
-                <img src="${vImg}" class="mini-vendor-img" onerror="this.src='img/person.png'">
-                <div class="mini-vendor-name">${safeName}</div>
-                <div style="font-size:10px; color:#2d8eff; margin-top:5px; font-weight:bold;">View Shop <i class="fas fa-chevron-right" style="font-size:8px;"></i></div>
-            </div>`;
+            let vImg = v.image || v.Image || "img/person.png"; if (!vImg.startsWith('http')) vImg = `img/${vImg}`;
+            grid.innerHTML += `<div class="mini-vendor-card" onclick="window.location.href='profile.html?vendor=${vID}'"><img src="${vImg}" class="mini-vendor-img" onerror="this.src='img/person.png'"><div class="mini-vendor-name">${escapeHTML(vName)}</div><div style="font-size:10px; color:#2d8eff; margin-top:5px; font-weight:bold;">View Shop <i class="fas fa-chevron-right" style="font-size:8px;"></i></div></div>`;
         });
     }
 
     function trackStoreView(vendorId) {
         const viewedStores = JSON.parse(localStorage.getItem('viewed_stores') || "{}");
-        const now = Date.now();
-        const TTL = 24 * 60 * 60 * 1000; 
-
+        const now = Date.now(); const TTL = 24 * 60 * 60 * 1000; 
         if (!viewedStores[vendorId] || (now - viewedStores[vendorId] > TTL)) {
             setDoc(doc(db, "vendor_stats", vendorId), { views: increment(1) }, { merge: true }).catch(console.error);
-            viewedStores[vendorId] = now;
-            localStorage.setItem('viewed_stores', JSON.stringify(viewedStores));
+            viewedStores[vendorId] = now; localStorage.setItem('viewed_stores', JSON.stringify(viewedStores));
         }
     }
 
     function renderVendor(v, id) {
         const vName = v.business_name || v.Business_Name || v.name || v.Name || "Unknown";
         document.title = `${vName} - Profile`;
-        document.getElementById('p-name').innerText = vName;
-        document.getElementById('p-id').innerText = `ID: ${id}`;
+        document.getElementById('p-name').innerText = vName; document.getElementById('p-id').innerText = `ID: ${id}`;
         document.getElementById('p-desc').innerText = v.description || v.Description || "No description available.";
         document.getElementById('p-location').innerText = v.location || v.Location || "AFIT Campus";
         document.getElementById('p-date').innerText = v.date_joined || v.Date_Joined || "Recent";
         let imgSrc = v.image || v.Image || "img/person.png"; if (!imgSrc.startsWith('http')) imgSrc = `img/${imgSrc}`;
         document.getElementById('p-img').src = imgSrc;
         const phone = v.whatsapp || v.Whatsapp || "";
-        document.getElementById('link-phone').href = `tel:${phone}`;
-        document.getElementById('btn-contact').href = `https://wa.me/${phone}`;
+        document.getElementById('link-phone').href = `tel:${phone}`; document.getElementById('btn-contact').href = `https://wa.me/${phone}`;
         
         let status = String(v.verified || v.Verified || "").toLowerCase().trim();
         const badgeSpan = document.getElementById('p-badge');
@@ -815,8 +812,7 @@
         else if (status === "blue") badgeSpan.innerHTML = '<i class="fas fa-check-circle tick-blue"></i>';
         
         const is247 = String(v.online_247 || v.Online_247 || "").toLowerCase().trim() === "true";
-        const statusBadge = document.getElementById('shop-status');
-        const hoursText = document.getElementById('p-hours');
+        const statusBadge = document.getElementById('shop-status'); const hoursText = document.getElementById('p-hours');
         if (is247) {
             hoursText.innerText = "Digital Service (24/7)"; statusBadge.innerText = "🟢 Online 24/7"; statusBadge.className = "status-open";
         } else {
@@ -831,17 +827,14 @@
     }
 
     async function loadProducts(id, allVendorsList) {
-        fetch(`${apiRoot}/Products`)
-        .then(res => res.json())
+        fetch(`${apiRoot}/Products`).then(res => res.json())
         .then(async (sheetData) => {
             const firestoreProducts = await loadVendorFirestoreItems();
             const allProducts = [...sheetData, ...firestoreProducts];
-            
             allVendorProducts = allProducts.filter(p => (p.vendor_id || p.Vendor_ID) === id);
             const otherVendorProducts = allProducts.filter(p => (p.vendor_id || p.Vendor_ID) !== id);
             
-            const grid = document.getElementById('vendor-grid');
-            grid.innerHTML = ""; 
+            const grid = document.getElementById('vendor-grid'); grid.innerHTML = ""; 
             
             if(allVendorProducts.length === 0) { 
                 grid.innerHTML = "<p style='width:100%; text-align:center; padding:20px; color:#777;'>No items listed yet.</p>"; 
@@ -861,50 +854,38 @@
         const productsToShow = allVendorProducts.slice(currentProductIndex, nextIndex);
 
         productsToShow.forEach(p => {
-            const pName = p.name || p.Name; 
-            const pPrice = p.price || p.Price; 
-            const pCategory = p.category || p.Category; 
-            const pImage = p.image || p.Image;
-            const pStatus = p.status || p.Status || "Active"; 
-            const isFeatured = String(p.is_featured).toLowerCase() === "true"; 
+            const pName = p.name || p.Name; const pPrice = p.price || p.Price; const pCategory = p.category || p.Category; 
+            const pImageString = p.image || p.Image || "logo-blue.png";
+            const pStatus = p.status || p.Status || "Active"; const isFeatured = String(p.is_featured).toLowerCase() === "true"; 
             const pDesc = p.description || p.Description || "No additional details.";
-            
             const pID = p.id || (p.vendor_id + "-" + pName).replace(/\s+/g, '-').toLowerCase();
-            let pImg = pImage || "logo-blue.png"; 
-            if (!String(pImg).startsWith('http')) pImg = `img/${pImg}`;
             
-            const isSaved = savedItemIds.has(pID); 
-            const heartClass = isSaved ? 'fas' : 'far'; 
-            const heartColor = isSaved ? '#ff4757' : '#777';
-
-            const isSold = pStatus === "Sold";
-            const opacity = isSold ? 'opacity:0.6;' : '';
-            let badge = '';
-            if (isSold) badge = '<span style="background:red; color:white; font-size:9px; padding:2px 5px; position:absolute; top:10px; left:10px; border-radius:4px; z-index:10;">SOLD</span>';
-            else if (isFeatured) badge = '<span style="background:#f1c40f; color:white; font-size:9px; padding:2px 5px; position:absolute; top:10px; left:10px; border-radius:4px; z-index:10; font-weight:bold;">⭐ Featured</span>';
+            const firstImage = String(pImageString).split(',')[0].trim();
+            let pImg = firstImage.startsWith('http') ? firstImage : `img/${firstImage}`;
+            
+            const isSaved = savedItemIds.has(pID); const heartClass = isSaved ? 'fas' : 'far'; const heartColor = isSaved ? '#ff4757' : '#777';
+            const isSold = pStatus === "Sold"; const opacity = isSold ? 'opacity:0.6;' : '';
+            let badge = isSold ? '<span style="background:red; color:white; font-size:9px; padding:2px 5px; position:absolute; top:10px; left:10px; border-radius:4px; z-index:10;">SOLD</span>' : 
+                        isFeatured ? '<span style="background:#f1c40f; color:white; font-size:9px; padding:2px 5px; position:absolute; top:10px; left:10px; border-radius:4px; z-index:10; font-weight:bold;">⭐ Featured</span>' : '';
 
             const safeNameJS = String(pName).replace(/'/g, "\\'").replace(/"/g, "&quot;");
             const safeDescJS = String(pDesc).replace(/'/g, "\\'").replace(/"/g, "&quot;").replace(/\n/g, " ");
             const safeCatJS = String(pCategory || "General").replace(/'/g, "\\'").replace(/"/g, "&quot;");
+            const safeImgStrJS = String(pImageString).replace(/'/g, "\\'").replace(/"/g, "&quot;");
 
-            const btnText = isSold ? "Sold" : "Get Item";
-            const btnStyle = isSold ? "background:#777; pointer-events:none;" : "";
-            
-            const btnAction = isSold ? "" : `openDetailModal('${safeNameJS}', '${escapeHTML(pPrice)}', '${safeDescJS}', '${safeCatJS}', '${currentVendorPhone}', '${pageVendorEmail}', '${currentVendorID}')`;
+            const btnText = isSold ? "Sold" : "Get Item"; const btnStyle = isSold ? "background:#777; pointer-events:none;" : "";
+            const btnAction = isSold ? "" : `openDetailModal('${safeNameJS}', '${escapeHTML(pPrice)}', '${safeDescJS}', '${safeCatJS}', '${currentVendorPhone}', '${pageVendorEmail}', '${currentVendorID}', '${safeImgStrJS}')`;
 
             grid.innerHTML += `
             <div class="ad-card" style="position:relative; ${opacity}">
                 ${badge}
-                <button onclick="toggleSave('${pID}', '${safeNameJS}', '${pPrice}', '${pImage}', '${p.vendor_id || p.Vendor_ID}')" class="save-btn" id="save-${pID}" style="position:absolute; top:10px; right:10px; background:white; border:none; border-radius:50%; width:30px; height:30px; display:flex; align-items:center; justify-content:center; cursor:pointer; box-shadow:0 2px 5px rgba(0,0,0,0.2); z-index:10;"><i class="${heartClass} fa-heart" style="color:${heartColor}; font-size:16px;"></i></button>
-                
+                <button onclick="toggleSave('${pID}', '${safeNameJS}', '${pPrice}', '${firstImage}', '${p.vendor_id || p.Vendor_ID}')" class="save-btn" id="save-${pID}" style="position:absolute; top:10px; right:10px; background:white; border:none; border-radius:50%; width:30px; height:30px; display:flex; align-items:center; justify-content:center; cursor:pointer; box-shadow:0 2px 5px rgba(0,0,0,0.2); z-index:10;"><i class="${heartClass} fa-heart" style="color:${heartColor}; font-size:16px;"></i></button>
                 <img class="ad-img" src="${pImg}" alt="${escapeHTML(pName)}" onerror="this.src='img/logo-blue.png'">
-                
                 <div class="ad-info">
                     <div class="ad-price">${escapeHTML(pPrice)}</div>
                     <div class="ad-title">${escapeHTML(pName)}</div>
                     <div class="ad-desc-preview">${escapeHTML(pDesc)}</div>
                     <div class="ad-location">Category: ${escapeHTML(pCategory)}</div>
-                    
                     <div class="action-row">
                         <button onclick="${btnAction}" class="chat-btn" style="flex:1; border:none; cursor:pointer; margin:0; ${btnStyle}">${btnText}</button>
                         ${isSold ? '' : `<button onclick="startRealChat('${safeNameJS}', '${currentVendorID}', '${pageVendorEmail}')" class="quick-chat-btn" title="Quick Chat"><i class="fas fa-comment-dots"></i></button>`}
@@ -921,32 +902,30 @@
     function renderExploreMore(otherProducts, allVendorsList) {
         if(otherProducts.length === 0) return;
         document.getElementById('explore-more-section').style.display = 'block';
-        const exploreGrid = document.getElementById('explore-grid');
-        exploreGrid.innerHTML = "";
+        const exploreGrid = document.getElementById('explore-grid'); exploreGrid.innerHTML = "";
 
         let activeOthers = otherProducts.filter(p => (p.status || p.Status) !== "Sold");
         let randomSelection = shuffleArray(activeOthers).slice(0, 6);
 
         randomSelection.forEach(p => {
-            const pName = p.name || p.Name; 
-            const pPrice = p.price || p.Price; 
-            const pVendorRaw = p.vendor_id || p.Vendor_ID;
-            const pVendor = String(pVendorRaw).toUpperCase().trim();
-            const pImage = p.image || p.Image;
+            const pName = p.name || p.Name; const pPrice = p.price || p.Price; 
+            const pVendor = String(p.vendor_id || p.Vendor_ID).toUpperCase().trim();
+            const pImageString = p.image || p.Image || "logo-blue.png";
             const pDesc = p.description || p.Description || "No additional details.";
-            
             const pCat = p.category || p.Category || "General";
+            
             const pPhone = globalPhoneBook[pVendor] || ADMIN_PHONE;
             const pEmail = globalEmailBook[pVendor] || "afitdgm@gmail.com";
             
-            let pImg = pImage || "logo-blue.png"; 
-            if (!String(pImg).startsWith('http')) pImg = `img/${pImg}`;
+            const firstImage = String(pImageString).split(',')[0].trim();
+            let pImg = firstImage.startsWith('http') ? firstImage : `img/${firstImage}`;
 
             const safeNameJS = String(pName).replace(/'/g, "\\'").replace(/"/g, "&quot;");
             const safeDescJS = String(pDesc).replace(/'/g, "\\'").replace(/"/g, "&quot;").replace(/\n/g, " ");
             const safeCatJS = String(pCat).replace(/'/g, "\\'").replace(/"/g, "&quot;");
+            const safeImgStrJS = String(pImageString).replace(/'/g, "\\'").replace(/"/g, "&quot;");
 
-            const btnAction = `openDetailModal('${safeNameJS}', '${escapeHTML(pPrice)}', '${safeDescJS}', '${safeCatJS}', '${pPhone}', '${pEmail}', '${pVendor}')`;
+            const btnAction = `openDetailModal('${safeNameJS}', '${escapeHTML(pPrice)}', '${safeDescJS}', '${safeCatJS}', '${pPhone}', '${pEmail}', '${pVendor}', '${safeImgStrJS}')`;
 
             exploreGrid.innerHTML += `
             <div class="ad-card" style="position:relative;">
@@ -955,7 +934,6 @@
                     <div class="ad-price">${escapeHTML(pPrice)}</div>
                     <div class="ad-title">${escapeHTML(pName)}</div>
                     <div class="ad-location">Vendor: ${pVendor}</div>
-                    
                     <div class="action-row">
                         <button onclick="${btnAction}" class="chat-btn" style="flex:1; border:none; cursor:pointer; margin:0;">Get Item</button>
                         <button onclick="startRealChat('${safeNameJS}', '${pVendor}', '${pEmail}')" class="quick-chat-btn" title="Quick Chat"><i class="fas fa-comment-dots"></i></button>
@@ -965,77 +943,118 @@
         });
     }
 
-    window.openDetailModal = function(title, price, desc, category, phone, vendorEmail, vendorId) {
+    // 🚀 NEW CAROUSEL MODAL LOGIC
+    window.openDetailModal = function(title, price, desc, category, phone, vendorEmail, vendorId, imageString) {
         document.getElementById('m-title').innerText = title;
         document.getElementById('m-price').innerText = price;
         document.getElementById('m-desc').innerText = desc;
         document.getElementById('m-category').innerText = "Category: " + category;
         
+        const carousel = document.getElementById('m-carousel');
+        const dotsContainer = document.getElementById('m-carousel-dots');
+        const swipeHint = document.getElementById('m-swipe-hint');
+        
+        carousel.innerHTML = ""; dotsContainer.innerHTML = "";
+        let images = [];
+        if(imageString) images = imageString.split(',').map(img => img.trim()).filter(img => img.length > 0);
+        if(images.length === 0) images = ['img/logo-blue.png'];
+        
+        const safeImgStringForClick = images.join(',').replace(/'/g, "\\'");
+
+        images.forEach((imgSrc, index) => {
+            const finalSrc = imgSrc.startsWith('http') ? imgSrc : `img/${imgSrc}`;
+            carousel.innerHTML += `<img src="${finalSrc}" class="carousel-img" onerror="this.src='img/logo-blue.png'" onclick="openFullscreenGallery('${safeImgStringForClick}', ${index})" style="cursor:zoom-in;">`;
+            if(images.length > 1) dotsContainer.innerHTML += `<div class="dot ${index === 0 ? 'active' : ''}" id="dot-${index}"></div>`;
+        });
+        
+        if(images.length > 1) {
+            swipeHint.style.display = 'block';
+            carousel.onscroll = function() {
+                const width = carousel.clientWidth;
+                if(width > 0) {
+                    const activeIndex = Math.round(carousel.scrollLeft / width);
+                    document.querySelectorAll('.dot').forEach((d, i) => { d.classList.toggle('active', i === activeIndex); });
+                }
+            };
+        } else {
+            swipeHint.style.display = 'none'; carousel.onscroll = null;
+        }
+        
         const waMsg = encodeURIComponent(`Hi, I saw "${title}" on AFIT Market (Price: ${price}). Is it available?`);
         const targetPhone = phone || currentVendorPhone;
         document.getElementById('btn-wa').href = `https://wa.me/${targetPhone}?text=${waMsg}`;
+        document.getElementById('btn-inapp').onclick = function() { startRealChat(title, vendorId, vendorEmail); };
         
-        document.getElementById('btn-inapp').onclick = function() {
-            startRealChat(title, vendorId, vendorEmail);
-        };
         document.getElementById('detail-modal').style.display = 'flex';
     };
 
+    // 🚀 NEW FULLSCREEN GALLERY LOGIC
+    window.openFullscreenGallery = function(imageString, startIndex) {
+        const fsModal = document.getElementById('fs-gallery');
+        const fsCarousel = document.getElementById('fs-carousel-container');
+        const fsCounter = document.getElementById('fs-counter');
+        fsCarousel.innerHTML = "";
+        const images = imageString.split(',');
+        images.forEach((imgSrc) => {
+            const finalSrc = imgSrc.startsWith('http') ? imgSrc : `img/${imgSrc}`;
+            fsCarousel.innerHTML += `<img src="${finalSrc}" class="fs-img" onerror="this.src='img/logo-blue.png'">`;
+        });
+        fsModal.style.display = 'flex';
+        setTimeout(() => {
+            const width = fsCarousel.clientWidth;
+            fsCarousel.scrollLeft = width * startIndex;
+            fsCounter.innerText = `${startIndex + 1} / ${images.length}`;
+        }, 10);
+        fsCarousel.onscroll = function() {
+            const width = fsCarousel.clientWidth;
+            if(width > 0) {
+                const activeIndex = Math.round(fsCarousel.scrollLeft / width);
+                fsCounter.innerText = `${activeIndex + 1} / ${images.length}`;
+            }
+        };
+    };
+
+  // 🚀 NEW: Just redirect with parameters, DO NOT create a document!
     window.startRealChat = async function(productName, vendorId, vendorEmail) {
         const user = auth.currentUser;
-        if (!user) { alert("You must be signed in to message vendors directly."); window.location.href = "login.html"; return; }
-
-        const btn = document.getElementById('btn-inapp');
-        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Securing chat...';
-        btn.disabled = true;
-
-        try {
-            const expirationDate = new Date();
-            expirationDate.setDate(expirationDate.getDate() + 3);
-            const targetEmail = vendorEmail || "afitdgm@gmail.com";
-
-            const chatRef = await addDoc(collection(db, "chats"), {
-                participants: [user.uid, targetEmail], 
-                customerUid: user.uid,
-                customerEmail: user.email, 
-                customerName: user.displayName || "AFIT Student",
-                vendorUid: vendorId, 
-                vendorName: vendorId, 
-                vendorEmail: targetEmail, 
-                productName: productName, 
-                lastMessage: "Started a conversation...",
-                updatedAt: serverTimestamp(),
-                expiresAt: expirationDate
-            });
-
-            window.location.href = `chat/?id=${chatRef.id}`;
-        } catch(e) {
-            console.error(e); alert("Failed to start chat. Check network.");
-            btn.innerHTML = '<i class="fas fa-comment-dots"></i> Message In-App (Secure)'; btn.disabled = false;
+        if (!user) {
+            const loginModal = document.getElementById('login-modal');
+            if (loginModal) {
+                const pTag = loginModal.querySelector('p');
+                if(pTag) pTag.innerText = "Please login to securely message this vendor.";
+                loginModal.style.display = 'flex'; 
+            } else {
+                alert("You must be signed in to message vendors directly on the platform.");
+                window.location.href = "login.html";
+            }
+            return;
         }
+
+        // Encode the variables so they are safe to put in a URL
+        const safeProd = encodeURIComponent(productName);
+        const safeVenId = encodeURIComponent(vendorId);
+        const safeVenEmail = encodeURIComponent(vendorEmail || "afitdgm@gmail.com");
+
+        // Since this page is in the root folder, we point straight to chat/index.html
+        window.location.href = `chat/index.html?vendorId=${safeVenId}&vendorEmail=${safeVenEmail}&product=${safeProd}`;
     }
 
     async function loadVendorFirestoreItems() {
         let cachedProducts = getCachedData('cache_firestore_products');
         if (cachedProducts) return cachedProducts;
-
         try {
             const docRef = doc(db, "aggregations", "master_product_list");
             const docSnap = await getDoc(docRef);
             if (docSnap.exists()) {
-                const data = docSnap.data().items || [];
-                setCachedData('cache_firestore_products', data);
-                return data;
+                const data = docSnap.data().items || []; setCachedData('cache_firestore_products', data); return data;
             } else { return []; }
         } catch(e) { return []; }
     }
 
     function showError(title, msg) {
         document.getElementById('profile-skeleton').style.display = 'none'; 
-        const errorBox = document.getElementById('error-message');
-        errorBox.style.display = 'block';
-        document.getElementById('err-title').innerText = title;
-        document.getElementById('err-msg').innerText = msg;
+        const errorBox = document.getElementById('error-message'); errorBox.style.display = 'block';
+        document.getElementById('err-title').innerText = title; document.getElementById('err-msg').innerText = msg;
     }
     
    window.shareVendor = function() {
@@ -1048,20 +1067,14 @@
         const user = auth.currentUser;
         if (!user) { if(confirm("You need to sign in to save items. Go to login page?")) { window.location.href = "login.html"; } return; }
         const userRef = doc(db, "users", user.uid, "saved_items", id);
-
-        if (savedItemIds.has(id)) {
-            savedItemIds.delete(id); await deleteDoc(userRef);
-        } else {
-            savedItemIds.add(id);
-            await setDoc(userRef, { product_id: id, name: name, price: price, image: image, vendor: vendor, saved_at: new Date() });
-        }
+        if (savedItemIds.has(id)) { savedItemIds.delete(id); await deleteDoc(userRef); } 
+        else { savedItemIds.add(id); await setDoc(userRef, { product_id: id, name: name, price: price, image: image, vendor: vendor, saved_at: new Date() }); }
         updateHeartIcons();
     };
 
     function updateHeartIcons() {
         document.querySelectorAll('.save-btn').forEach(btn => {
-            const id = btn.id.replace('save-', '');
-            const icon = btn.querySelector('i');
+            const id = btn.id.replace('save-', ''); const icon = btn.querySelector('i');
             if (savedItemIds.has(id)) { icon.classList.replace('far', 'fas'); icon.style.color = '#ff4757'; } 
             else { icon.classList.replace('fas', 'far'); icon.style.color = '#777'; }
         });

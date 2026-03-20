@@ -16,7 +16,7 @@
             font-family: 'Segoe UI', sans-serif;
             margin: 0; padding: 0;
             height: 100%;
-            overflow: hidden; /* Strictly prevent body scrolling */
+            overflow: hidden; 
             position: fixed;
             width: 100%;
         }
@@ -25,7 +25,7 @@
             display: flex;
             flex-direction: column;
             height: 100%;
-            height: -webkit-fill-available; /* Safari fix */
+            height: -webkit-fill-available; 
             width: 100%;
             position: absolute;
             top: 0; left: 0; right: 0; bottom: 0;
@@ -54,7 +54,7 @@
             flex: 1;
             padding: 20px;
             overflow-y: auto;
-            -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
+            -webkit-overflow-scrolling: touch; 
             display: flex;
             flex-direction: column;
             gap: 15px;
@@ -71,12 +71,11 @@
             max-width: 80%; padding: 12px 16px;
             border-radius: 18px; font-size: 14px; line-height: 1.4;
             position: relative; word-wrap: break-word;
-            /* 🚀 TEXT ALIGNMENT FIX */
             text-align: left; 
         }
         
         .msg-text-content {
-            white-space: pre-wrap; /* Honors line breaks */
+            white-space: pre-wrap; 
             word-break: break-word;
         }
 
@@ -92,7 +91,7 @@
             display: flex; align-items: center; gap: 10px;
             box-shadow: 0 -2px 10px rgba(0,0,0,0.05);
             flex-shrink: 0; 
-            padding-bottom: calc(10px + env(safe-area-inset-bottom)); /* iPhone fix */
+            padding-bottom: calc(10px + env(safe-area-inset-bottom)); 
         }
 
         .attach-btn, .send-btn {
@@ -180,7 +179,7 @@
                     <input type="tel" id="intro-phone" class="intro-input" placeholder="Your WhatsApp Number" required>
                     <textarea id="intro-msg" class="intro-input" style="height:80px; resize:none;" placeholder="I'm interested in this product..." required></textarea>
                     
-                    <button onclick="sendIntroMessage()" class="send-btn" style="width:100%; border-radius:10px; height:45px; margin-top:5px; font-weight:bold;">
+                    <button onclick="sendIntroMessage()" class="send-btn" id="intro-send-btn" style="width:100%; border-radius:10px; height:45px; margin-top:5px; font-weight:bold;">
                         Send to Vendor
                     </button>
                 </div>
@@ -193,7 +192,7 @@
             <button class="remove-img-btn" onclick="clearImageSelection()"><i class="fas fa-times"></i></button>
         </div>
 
-        <form class="chat-input-bar" id="chat-form" onsubmit="handleRegularSend(event)">
+        <form class="chat-input-bar" id="chat-form" style="display:none;" onsubmit="handleRegularSend(event)">
             <input type="file" id="image-upload" accept="image/*" style="display: none;" onchange="previewImage(this)">
             <button type="button" class="attach-btn" onclick="document.getElementById('image-upload').click()">
                 <i class="fas fa-paperclip"></i>
@@ -223,7 +222,12 @@
 
         const IMGBB_KEY = "2ac38bef2c73c5a65e7ddf94efe37962";
         const urlParams = new URLSearchParams(window.location.search);
-        const CHAT_ID = urlParams.get('id');
+        
+        // We now check for an existing Chat ID OR new chat parameters
+        let CHAT_ID = urlParams.get('id');
+        const NEW_VENDOR_ID = urlParams.get('vendorId');
+        const NEW_VENDOR_EMAIL = urlParams.get('vendorEmail');
+        const NEW_PRODUCT_NAME = urlParams.get('product');
 
         let currentUser = null;
         let selectedImageFile = null;
@@ -245,12 +249,10 @@
             return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
         }
 
-        // 1. Make text secure from hackers
         function escapeHTML(str) {
             return String(str).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
         }
 
-        // 2. 🚀 NEW: Find URLs and turn them into clickable links
         function linkify(text) {
             const urlRegex = /(https?:\/\/[^\s]+)/g;
             return text.replace(urlRegex, function(url) {
@@ -262,12 +264,30 @@
             if (user) {
                 currentUser = user;
                 if(user.displayName) document.getElementById('intro-name').value = user.displayName;
-                if(!CHAT_ID) { alert("Invalid chat link."); window.location.href = "../inbox/"; return; }
-                await initializeChat();
+                
+                if(CHAT_ID) {
+                    // Load existing chat
+                    await initializeChat();
+                } else if (NEW_VENDOR_ID && NEW_PRODUCT_NAME) {
+                    // Set up new chat screen (Waiting for user to hit send)
+                    setupNewChatScreen();
+                } else {
+                    alert("Invalid chat link."); window.location.href = "../inbox/"; return;
+                }
             } else {
                 window.location.href = "../login.html";
             }
         });
+
+        function setupNewChatScreen() {
+            document.getElementById('h-name').innerText = escapeHTML(NEW_VENDOR_ID);
+            document.getElementById('h-product').innerText = escapeHTML(NEW_PRODUCT_NAME);
+            document.getElementById('h-avatar').innerText = escapeHTML(NEW_VENDOR_ID).charAt(0).toUpperCase();
+            
+            // Force the intro overlay to show, hide the standard chat bar
+            introOverlay.style.display = 'flex';
+            document.getElementById('chat-form').style.display = 'none';
+        }
 
         async function initializeChat() {
             try {
@@ -323,7 +343,6 @@
                     
                     let textHTML = "";
                     if (msg.text) {
-                        // 🚀 Apply security first, then convert links!
                         let safeText = escapeHTML(msg.text);
                         safeText = linkify(safeText);
                         textHTML = `<div class="msg-text-content">${safeText}</div>`;
@@ -372,19 +391,65 @@
             return data.data.url;
         }
         
+        // 🚀 NEW LOGIC: This creates the chat ONLY when they click Send
         window.sendIntroMessage = async function() {
             const name = document.getElementById('intro-name').value.trim();
             const phone = document.getElementById('intro-phone').value.trim();
             const msg = document.getElementById('intro-msg').value.trim();
+            const btn = document.getElementById('intro-send-btn');
 
             if(!name || !phone || !msg) return alert("Please fill all fields to start the chat.");
 
-            const formattedText = `📞 Contact Info:\nName: ${name}\nWhatsApp: ${phone}\n\nMessage:\n${msg}`;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending...';
+            btn.disabled = true;
+
+            const formattedText = `Contact Info:\nName: ${name}\nWhatsApp: ${phone}\n\nMessage:\n${msg}`;
             
-            introOverlay.style.display = 'none';
-            document.getElementById('chat-form').style.display = 'flex';
-            
-            await processSendMessage(formattedText, null);
+            try {
+                // If it's a brand new chat, create the document NOW
+                if(!CHAT_ID) {
+                    const expirationDate = new Date();
+                    expirationDate.setDate(expirationDate.getDate() + 3);
+                    const targetEmail = NEW_VENDOR_EMAIL || "afitdgm@gmail.com";
+
+                    const newChatRef = await addDoc(collection(db, "chats"), {
+                        participants: [currentUser.uid, targetEmail], 
+                        customerUid: currentUser.uid,
+                        customerEmail: currentUser.email, 
+                        customerName: name, 
+                        vendorUid: NEW_VENDOR_ID, 
+                        vendorName: NEW_VENDOR_ID, 
+                        vendorEmail: targetEmail, 
+                        productName: NEW_PRODUCT_NAME, 
+                        lastMessage: "Started a conversation...",
+                        updatedAt: serverTimestamp(),
+                        expiresAt: expirationDate
+                    });
+                    
+                    CHAT_ID = newChatRef.id;
+                    
+                    // Update URL silently so refresh doesn't break
+                    window.history.replaceState({}, '', `?id=${CHAT_ID}`);
+                    
+                    // Fetch the new chat data object so the rest of the script works
+                    const chatSnap = await getDoc(doc(db, "chats", CHAT_ID));
+                    chatDataObj = chatSnap.data();
+                    
+                    // Start listening to the new empty chat
+                    listenForMessages();
+                }
+
+                introOverlay.style.display = 'none';
+                document.getElementById('chat-form').style.display = 'flex';
+                
+                await processSendMessage(formattedText, null);
+
+            } catch (error) {
+                console.error(error);
+                alert("Failed to start conversation. Check network.");
+                btn.innerHTML = 'Send to Vendor';
+                btn.disabled = false;
+            }
         }
 
         window.handleRegularSend = async function(e) {
@@ -462,6 +527,7 @@
             try {
                 await addDoc(collection(db, "mail"), {
                     to: toEmail,
+                    createdAt: serverTimestamp(),
                     message: { subject: subject, html: bodyHtml }
                 });
             } catch(e) { console.error("Email trigger failed", e); }

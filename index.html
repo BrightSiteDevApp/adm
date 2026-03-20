@@ -209,6 +209,62 @@
 
       /* Dark Mode Fixes */
       body.dark-mode .quick-chat-btn { background: #2a2a2a; }
+      /* --- 🚀 IMAGE CAROUSEL & FULLSCREEN STYLES --- */
+      .modal-image-container {
+          width: 100%; height: 250px; border-radius: 15px;
+          overflow: hidden; position: relative; margin-bottom: 15px;
+          background: #f5f5f5; box-shadow: inset 0 2px 10px rgba(0,0,0,0.05);
+      }
+      .carousel-scroll {
+          display: flex; overflow-x: auto; scroll-snap-type: x mandatory;
+          height: 100%; -webkit-overflow-scrolling: touch; scrollbar-width: none;
+      }
+      .carousel-scroll::-webkit-scrollbar { display: none; }
+      .carousel-img {
+          flex: 0 0 100%; width: 100%; height: 100%;
+          object-fit: cover; scroll-snap-align: center;
+      }
+      .carousel-dots {
+          position: absolute; bottom: 10px; left: 0; width: 100%;
+          display: flex; justify-content: center; gap: 6px; z-index: 10;
+      }
+      .dot { width: 8px; height: 8px; background: rgba(255, 255, 255, 0.5); border-radius: 50%; transition: background 0.3s; }
+      .dot.active { background: white; box-shadow: 0 1px 3px rgba(0,0,0,0.3); }
+      .swipe-hint {
+          position: absolute; top: 10px; right: 10px; background: rgba(0,0,0,0.6);
+          color: white; font-size: 10px; padding: 4px 10px; border-radius: 12px;
+          z-index: 10; backdrop-filter: blur(4px); font-weight: bold;
+      }
+      
+      .fs-gallery-modal {
+          display: none; position: fixed; top: 0; left: 0;
+          width: 100%; height: 100%; background: rgba(0,0,0,0.95);
+          z-index: 5000; flex-direction: column; backdrop-filter: blur(10px);
+      }
+      .fs-header { padding: 20px; display: flex; justify-content: flex-end; }
+      .fs-close-btn {
+          background: rgba(255,255,255,0.2); border: none; color: white;
+          width: 40px; height: 40px; border-radius: 50%; font-size: 24px; cursor: pointer;
+          display: flex; align-items: center; justify-content: center; transition: 0.2s;
+      }
+      .fs-close-btn:active { transform: scale(0.9); background: rgba(255,255,255,0.4); }
+      .fs-carousel {
+          flex: 1; display: flex; overflow-x: auto; scroll-snap-type: x mandatory;
+          -webkit-overflow-scrolling: touch; scrollbar-width: none; align-items: center;
+      }
+      .fs-carousel::-webkit-scrollbar { display: none; }
+      .fs-img { flex: 0 0 100%; width: 100%; max-height: 85vh; object-fit: contain; scroll-snap-align: center; }
+      .fs-counter { text-align: center; color: white; padding: 20px; font-size: 15px; font-weight: bold; letter-spacing: 2px; }
+
+      .modal-close-btn {
+          position: absolute; top: 15px; right: 15px;
+          background: rgba(0,0,0,0.05); border: none;
+          width: 35px; height: 35px; border-radius: 50%; font-size: 22px; color: #555; cursor: pointer;
+          display: flex; align-items: center; justify-content: center; z-index: 50; transition: 0.2s;
+      }
+
+      body.dark-mode .modal-image-container { background: #222; }
+      body.dark-mode .modal-close-btn { background: rgba(255,255,255,0.1); color: #ccc; }
   </style>
   
 </head>
@@ -374,7 +430,7 @@
             <h4 style="color: white; margin-bottom: 8px; font-size: 14px;">Join our Community</h4>
             <p style="font-size: 11px; color: #aaa; margin-bottom: 12px;">Get updates on new vendors and flash sales.</p>
            <script>var newsletterSubmitted = false;</script>
-            <iframe name="hidden_iframe" id="hidden_iframe" style="display:none;" onload="if(newsletterSubmitted) { const btn = document.getElementById('newsletter-btn'); btn.innerText = 'Joined! ✅'; btn.style.background = '#00b894'; document.getElementById('newsletter-input').value = ''; }"></iframe>
+            <iframe name="hidden_iframe" id="hidden_iframe" style="display:none;" onload="if(newsletterSubmitted) { const btn = document.getElementById('newsletter-btn'); btn.innerText = 'Joined!'; btn.style.background = '#00b894'; document.getElementById('newsletter-input').value = ''; }"></iframe>
 
             <form action="https://911871cf.sibforms.com/serve/MUIFAO0kK5NqC3Lt3qqm0AjZncTyrISNYXCW5Y7TPT00xuLzqbsf6hPpIlB6ZVb3c_AlFH8nlB4gVn62183nfwCuPOYOztEFx8W6oAKhKsevaTMJFj3EiB503WbRLCEODeQxIL07pN8nqk_xhiisZykJXsB_mYI0pKyQuPHDGN31Q-OtumrjgswUkS_m1jl_7VTWiZTFesOicU6s-A==" method="POST" target="hidden_iframe" onsubmit="newsletterSubmitted = true; document.getElementById('newsletter-btn').innerText='Wait...';" style="display: flex; justify-content: center; gap: 8px; max-width: 300px; margin: 0 auto;">
                 
@@ -462,33 +518,49 @@
 
     <div id="detail-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:3000; justify-content:center; align-items:end;">
         <div class="modal-sheet">
-            <div style="display:flex; justify-content:space-between; align-items:start;">
-                <h3 id="m-title" style="margin:0; font-size:18px; width:90%; line-height:1.3;">...</h3>
-                <button onclick="document.getElementById('detail-modal').style.display='none'" style="background:none; border:none; font-size:24px; color:#555; cursor:pointer;">&times;</button>
+            <button class="modal-close-btn" onclick="document.getElementById('detail-modal').style.display='none'">&times;</button>
+            <div style="margin-bottom: 15px; padding-right: 40px;">
+                <h3 id="m-title" style="margin:0; font-size:18px; line-height:1.3;">...</h3>
             </div>
-            <p id="m-price" style="color:#2d8eff; font-weight:bold; font-size:20px; margin:10px 0;">...</p>
             
+            <div class="modal-image-container">
+                <div id="m-carousel" class="carousel-scroll"></div>
+                <div id="m-carousel-dots" class="carousel-dots"></div>
+                <div id="m-swipe-hint" class="swipe-hint" style="display:none;"><i class="fas fa-hand-pointer"></i> Swipe</div>
+            </div>
+
+            <p id="m-price" style="color:#2d8eff; font-weight:bold; font-size:20px; margin:10px 0;">...</p>
             <div class="desc-box">
                  <p id="m-desc" style="color:#555; font-size:14px; line-height:1.5; margin:0;">...</p>
             </div>
-
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
                  <span id="m-category" style="font-size:12px; color:#888; font-weight:bold;"></span>
             </div>
-
-            <a id="btn-wa" href="#" target="_blank" class="btn-whatsapp">
-                <i class="fab fa-whatsapp"></i> Chat via WhatsApp
-            </a>
-
-            <button id="btn-inapp" class="btn-inapp">
-                <i class="fas fa-comment-dots"></i> Message In-App (Secure)
-            </button>
+            <a id="btn-wa" href="#" target="_blank" class="btn-whatsapp"><i class="fab fa-whatsapp"></i> Chat via WhatsApp</a>
+            <button id="btn-inapp" class="btn-inapp"><i class="fas fa-comment-dots"></i> Message In-App (Secure)</button>
 
             <div id="similar-wrapper" style="display:none; margin-top: 20px; border-top: 1px solid #eee; padding-top: 10px;">
                 <div style="font-size: 12px; font-weight: bold; color: #555; margin-bottom: 10px;">You might also like</div>
                 <div class="similar-grid" id="m-similar-grid"></div>
             </div>
+
         </div>
+    </div>
+
+    <div id="fs-gallery" class="fs-gallery-modal">
+        <div class="fs-header">
+            <button class="fs-close-btn" onclick="document.getElementById('fs-gallery').style.display='none'">&times;</button>
+        </div>
+        <div id="fs-carousel-container" class="fs-carousel"></div>
+        <div id="fs-counter" class="fs-counter">1 / 1</div>
+    </div>
+
+    <div id="fs-gallery" class="fs-gallery-modal">
+        <div class="fs-header">
+            <button class="fs-close-btn" onclick="document.getElementById('fs-gallery').style.display='none'">&times;</button>
+        </div>
+        <div id="fs-carousel-container" class="fs-carousel"></div>
+        <div id="fs-counter" class="fs-counter">1 / 1</div>
     </div>
 
     <div id="install-popup" style="display: none; position: fixed; bottom: 20px; left: 5%; width: 90%; background: white; padding: 20px; border-radius: 15px; box-shadow: 0 5px 20px rgba(0,0,0,0.2); z-index: 5000; text-align: center; animation: zoomIn 0.3s ease;">
@@ -518,7 +590,7 @@
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
     import { getAuth, onAuthStateChanged, signInWithPopup, GoogleAuthProvider, getAdditionalUserInfo } 
     from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-    import { getFirestore, doc, setDoc, deleteDoc, collection, getDocs, query, getDoc, where, addDoc, orderBy, limit, serverTimestamp } 
+    import { getFirestore, doc, setDoc, deleteDoc, collection, getDocs, query, getDoc, where, addDoc, serverTimestamp, orderBy, limit } 
     from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
     const firebaseConfig = {
@@ -547,24 +619,17 @@
 
     const algoliaClient = algoliasearch('IQSHEYK1XF', 'b78824ffc8318be2ef8c725cf902386a');
     const algoliaIndex = algoliaClient.initIndex('afit_products');
-
     const CACHE_TTL = 10 * 60 * 1000; 
 
     function getCachedData(key) {
         const cached = localStorage.getItem(key);
         if (!cached) return null;
         const parsed = JSON.parse(cached);
-        if (Date.now() - parsed.timestamp > CACHE_TTL) {
-            localStorage.removeItem(key); 
-            return null;
-        }
+        if (Date.now() - parsed.timestamp > CACHE_TTL) { localStorage.removeItem(key); return null; }
         return parsed.data; 
     }
-
-    function setCachedData(key, data) {
-        localStorage.setItem(key, JSON.stringify({ timestamp: Date.now(), data: data }));
-    }
-
+    function setCachedData(key, data) { localStorage.setItem(key, JSON.stringify({ timestamp: Date.now(), data: data })); }
+    
     function escapeHTML(str) {
         if (!str) return "";
         return String(str).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
@@ -573,7 +638,6 @@
    let deferredPrompt;
    const urlParams = new URLSearchParams(window.location.search);
    const isMagicLink = urlParams.get('action') === 'install';
-
    const isIos = /iphone|ipad|ipod/.test(window.navigator.userAgent.toLowerCase());
    const isInStandaloneMode = ('standalone' in window.navigator) && (window.navigator.standalone) || window.matchMedia('(display-mode: standalone)').matches;
 
@@ -583,29 +647,14 @@
    }
 
    window.addEventListener('beforeinstallprompt', (e) => {
-       console.log('App is installable...');
-       e.preventDefault();
-       deferredPrompt = e;
-       if (!isMagicLink && !isIos) {
-           setTimeout(() => {
-               const popup = document.getElementById('install-popup');
-               if(popup) popup.style.display = 'block';
-           }, 4000);
-       }
-       const footerBtn = document.getElementById('manual-install-btn');
-       if(footerBtn) footerBtn.style.display = 'inline-block';
+       e.preventDefault(); deferredPrompt = e;
+       if (!isMagicLink && !isIos) setTimeout(() => { const popup = document.getElementById('install-popup'); if(popup) popup.style.display = 'block'; }, 4000);
+       const footerBtn = document.getElementById('manual-install-btn'); if(footerBtn) footerBtn.style.display = 'inline-block';
    });
 
    const triggerAppInstall = async () => {
-       if (isIos) {
-           document.getElementById('ios-install-overlay').style.display = 'flex';
-           document.getElementById('install-popup').style.display = 'none';
-           return;
-       }
-       if (!deferredPrompt) {
-           alert("App is already installed or your browser doesn't support installation (Try using Chrome).");
-           return;
-       }
+       if (isIos) { document.getElementById('ios-install-overlay').style.display = 'flex'; document.getElementById('install-popup').style.display = 'none'; return; }
+       if (!deferredPrompt) { alert("App is already installed or browser doesn't support installation."); return; }
        deferredPrompt.prompt();
        const { outcome } = await deferredPrompt.userChoice;
        deferredPrompt = null;
@@ -616,38 +665,24 @@
 
    document.getElementById('install-btn').addEventListener('click', triggerAppInstall);
    document.getElementById('manual-install-btn').addEventListener('click', triggerAppInstall);
-   const magicBtn = document.getElementById('btn-magic-install');
-   if(magicBtn) magicBtn.addEventListener('click', triggerAppInstall);
-   
-   window.addEventListener('appinstalled', () => {
-       document.getElementById('install-popup').style.display = 'none';
-       document.getElementById('manual-install-btn').style.display = 'none';
-       document.getElementById('magic-install-overlay').style.display = 'none';
-   });
+   const magicBtn = document.getElementById('btn-magic-install'); if(magicBtn) magicBtn.addEventListener('click', triggerAppInstall);
+   window.addEventListener('appinstalled', () => { document.getElementById('install-popup').style.display = 'none'; document.getElementById('manual-install-btn').style.display = 'none'; document.getElementById('magic-install-overlay').style.display = 'none'; });
 
-   setupMainSearch();
-   loadAds(); 
-   initData();
-   loadAnnouncement(); 
-   loadReviews(); 
-   loadRecentBlogs(); 
+   setupMainSearch(); loadAds(); initData(); loadAnnouncement(); loadReviews(); loadRecentBlogs(); 
 
    async function loadAnnouncement() {
        try {
            let alertData = getCachedData('cache_global_alert');
            if (!alertData) {
                const docSnap = await getDoc(doc(db, "settings", "global_alert"));
-               if(docSnap.exists()) {
-                   alertData = docSnap.data();
-                   setCachedData('cache_global_alert', alertData);
-               }
+               if(docSnap.exists()) { alertData = docSnap.data(); setCachedData('cache_global_alert', alertData); }
            }
            if(alertData && alertData.active) {
                const banner = document.getElementById('global-announcement');
                document.getElementById('announce-text').innerText = alertData.message;
                banner.style.display = 'block';
            }
-       } catch(e) { console.error("Banner error:", e); }
+       } catch(e) { }
    }
 
    onAuthStateChanged(auth, async (user) => {
@@ -656,37 +691,24 @@
            headerBtn.innerHTML = `<img src="${user.photoURL}" class="header-profile-img" alt="Profile">`;
            try {
                const querySnapshot = await getDocs(collection(db, "users", user.uid, "saved_items"));
-               savedItemIds.clear();
-               querySnapshot.forEach((doc) => { savedItemIds.add(doc.id); });
-               updateHeartIcons(); 
-           } catch (e) { console.error("Error loading wishlist:", e); }
+               savedItemIds.clear(); querySnapshot.forEach((doc) => { savedItemIds.add(doc.id); }); updateHeartIcons(); 
+           } catch (e) { }
        } else {
            headerBtn.innerHTML = `<i class="far fa-user" style="padding: 8px;"></i>`;
-           savedItemIds.clear();
-           updateHeartIcons(); 
-           setTimeout(() => {
-               if(!sessionStorage.getItem('loginPopupDismissed')) {
-                   document.getElementById('login-modal').style.display = 'flex';
-               }
-           }, 5000);
+           savedItemIds.clear(); updateHeartIcons(); 
+           setTimeout(() => { if(!sessionStorage.getItem('loginPopupDismissed')) { document.getElementById('login-modal').style.display = 'flex'; } }, 5000);
        }
    });
 
   document.getElementById('popup-google-btn').addEventListener('click', async () => {
    try {
        const result = await signInWithPopup(auth, provider);
-       document.getElementById('login-modal').style.display = 'none';
-       sessionStorage.setItem('loginPopupDismissed', 'true');
-
+       document.getElementById('login-modal').style.display = 'none'; sessionStorage.setItem('loginPopupDismissed', 'true');
        const additionalInfo = getAdditionalUserInfo(result);
        if (additionalInfo && additionalInfo.isNewUser) {
            await addDoc(collection(db, "mail"), {
-               to: result.user.email,
-               createdAt: serverTimestamp(),
-               message: {
-                   subject: "Welcome to AFIT Digital Market! 🎉",
-                   html: `<div style="font-family: Arial, sans-serif; color: #333; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eaeaea; border-radius: 10px;"><h2 style="color: #0056b3;">Welcome to AFIT Digital Market! 🎓</h2><p>Hi ${result.user.displayName || "there"},</p><p>We are absolutely thrilled to have you here! You can now:</p><ul><li>❤️ Save your favorite items to your wishlist</li><li>💬 Contact campus vendors directly on WhatsApp</li><li>📢 Post public requests for items you need to buy</li></ul><p>Happy hunting!</p><p><strong>- The AFIT Digital Market Team</strong></p></div>`
-               }
+               to: result.user.email, createdAt: serverTimestamp(),
+               message: { subject: "Welcome to AFIT Digital Market! 🎉", html: `<div style="font-family: Arial, sans-serif; color: #333; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eaeaea; border-radius: 10px;"><h2 style="color: #0056b3;">Welcome to AFIT Digital Market! 🎓</h2><p>Hi ${result.user.displayName || "there"},</p><p>We are thrilled to have you here! You can now:</p><ul><li>❤️ Save items to your wishlist</li><li>💬 Contact vendors directly</li><li>📢 Post public requests</li></ul><p>Happy hunting!</p><p><strong>- The AFIT Digital Market Team</strong></p></div>` }
            });
        }
    } catch (error) { alert("Login failed: " + error.message); }
@@ -698,19 +720,15 @@
            if (!suspendedData) {
                const qSuspended = query(collection(db, "vendor_status"), where("status", "==", "suspended"));
                const suspendedSnap = await getDocs(qSuspended);
-               suspendedData = [];
-               suspendedSnap.forEach(doc => { suspendedData.push(doc.id); });
+               suspendedData = []; suspendedSnap.forEach(doc => { suspendedData.push(doc.id); });
                setCachedData('cache_suspended_vendors', suspendedData);
            }
            suspendedData.forEach(id => suspendedVendors.add(id));
 
            const [vendors1, vendors2] = await Promise.all([
-               fetch(`${apiRoot}/Vendors`).then(res => res.json()),
-               fetch(`${apiRoot}/Vendors_v2`).then(res => res.json().catch(() => []))
+               fetch(`${apiRoot}/Vendors`).then(res => res.json()), fetch(`${apiRoot}/Vendors_v2`).then(res => res.json().catch(() => []))
            ]);
-
            const combinedVendors = [...vendors1, ...vendors2];
-
            allVendors = combinedVendors.filter(v => {
                const vid = v.vendor_id || v.Vendor_ID;
                const isSuspended = suspendedVendors.has(vid);
@@ -726,8 +744,7 @@
                }
            });
 
-           const randomVendors = shuffle(allVendors).slice(0, 20); 
-           renderVendors(randomVendors);
+           renderVendors(shuffle(allVendors).slice(0, 20));
            
            const productsRes = await fetch(`${apiRoot}/Products`);
            const sheetProducts = await productsRes.json();
@@ -738,22 +755,11 @@
            
            renderStories(allProducts, globalPhoneBook);
            
-           const featured = [];
-           const normal = [];
-           
-           allProducts.forEach(p => {
-               if (p.status !== "Sold") { 
-                   if (p.is_featured === "true") featured.push(p);
-                   else normal.push(p);
-               }
-           });
+           const featured = []; const normal = [];
+           allProducts.forEach(p => { if (p.status !== "Sold") { if (String(p.is_featured).toLowerCase() === "true") featured.push(p); else normal.push(p); } });
 
-           const shuffledNormal = shuffle(normal);
-           const displayList = [...featured, ...shuffledNormal].slice(0, 20);
-
-           renderItems(displayList); 
+           renderItems([...featured, ...shuffle(normal)].slice(0, 20)); 
            loadRecentItems();
-
        } catch (err) { console.error("Init Error:", err); }
    }
 
@@ -763,94 +769,47 @@
        try {
            const docRef = doc(db, "aggregations", "master_product_list");
            const docSnap = await getDoc(docRef);
-           if (docSnap.exists()) {
-               const data = docSnap.data().items || [];
-               setCachedData('cache_firestore_products', data); 
-               return data;
-           } else return [];
+           if (docSnap.exists()) { const data = docSnap.data().items || []; setCachedData('cache_firestore_products', data); return data; } else return [];
        } catch(e) { return []; }
    }
 
    async function loadRecentBlogs() {
-        const container = document.getElementById('home-blog-grid');
-        if(!container) return;
-        try {
-            let cachedBlogs = getCachedData('cache_home_blogs');
-            if(cachedBlogs) { renderHomeBlogs(cachedBlogs); return; }
-        } catch(e) { }
-
+        const container = document.getElementById('home-blog-grid'); if(!container) return;
+        try { let cachedBlogs = getCachedData('cache_home_blogs'); if(cachedBlogs) { renderHomeBlogs(cachedBlogs); return; } } catch(e) { }
         try {
             const q = query(collection(db, "blogs"), orderBy("timestamp", "desc"), limit(2));
             const snap = await getDocs(q);
             if(snap.empty) { renderHomeBlogs([]); return; }
-            const blogs = snap.docs.map(doc => {
-                const data = doc.data();
-                return {
-                    id: doc.id, title: data.title || "Campus Update", snippet: data.snippet || "Click to read more...",
-                    category: data.category || "News", image: data.image || "img/logo-blue.png", _timestamp: data.timestamp ? data.timestamp.seconds : null
-                };
-            });
+            const blogs = snap.docs.map(doc => { const data = doc.data(); return { id: doc.id, title: data.title || "Campus Update", snippet: data.snippet || "Click to read more...", category: data.category || "News", image: data.image || "img/logo-blue.png", _timestamp: data.timestamp ? data.timestamp.seconds : null }; });
             try { setCachedData('cache_home_blogs', blogs); } catch(e) {}
             renderHomeBlogs(blogs);
         } catch(e) { container.innerHTML = `<p style='text-align:center; font-size:12px; color:#ff4757;'>Error: ${e.message}</p>`; }
     }
 
     function renderHomeBlogs(blogs) {
-        const container = document.getElementById('home-blog-grid');
-        container.innerHTML = "";
+        const container = document.getElementById('home-blog-grid'); container.innerHTML = "";
         if (!blogs || blogs.length === 0) { container.innerHTML = "<p style='text-align:center; font-size:12px; color:#777; padding: 20px 0;'>No news available right now.</p>"; return; }
         blogs.forEach(b => {
-            const cat = b.category || "News";
-            let displayDate = "Recent";
-            if (b._timestamp) displayDate = new Date(b._timestamp * 1000).toLocaleDateString();
-            const safeTitle = escapeHTML(b.title);
-            const safeSnippet = escapeHTML(b.snippet);
-            let img = b.image || "img/logo-blue.png";
-            container.innerHTML += `
-            <a href="blogs/index.html?post=${b.id}" class="home-blog-card">
-                <img src="${img}" class="home-blog-img" onerror="this.src='img/logo-blue.png'">
-                <div class="home-blog-info">
-                    <div class="home-blog-cat">${cat} <span style="color:#999; font-weight:normal; font-size:9px; margin-left:5px;">${displayDate}</span></div>
-                    <h4 class="home-blog-title">${safeTitle}</h4>
-                    <div class="home-blog-snippet">${safeSnippet}</div>
-                </div>
-            </a>`;
+            const displayDate = b._timestamp ? new Date(b._timestamp * 1000).toLocaleDateString() : "Recent";
+            container.innerHTML += `<a href="blogs/index.html?post=${b.id}" class="home-blog-card"><img src="${b.image || 'img/logo-blue.png'}" class="home-blog-img" onerror="this.src='img/logo-blue.png'"><div class="home-blog-info"><div class="home-blog-cat">${b.category || "News"} <span style="color:#999; font-weight:normal; font-size:9px; margin-left:5px;">${displayDate}</span></div><h4 class="home-blog-title">${escapeHTML(b.title)}</h4><div class="home-blog-snippet">${escapeHTML(b.snippet)}</div></div></a>`;
         });
     }
 
    async function loadReviews() {
-       const container = document.getElementById('reviews-slider');
-       if (!container) return;
+       const container = document.getElementById('reviews-slider'); if (!container) return;
        try {
            let reviewsData = getCachedData('cache_reviews');
            if (!reviewsData) {
                const q = query(collection(db, "reviews"), where("status", "==", "approved"));
                const snapshot = await getDocs(q);
-               reviewsData = [];
-               snapshot.forEach(doc => { reviewsData.push(doc.data()); });
-               setCachedData('cache_reviews', reviewsData);
+               reviewsData = []; snapshot.forEach(doc => { reviewsData.push(doc.data()); }); setCachedData('cache_reviews', reviewsData);
            }
            if (reviewsData.length > 0) {
-               container.innerHTML = ""; 
-               const shuffled = shuffle(reviewsData).slice(0, 5);
+               container.innerHTML = ""; const shuffled = shuffle(reviewsData).slice(0, 5);
                shuffled.forEach(r => {
-                   const starCount = r.rating || 5;
-                   const starString = '<i class="fas fa-star" style="color:#FFD700;"></i>'.repeat(starCount);
-                   let img = r.image || "img/person.png";
-                   if (!img.startsWith('http') && !img.startsWith('img/')) img = `img/${img}`;
-                   let shortReview = r.review;
-                   if (shortReview.length > 65) shortReview = shortReview.substring(0, 65) + "...";
-                   container.innerHTML += `
-                   <div class="review-card">
-                       <div class="review-header">
-                           <img src="${img}" class="review-img" onerror="this.src='img/person.png'">
-                           <div>
-                               <div class="review-name">${r.name || "Student"}</div>
-                               <div class="stars" style="font-size:10px;">${starString}</div>
-                           </div>
-                       </div>
-                       <div class="review-text">"${shortReview}"</div>
-                   </div>`;
+                   let img = r.image || "img/person.png"; if (!img.startsWith('http') && !img.startsWith('img/')) img = `img/${img}`;
+                   let shortReview = r.review; if (shortReview.length > 65) shortReview = shortReview.substring(0, 65) + "...";
+                   container.innerHTML += `<div class="review-card"><div class="review-header"><img src="${img}" class="review-img" onerror="this.src='img/person.png'"><div><div class="review-name">${r.name || "Student"}</div><div class="stars" style="font-size:10px;">${'<i class="fas fa-star" style="color:#FFD700;"></i>'.repeat(r.rating || 5)}</div></div></div><div class="review-text">"${shortReview}"</div></div>`;
                });
            } else { container.innerHTML = "<p style='padding:20px; text-align:center; color:#777; font-size:12px;'>No reviews yet. Check back soon!</p>"; }
        } catch (e) {}
@@ -858,49 +817,64 @@
 
    window.toggleSave = async function(id, name, price, image, vendor) {
        const user = auth.currentUser;
-       if (!user) { 
-            const loginModal = document.getElementById('login-modal');
-            const pTag = loginModal.querySelector('p');
-            if(pTag) pTag.innerText = "Please login to save items.";
-            loginModal.style.display = 'flex'; 
-            return; 
-       }
-       const btn = document.getElementById(`save-${id}`);
-       const icon = btn.querySelector('i');
+       if (!user) { document.getElementById('login-modal').style.display = 'flex'; return; }
        const userRef = doc(db, "users", user.uid, "saved_items", id);
-
-       if (savedItemIds.has(id)) {
-           savedItemIds.delete(id); await deleteDoc(userRef);
-       } else {
-           savedItemIds.add(id); await setDoc(userRef, { product_id: id, name: name, price: price, image: image, vendor: vendor, saved_at: new Date() });
-       }
+       if (savedItemIds.has(id)) { savedItemIds.delete(id); await deleteDoc(userRef); } 
+       else { savedItemIds.add(id); await setDoc(userRef, { product_id: id, name, price, image, vendor, saved_at: new Date() }); }
        updateHeartIcons(); 
    };
 
    function updateHeartIcons() {
        document.querySelectorAll('.save-btn').forEach(btn => {
-           const id = btn.id.replace('save-', '');
-           const icon = btn.querySelector('i');
+           const id = btn.id.replace('save-', ''); const icon = btn.querySelector('i');
            if (savedItemIds.has(id)) { icon.classList.remove('far'); icon.classList.add('fas'); icon.style.color = '#ff4757'; } 
            else { icon.classList.remove('fas'); icon.classList.add('far'); icon.style.color = '#777'; }
        });
    }
 
-   // 🚀 FIXED: MODAL LAUNCHER (Updated button ID reference)
-   window.viewProduct = function(name, price, desc, img, phone, category, vendorId, vendorEmail) {
+   // 🚀 UPDATED MODAL LAUNCHER + SIMILAR ITEMS
+   window.viewProduct = function(name, price, desc, category, vendorId, vendorEmail, phone, imageString) {
        document.getElementById('m-title').innerText = name;
        document.getElementById('m-price').innerText = price;
        document.getElementById('m-desc').innerText = desc || "No description provided.";
        document.getElementById('m-category').innerText = "Category: " + category;
        
-       // Fixed the button ID here!
-       const waMsg = encodeURIComponent(`Hi, I saw "${name}" on AFIT Digital Market (Price: ${price}). Is it available?`);
-       document.getElementById('btn-wa').href = `https://wa.me/${phone}?text=${waMsg}`;
+       const carousel = document.getElementById('m-carousel');
+       const dotsContainer = document.getElementById('m-carousel-dots');
+       const swipeHint = document.getElementById('m-swipe-hint');
        
-       document.getElementById('btn-inapp').onclick = function() {
-           startRealChat(name, vendorId, vendorEmail);
-       };
+       carousel.innerHTML = ""; dotsContainer.innerHTML = "";
+       let images = [];
+       if(imageString) images = imageString.split(',').map(img => img.trim()).filter(img => img.length > 0);
+       if(images.length === 0) images = ['logo-blue.png'];
+       
+       const safeImgStringForClick = images.join(',').replace(/'/g, "\\'");
 
+       images.forEach((imgSrc, index) => {
+           const finalSrc = imgSrc.startsWith('http') ? imgSrc : `img/${imgSrc}`;
+           carousel.innerHTML += `<img src="${finalSrc}" class="carousel-img" onerror="this.src='img/logo-blue.png'" onclick="openFullscreenGallery('${safeImgStringForClick}', ${index})" style="cursor:zoom-in;">`;
+           if(images.length > 1) dotsContainer.innerHTML += `<div class="dot ${index === 0 ? 'active' : ''}" id="dot-${index}"></div>`;
+       });
+       
+       if(images.length > 1) {
+           swipeHint.style.display = 'block';
+           carousel.onscroll = function() {
+               const width = carousel.clientWidth;
+               if(width > 0) {
+                   const activeIndex = Math.round(carousel.scrollLeft / width);
+                   document.querySelectorAll('.dot').forEach((d, i) => { d.classList.toggle('active', i === activeIndex); });
+               }
+           };
+       } else {
+           swipeHint.style.display = 'none';
+           carousel.onscroll = null;
+       }
+
+       const waMsg = encodeURIComponent(`Hi, I saw "${name}" on AFIT Market (Price: ${price}). Is it available?`);
+       document.getElementById('btn-wa').href = `https://wa.me/${phone}?text=${waMsg}`;
+       document.getElementById('btn-inapp').onclick = function() { startRealChat(name, vendorId, vendorEmail); };
+
+       // 🚀 RESTORED: SIMILAR ITEMS LOGIC
        const similarWrapper = document.getElementById('similar-wrapper');
        const similarGrid = document.getElementById('m-similar-grid'); 
        similarGrid.innerHTML = "";
@@ -914,17 +888,21 @@
                picked.forEach(p => {
                    const sName = p.name || p.Name;
                    const sPrice = p.price || p.Price;
-                   const sImg = (p.image || p.Image).startsWith('http') ? (p.image || p.Image) : `img/${p.image || p.Image}`;
+                   const sImageString = p.image || p.Image || "logo-blue.png";
+                   const firstImage = String(sImageString).split(',')[0].trim();
+                   const sImg = firstImage.startsWith('http') ? firstImage : `img/${firstImage}`;
                    const sVendor = String(p.vendor_id || p.Vendor_ID).toUpperCase().trim();
                    const sPhone = globalPhoneBook[sVendor] || ADMIN_PHONE;
                    const sEmail = globalEmailBook[sVendor] || "afitdgm@gmail.com";
+                   const sCat = p.category || p.Category || "General";
                    
-                   // Double-escape quotes for safe HTML injection
-                   const safeName = sName.replace(/'/g, "\\'").replace(/"/g, "&quot;");
-                   const safeDesc = (p.description || "No description").replace(/'/g, "\\'").replace(/"/g, "&quot;").replace(/\n/g, " ");
+                   const safeNameJS = sName.replace(/'/g, "\\'").replace(/"/g, "&quot;");
+                   const safePriceJS = sPrice.replace(/'/g, "\\'").replace(/"/g, "&quot;");
+                   const safeDescJS = (p.description || "No description").replace(/'/g, "\\'").replace(/"/g, "&quot;").replace(/\n/g, " ");
+                   const safeImgStrJS = String(sImageString).replace(/'/g, "\\'").replace(/"/g, "&quot;");
 
                    similarGrid.innerHTML += `
-                   <div class="sim-card" onclick="viewProduct('${safeName}', '${sPrice}', '${safeDesc}', '${sImg}', '${sPhone}', '${category}', '${sVendor}', '${sEmail}')">
+                   <div class="sim-card" onclick="viewProduct('${safeNameJS}', '${safePriceJS}', '${safeDescJS}', '${sCat}', '${sVendor}', '${sEmail}', '${sPhone}', '${safeImgStrJS}')">
                        <img src="${sImg}" class="sim-img" onerror="this.src='img/logo-blue.png'">
                        <div class="sim-price">${sPrice}</div>
                    </div>`;
@@ -935,102 +913,98 @@
        document.getElementById('detail-modal').style.display = 'flex';
    };
 
-   window.startRealChat = async function(productName, vendorId, vendorEmail) {
-       const user = auth.currentUser;
-       if (!user) { 
+   // 🚀 FULLSCREEN LOGIC FOR HOMEPAGE
+   window.openFullscreenGallery = function(imageString, startIndex) {
+       const fsModal = document.getElementById('fs-gallery');
+       const fsCarousel = document.getElementById('fs-carousel-container');
+       const fsCounter = document.getElementById('fs-counter');
+       fsCarousel.innerHTML = "";
+       const images = imageString.split(',');
+       images.forEach((imgSrc) => {
+           const finalSrc = imgSrc.startsWith('http') ? imgSrc : `img/${imgSrc}`;
+           fsCarousel.innerHTML += `<img src="${finalSrc}" class="fs-img" onerror="this.src='img/logo-blue.png'">`;
+       });
+       fsModal.style.display = 'flex';
+       setTimeout(() => {
+           const width = fsCarousel.clientWidth;
+           fsCarousel.scrollLeft = width * startIndex;
+           fsCounter.innerText = `${startIndex + 1} / ${images.length}`;
+       }, 10);
+       fsCarousel.onscroll = function() {
+           const width = fsCarousel.clientWidth;
+           if(width > 0) {
+               const activeIndex = Math.round(fsCarousel.scrollLeft / width);
+               fsCounter.innerText = `${activeIndex + 1} / ${images.length}`;
+           }
+       };
+   };
+
+   // 🚀 NEW: Just redirect with parameters, DO NOT create a document!
+    window.startRealChat = async function(productName, vendorId, vendorEmail) {
+        const user = auth.currentUser;
+        if (!user) {
             const loginModal = document.getElementById('login-modal');
             const pTag = loginModal.querySelector('p');
             if(pTag) pTag.innerText = "Please login to securely message this vendor.";
             loginModal.style.display = 'flex'; 
-            return; 
-       }
+            return;
+        }
 
-       const btn = document.getElementById('btn-inapp');
-       btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Securing chat...';
-       btn.disabled = true;
+        const safeProd = encodeURIComponent(productName);
+        const safeVenId = encodeURIComponent(vendorId);
+        const safeVenEmail = encodeURIComponent(vendorEmail || "afitdgm@gmail.com");
 
-       try {
-           const expirationDate = new Date();
-           expirationDate.setDate(expirationDate.getDate() + 3);
-           const targetEmail = vendorEmail || "afitdgm@gmail.com";
+        // Use `../chat/` for subfolder pages, and `chat/` for the main index.html page
+        const isRootPage = window.location.pathname.endsWith('index.html') && !window.location.pathname.includes('/');
+        const chatPath = isRootPage ? `chat/index.html` : `../chat/index.html`;
 
-           const chatRef = await addDoc(collection(db, "chats"), {
-               participants: [user.uid, targetEmail], 
-               customerUid: user.uid,
-               customerEmail: user.email, 
-               customerName: user.displayName || "AFIT Student",
-               vendorUid: vendorId, 
-               vendorName: vendorId, 
-               vendorEmail: targetEmail, 
-               productName: productName, 
-               lastMessage: "Started a conversation...",
-               updatedAt: serverTimestamp(),
-               expiresAt: expirationDate
-           });
+        window.location.href = `${chatPath}?vendorId=${safeVenId}&vendorEmail=${safeVenEmail}&product=${safeProd}`;
+    }
 
-           window.location.href = `chat/?id=${chatRef.id}`;
-           
-       } catch(e) {
-           console.error(e);
-           alert("Failed to start chat. Check network.");
-           btn.innerHTML = '<i class="fas fa-comment-dots"></i> Message In-App (Secure)';
-           btn.disabled = false;
-       }
-   }
+   window.closeProductModal = function() { document.getElementById('detail-modal').style.display = 'none'; };
 
-   window.closeProductModal = function() {
-       document.getElementById('detail-modal').style.display = 'none';
-   };
-
-   window.addToHistory = function(id, name, price, image, vendor, desc) {
+   window.addToHistory = function(id, name, price, imageStr, vendor, desc) {
        let history = JSON.parse(localStorage.getItem('adm_history')) || [];
        history = history.filter(item => item.id !== id);
-       history.unshift({ id, name, price, image, vendor, desc, seenAt: Date.now() });
+       history.unshift({ id, name, price, image: imageStr, vendor, desc, seenAt: Date.now() });
        if(history.length > 6) history.pop();
        localStorage.setItem('adm_history', JSON.stringify(history));
    };
 
    function loadRecentItems() {
        let history = JSON.parse(localStorage.getItem('adm_history')) || [];
-       const container = document.getElementById('recent-grid');
-       const section = document.getElementById('recent-section');
-       const TEN_MINUTES = 10 * 60 * 1000;
-
-       history = history.filter(item => {
-           const isFresh = (Date.now() - (item.seenAt || 0)) < TEN_MINUTES;
-           const isVendorValid = globalPhoneBook[item.vendor]; 
-           return isFresh && isVendorValid;
-       });
+       const container = document.getElementById('recent-grid'); const section = document.getElementById('recent-section');
+       history = history.filter(item => { return (Date.now() - (item.seenAt || 0)) < (10 * 60 * 1000) && globalPhoneBook[item.vendor]; });
        localStorage.setItem('adm_history', JSON.stringify(history));
 
        if(history.length > 0 && container) {
-           section.style.display = 'block';
-           container.innerHTML = "";
+           section.style.display = 'block'; container.innerHTML = "";
            history.forEach(p => {
                const liveItem = allProducts.find(prod => prod.id === p.id);
                const liveDesc = liveItem ? (liveItem.description || liveItem.Description) : p.desc;
-               
                const vID = String(p.vendor).toUpperCase().trim();
                const vendorPhone = globalPhoneBook[vID] || ADMIN_PHONE;
                const vendorEmail = globalEmailBook[vID] || "afitdgm@gmail.com";
                
-               const img = p.image.startsWith('http') ? p.image : `img/${p.image}`;
-               const category = "General"; 
+               const pImageString = p.image || "logo-blue.png";
+               const firstImage = String(pImageString).split(',')[0].trim();
+               const img = firstImage.startsWith('http') ? firstImage : `img/${firstImage}`;
                
-               // Security Escaping
-               const safeName = p.name.replace(/'/g, "\\'").replace(/"/g, "&quot;");
-               const safeDesc = (liveDesc || "No description.").replace(/'/g, "\\'").replace(/"/g, "&quot;").replace(/\n/g, " ");
+               const safeNameJS = p.name.replace(/'/g, "\\'").replace(/"/g, "&quot;");
+               const safePriceJS = p.price.replace(/'/g, "\\'").replace(/"/g, "&quot;");
+               const safeDescJS = (liveDesc || "No description.").replace(/'/g, "\\'").replace(/"/g, "&quot;").replace(/\n/g, " ");
+               const safeImgStrJS = String(pImageString).replace(/'/g, "\\'").replace(/"/g, "&quot;");
 
                container.innerHTML += `
                <div class="ad-card" style="min-width: 140px;"> 
                    <img class="ad-img" src="${img}" alt="${p.name}" onerror="this.src='img/logo-blue.png'"
-                        onclick="viewProduct('${safeName}', '${p.price}', '${safeDesc}', '${img}', '${vendorPhone}', '${category}', '${vID}', '${vendorEmail}')">
+                        onclick="viewProduct('${safeNameJS}', '${safePriceJS}', '${safeDescJS}', 'General', '${vID}', '${vendorEmail}', '${vendorPhone}', '${safeImgStrJS}')">
                    <div class="ad-info">
                        <div class="ad-price" style="font-size:12px;">${p.price}</div>
                        <div class="ad-title" style="font-size:11px;">${p.name}</div>
                        <div class="action-row">
-                          <button onclick="viewProduct('${safeName}', '${p.price}', '${safeDesc}', '${img}', '${vendorPhone}', '${category}', '${vID}', '${vendorEmail}')" class="chat-btn" style="flex:1; border:none; margin-top:5px; padding:4px 10px; font-size:10px; cursor:pointer;">Get</button>
-                          <button onclick="startRealChat('${safeName}', '${vID}', '${vendorEmail}')" class="quick-chat-btn" style="margin-top:5px; width:30px; height:24px; font-size:10px;" title="Quick Chat"><i class="fas fa-comment-dots"></i></button>
+                          <button onclick="viewProduct('${safeNameJS}', '${safePriceJS}', '${safeDescJS}', 'General', '${vID}', '${vendorEmail}', '${vendorPhone}', '${safeImgStrJS}')" class="chat-btn" style="flex:1; border:none; margin-top:5px; padding:4px 10px; font-size:10px; cursor:pointer;">Get</button>
+                          <button onclick="startRealChat('${safeNameJS}', '${vID}', '${vendorEmail}')" class="quick-chat-btn" style="margin-top:5px; width:30px; height:24px; font-size:10px;" title="Quick Chat"><i class="fas fa-comment-dots"></i></button>
                        </div>
                    </div>
                </div>`;
@@ -1038,25 +1012,17 @@
        } else if(section) { section.style.display = 'none'; }
    }
 
-   function loadAds() {
-       fetch(`${apiRoot}/Ads`)
-       .then(res => res.json())
-       .then(data => {
+   function loadAds() { 
+       fetch(`${apiRoot}/Ads`).then(res => res.json()).then(data => {
            const activeAds = data.filter(ad => String(ad.status || ad.Status).toLowerCase().trim() === "active");
            if(activeAds.length > 0) {
                const ad = activeAds[Math.floor(Math.random() * activeAds.length)];
-               const img = ad.image || ad.Image;
-               const title = ad.title || ad.Title;
-               const text = ad.text || ad.Text;
-               const waPhone = ad.whatsapp || ad.Whatsapp;
-               const cleanPhone = waPhone ? String(waPhone).replace(/[^0-9]/g, '') : ADMIN_PHONE;
+               const img = ad.image || ad.Image; const title = ad.title || ad.Title; const text = ad.text || ad.Text;
+               const cleanPhone = (ad.whatsapp || ad.Whatsapp) ? String(ad.whatsapp || ad.Whatsapp).replace(/[^0-9]/g, '') : ADMIN_PHONE;
                const link = `https://wa.me/${cleanPhone}?text=Hi,%20I%20saw%20your%20ad%20"${title}"`;
-
                const modalImg = document.getElementById('modal-img'); if(modalImg) modalImg.src = img.startsWith('http') ? img : `img/${img}`;
-               document.getElementById('modal-title').innerText = title;
-               document.getElementById('modal-text').innerText = text;
+               document.getElementById('modal-title').innerText = title; document.getElementById('modal-text').innerText = text;
                const modalLink = document.getElementById('modal-link'); if(modalLink) { modalLink.href = link; modalLink.innerText = "Chat on WhatsApp"; }
-               
                const notifBtn = document.getElementById('notif-btn');
                if(notifBtn && !notifBtn.querySelector('.badge-dot')) {
                    notifBtn.style.position = 'relative';
@@ -1070,35 +1036,33 @@
    const closeAdBtn = document.querySelector('.close-modal'); if(closeAdBtn) { closeAdBtn.addEventListener('click', () => { document.getElementById('promo-modal').style.display = 'none'; }); }
 
    function renderStories(products, phoneBook) {
-       const container = document.getElementById('stories-list');
-       const section = document.getElementById('stories-section');
+       const container = document.getElementById('stories-list'); const section = document.getElementById('stories-section');
        const stories = products.filter(p => String(p.is_story || p.Is_Story).toLowerCase() === "true");
        if(stories.length > 0) {
-           section.style.display = 'block';
-           container.innerHTML = "";
+           section.style.display = 'block'; container.innerHTML = "";
            stories.forEach(p => {
-               const pName = p.name || p.Name;
-               const pImage = p.image || p.Image;
-               const pPrice = p.price || p.Price;
+               const pName = p.name || p.Name; const pPrice = p.price || p.Price;
                const pVendor = String(p.vendor_id || p.Vendor_ID).toUpperCase().trim();
-               const pDesc = p.description || p.Description || ""; 
-               const pCat = p.category || p.Category || "General";
-               const img = pImage.startsWith('http') ? pImage : `img/${pImage}`;
+               const pDesc = p.description || p.Description || ""; const pCat = p.category || p.Category || "General";
+               
+               const pImageString = p.image || p.Image || "logo-blue.png";
+               const firstImage = String(pImageString).split(',')[0].trim();
+               const img = firstImage.startsWith('http') ? firstImage : `img/${firstImage}`;
+               
                const vendorPhone = phoneBook[pVendor] || ADMIN_PHONE;
                const vendorEmail = globalEmailBook[pVendor] || "afitdgm@gmail.com";
-               const pID = p.id;
                
-               const storyDiv = document.createElement('div');
-               storyDiv.className = 'story-item';
+               const storyDiv = document.createElement('div'); storyDiv.className = 'story-item';
                storyDiv.innerHTML = `<div class="story-ring"><img src="${img}" class="story-img" alt="${pName}" onerror="this.src='img/logo-blue.png'"></div><div class="story-name">${pName}</div>`;
                
-               // Security Escaping
-               const safeName = String(pName).replace(/'/g, "\\'").replace(/"/g, "&quot;");
-               const safeDesc = pDesc.replace(/'/g, "\\'").replace(/"/g, "&quot;").replace(/\n/g, " ");
+               const safeNameJS = String(pName).replace(/'/g, "\\'").replace(/"/g, "&quot;");
+               const safePriceJS = String(pPrice).replace(/'/g, "\\'").replace(/"/g, "&quot;");
+               const safeDescJS = String(pDesc).replace(/'/g, "\\'").replace(/"/g, "&quot;").replace(/\n/g, " ");
+               const safeImgStrJS = String(pImageString).replace(/'/g, "\\'").replace(/"/g, "&quot;");
                
                storyDiv.addEventListener('click', () => {
-                  viewProduct(pName, pPrice, pDesc, img, vendorPhone, pCat, pVendor, vendorEmail);
-                  addToHistory(pID, safeName, pPrice, pImage, pVendor, safeDesc);
+                  viewProduct(safeNameJS, safePriceJS, safeDescJS, pCat, pVendor, vendorEmail, vendorPhone, safeImgStrJS);
+                  addToHistory(p.id, safeNameJS, safePriceJS, safeImgStrJS, pVendor, safeDescJS);
                });
                container.appendChild(storyDiv);
            });
@@ -1108,40 +1072,28 @@
    function shuffle(array) { return array.sort(() => 0.5 - Math.random()); }
    
    function setupMainSearch() {
-       const searchInput = document.getElementById('main-search');
-       const searchType = document.getElementById('search-type');
-       let searchTimeout; 
-       
+       const searchInput = document.getElementById('main-search'); const searchType = document.getElementById('search-type'); let searchTimeout; 
        if(searchInput) {
            searchInput.addEventListener('input', (e) => { 
                clearTimeout(searchTimeout); 
                searchTimeout = setTimeout(async () => {
                    const queryVal = e.target.value.toLowerCase().trim();
                    if(queryVal === "") { initData(); return; }
-                   const type = searchType.value; 
-                   
-                   if (type === 'product') {
+                   if (searchType.value === 'product') {
                        try {
                            const { hits } = await algoliaIndex.search(queryVal);
-                           const validHits = hits.filter(hit => {
-                               const vendorId = hit.vendor_id || hit.Vendor_ID;
-                               return !suspendedVendors.has(vendorId);
-                           });
+                           const validHits = hits.filter(hit => !suspendedVendors.has(hit.vendor_id || hit.Vendor_ID));
                            renderItems(validHits); 
-                       } catch (err) {
-                           renderItems(allProducts.filter(p => (p.name || p.Name).toLowerCase().includes(queryVal)));
-                       }
-                   } else if (type === 'vendor') {
+                       } catch (err) { renderItems(allProducts.filter(p => (p.name || p.Name).toLowerCase().includes(queryVal))); }
+                   } else if (searchType.value === 'vendor') {
                        renderVendors(allVendors.filter(v => (v.business_name || v.Business_Name).toLowerCase().includes(queryVal)));
                    }
                }, 300); 
            });
-
            searchInput.addEventListener('keyup', function(e) {
                if (e.key === 'Enter' || e.keyCode === 13) {
                    e.preventDefault(); this.blur(); 
-                   const type = searchType.value;
-                   if(type === 'product') document.getElementById('items-section-container').scrollIntoView({behavior: 'smooth'});
+                   if(searchType.value === 'product') document.getElementById('items-section-container').scrollIntoView({behavior: 'smooth'});
                    else document.getElementById('vendor-section-container').scrollIntoView({behavior: 'smooth'});
                }
            });
@@ -1150,59 +1102,58 @@
    }
 
    function renderItems(data) {
-       const itemGrid = document.getElementById("home-items-grid");
-       if(!itemGrid) return;
+       const itemGrid = document.getElementById("home-items-grid"); if(!itemGrid) return;
        itemGrid.innerHTML = ""; 
        data.forEach(p => {
-           const pName = p.name || p.Name;
-           const pPrice = p.price || p.Price;
+           const pName = p.name || p.Name; const pPrice = p.price || p.Price;
            const pVendor = String(p.vendor_id || p.Vendor_ID).toUpperCase().trim();
-           const pImage = p.image || p.Image;
-           const pDesc = p.description || p.Description || "";
-           const pCat = p.category || p.Category || "General";
-           const pStatus = p.status || p.Status || "Active"; 
-           const isFeatured = String(p.is_featured).toLowerCase() === "true"; 
+           const pImageString = p.image || p.Image || "logo-blue.png";
+           const pDesc = p.description || p.Description || ""; const pCat = p.category || p.Category || "General";
+           const pStatus = p.status || p.Status || "Active"; const isFeatured = String(p.is_featured).toLowerCase() === "true"; 
            const pID = p.id; 
 
-           const img = pImage.startsWith('http') ? pImage : `img/${pImage}`;
+           const firstImage = String(pImageString).split(',')[0].trim();
+           const img = firstImage.startsWith('http') ? firstImage : `img/${firstImage}`;
+           
            const vendorPhone = globalPhoneBook[pVendor] || ADMIN_PHONE;
            const vendorEmail = globalEmailBook[pVendor] || "afitdgm@gmail.com";
            const isSaved = savedItemIds.has(pID);
-           const heartClass = isSaved ? 'fas' : 'far';
-           const heartColor = isSaved ? '#ff4757' : '#777';
+           const heartClass = isSaved ? 'fas' : 'far'; const heartColor = isSaved ? '#ff4757' : '#777';
 
-           // Security Escaping
-           const safeName = pName.replace(/'/g, "\\'").replace(/"/g, "&quot;");
-           const safeDesc = pDesc.replace(/'/g, "\\'").replace(/"/g, "&quot;").replace(/\n/g, " ");
-
-           const isSold = pStatus === "Sold";
-           const opacity = isSold ? 'opacity:0.6;' : '';
+           const safeNameHTML = escapeHTML(pName);
+           const safePriceHTML = escapeHTML(pPrice);
            
+           const safeNameJS = String(pName).replace(/'/g, "\\'").replace(/"/g, "&quot;");
+           const safePriceJS = String(pPrice).replace(/'/g, "\\'").replace(/"/g, "&quot;");
+           const safeDescJS = String(pDesc).replace(/'/g, "\\'").replace(/"/g, "&quot;").replace(/[\n\r]+/g, " "); 
+           const safeImgStrJS = String(pImageString).replace(/'/g, "\\'").replace(/"/g, "&quot;");
+
+           const isSold = pStatus === "Sold"; const opacity = isSold ? 'opacity:0.6;' : '';
            let badge = isSold ? '<span style="background:red; color:white; font-size:9px; padding:2px 5px; position:absolute; top:10px; left:10px; border-radius:4px; z-index:10;">SOLD</span>' : 
                        isFeatured ? '<span style="background:#f1c40f; color:white; font-size:9px; padding:2px 5px; position:absolute; top:10px; left:10px; border-radius:4px; z-index:10; font-weight:bold;">⭐ Sponsored</span>' : '';
 
-           const clickAction = isSold ? "" : `onclick="viewProduct('${safeName}', '${pPrice}', '${safeDesc}', '${img}', '${vendorPhone}', '${pCat}', '${pVendor}', '${vendorEmail}'); addToHistory('${pID}', '${safeName}', '${pPrice}', '${pImage}', '${pVendor}', '${safeDesc}')"`;
-           const btnText = isSold ? "Sold" : "Get";
-           const btnStyle = isSold ? "background:#777; pointer-events:none;" : "";
+           const safeCatJS = String(pCat).replace(/'/g, "\\'").replace(/"/g, "&quot;");
+           const clickAction = isSold ? "" : `onclick="viewProduct('${safeNameJS}', '${safePriceJS}', '${safeDescJS}', '${safeCatJS}', '${pVendor}', '${vendorEmail}', '${vendorPhone}', '${safeImgStrJS}'); addToHistory('${pID}', '${safeNameJS}', '${safePriceJS}', '${safeImgStrJS}', '${pVendor}', '${safeDescJS}')"`;
+           const btnText = isSold ? "Sold" : "Get"; const btnStyle = isSold ? "background:#777; pointer-events:none;" : "";
 
            itemGrid.innerHTML += `
            <div class="ad-card" style="position:relative; ${opacity}">
                ${badge}
-               <button onclick="toggleSave('${pID}', '${safeName}', '${pPrice}', '${pImage}', '${pVendor}')" 
+               <button onclick="toggleSave('${pID}', '${safeNameJS}', '${safePriceJS}', '${firstImage}', '${pVendor}')" 
                        class="save-btn" id="save-${pID}"
                        style="position:absolute; top:10px; right:10px; background:white; border:none; border-radius:50%; width:30px; height:30px; display:flex; align-items:center; justify-content:center; cursor:pointer; box-shadow:0 2px 5px rgba(0,0,0,0.2); z-index:10;">
                    <i class="${heartClass} fa-heart" style="color:${heartColor}; font-size:16px;"></i>
                </button>
-               <img class="ad-img" src="${img}" alt="${pName}" onerror="this.src='img/logo-blue.png'" ${clickAction}>
+               <img class="ad-img" src="${img}" alt="${safeNameHTML}" onerror="this.src='img/logo-blue.png'" ${clickAction}>
                <div class="ad-info">
-                   <div class="ad-price">${pPrice}</div>
-                   <div class="ad-title">${pName}</div>
-                   <div class="ad-desc-preview">${pDesc}</div>
+                   <div class="ad-price">${safePriceHTML}</div>
+                   <div class="ad-title">${safeNameHTML}</div>
+                   <div class="ad-desc-preview">${escapeHTML(pDesc)}</div>
                    <div class="ad-location">Vendor: ${pVendor}</div>
                    
                    <div class="action-row">
                        <button ${clickAction} class="chat-btn" style="flex:1; border:none; margin-top:5px; cursor:pointer; padding: 10px; ${btnStyle}">${btnText}</button>
-                       ${isSold ? '' : `<button onclick="startRealChat('${safeName}', '${pVendor}', '${vendorEmail}')" class="quick-chat-btn" style="margin-top:5px;" title="Quick Chat"><i class="fas fa-comment-dots"></i></button>`}
+                       ${isSold ? '' : `<button onclick="startRealChat('${safeNameJS}', '${pVendor}', '${vendorEmail}')" class="quick-chat-btn" style="margin-top:5px;" title="Quick Chat"><i class="fas fa-comment-dots"></i></button>`}
                    </div>
                </div>
            </div>`;
@@ -1210,16 +1161,12 @@
    }
 
    function renderVendors(data) {
-       const vendorGrid = document.getElementById("vendor-grid");
-       if(!vendorGrid) return;
+       const vendorGrid = document.getElementById("vendor-grid"); if(!vendorGrid) return;
        vendorGrid.innerHTML = "";
        data.forEach(v => {
-           const vName = v.business_name || v.Business_Name;
-           const vDesc = v.description || v.Description;
-           const vImage = v.image || v.Image;
-           const vID = v.vendor_id || v.Vendor_ID;
-           const vVerified = String(v.verified || v.Verified || "").toLowerCase().trim();
-           const vImg = vImage.startsWith('http') ? vImage : `img/${vImage}`;
+           const vName = v.business_name || v.Business_Name; const vDesc = v.description || v.Description;
+           const vID = v.vendor_id || v.Vendor_ID; const vVerified = String(v.verified || v.Verified || "").toLowerCase().trim();
+           const vImg = (v.image || v.Image).startsWith('http') ? (v.image || v.Image) : `img/${v.image || v.Image}`;
            let badgeHtml = "";
            if (vVerified === "gold") badgeHtml = '<i class="fas fa-check-circle tick-gold"></i>';
            else if (vVerified === "blue") badgeHtml = '<i class="fas fa-check-circle tick-blue"></i>';

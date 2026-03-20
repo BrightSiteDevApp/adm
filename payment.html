@@ -174,6 +174,12 @@
                 </div>
 
                 <div class="form-group">
+                    <label class="form-label">Ambassador ID <span style="font-weight:normal; color:#888;">(Optional)</span></label>
+                    <input type="text" id="p_ambassador" class="form-input" placeholder="e.g. ADM-1234">
+                    <p style="font-size:10px; color:#777; margin-top:5px;">If an ambassador referred you, please enter their ID here.</p>
+                </div>
+
+                <div class="form-group">
                     <label class="form-label">Upload Payment Receipt</label>
                     <div class="file-upload-box">
                         <i class="fas fa-file-invoice-dollar upload-icon" style="color: #00b894;"></i>
@@ -318,11 +324,15 @@
 
                 btn.innerText = "Submitting to Database...";
 
+                // 🚀 NEW: Grab Ambassador ID from the input and add to Payload!
+                const ambassadorId = document.getElementById('p_ambassador').value.trim();
+
                 const payload = {
                     vendor_id: currentVendorData.vendor_id || currentVendorData.Vendor_ID || "Unknown",
                     business_name: currentVendorData.business_name || currentVendorData.Business_Name || currentVendorData.Name || "Unknown",
                     email: currentVendorData.Email,
                     selected_plan: document.getElementById('p_plan').value,
+                    ambassador_id: ambassadorId, // This matches the new column in your Google Sheet!
                     receipt_url: receiptUrl
                 };
 
