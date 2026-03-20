@@ -12,7 +12,8 @@
     <style>
         /* Dashboard Styles */
         .dash-header {
-            background: linear-gradient(135deg, #2d8eff, #6c5ce7);
+            /* 🚀 FIXED: Removed purple gradient, pure brand blue now */
+            background: #2d8eff; 
             color: white;
             padding: 25px 20px 40px;
             border-radius: 0 0 25px 25px;
@@ -20,7 +21,6 @@
             box-shadow: 0 4px 15px rgba(45, 142, 255, 0.3);
         }
         
-        /* NEW: Subscription Info Box */
         .plan-info-box {
             background: rgba(255, 255, 255, 0.15);
             backdrop-filter: blur(5px);
@@ -52,7 +52,6 @@
         .stat-num { font-size: 24px; font-weight: bold; color: #333; }
         .stat-label { font-size: 11px; color: #777; text-transform: uppercase; letter-spacing: 1px; margin-top: 5px; }
 
-        /* SKELETON LOADING CSS (Added this so they actually show up!) */
         .skeleton-card { background: white; border-radius: 15px; border: 1px solid #f0f0f0; overflow: hidden; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
         .sk-img-rect, .sk-text-long, .sk-text-short {
             background: #eee;
@@ -67,7 +66,6 @@
             100% { background-position: calc(200px + 100%) 0; }
         }
 
-        /* Floating Add Button */
         .fab-add {
             position: fixed; bottom: 25px; right: 25px;
             background: #2d8eff; color: white;
@@ -78,7 +76,6 @@
         }
         .fab-add:active { transform: scale(0.9); }
 
-        /* Modal */
         .upload-modal {
             display: none; position: fixed; top: 0; left: 0;
             width: 100%; height: 100%; background: rgba(0,0,0,0.6);
@@ -97,7 +94,6 @@
             border-radius: 10px; font-size: 14px; box-sizing: border-box; background: #f9f9f9;
         }
 
-        /* ACTIONS BAR ON CARD */
         .card-actions {
             position: absolute; top: 10px; right: 10px; z-index: 10;
             display: flex; gap: 5px;
@@ -112,7 +108,6 @@
         .btn-sold.is-sold { background: rgba(50, 50, 50, 0.9); }
         .btn-edit { background: rgba(52, 152, 219, 0.9); } 
 
-        /* LIMIT POPUP */
         .limit-alert {
             display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0,0,0,0.7); z-index: 3000; justify-content: center; align-items: center; padding: 20px;
@@ -122,7 +117,6 @@
             animation: popIn 0.3s ease;
         }
 
-        /* LOAD MORE BUTTON */
         #load-more-container { text-align: center; margin: 20px 0; display: none; }
         #load-more-btn {
             background: #333; color: white; border: none; padding: 10px 25px;
@@ -134,7 +128,6 @@
         @keyframes popIn { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
         @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
         
-        /* Dark Mode */
         body.dark-mode .stat-card, body.dark-mode .upload-content, body.dark-mode .limit-box { background: #1e1e1e; color: white; }
         body.dark-mode .form-input { background: #333; border-color: #444; color: white; }
         body.dark-mode .stat-num { color: white; }
@@ -179,7 +172,6 @@
                     <div class="plan-value" id="sub-due">---</div>
                 </div>
             </div>
-
         </div>
 
         <div class="stats-grid">
@@ -271,8 +263,9 @@
             </div>
 
             <div class="form-group">
-                <label class="form-label">Photo <span id="photo-label" style="font-weight:normal; color:#2d8eff;"></span></label>
-                <input type="file" id="p-file" class="form-input" accept="image/*">
+                <label class="form-label">Photo <span id="photo-label" style="font-weight:normal; color:#2d8eff;">(Max 3 images)</span></label>
+                <input type="file" id="p-file" class="form-input" accept="image/*" multiple>
+                <p style="font-size: 10px; color: #777; margin-top: 5px;">Hold down on your photos to select up to 3 images at once.</p>
             </div>
 
             <button id="btn-submit" class="chat-btn" style="width:100%; background:#2d8eff; height: 50px; font-size: 16px;">Post Item</button>
@@ -294,11 +287,10 @@
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
     import { getFirestore, collection, addDoc, getDocs, query, where, deleteDoc, doc, updateDoc, getDoc } 
     from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-    // CONFIG
     const firebaseConfig = {
         apiKey: "AIzaSyA1eQbrJpH9OtDNDN7z9oTFTRSAE7vCFbg",
         authDomain: "afit-market-auth.firebaseapp.com",
@@ -324,7 +316,6 @@
     let editDocID = null;
     let currentImageURL = "";
 
-    // --- PAGINATION VARS ---
     let allFetchedItems = []; 
     let renderedCount = 0; 
     const INITIAL_LOAD = 20;
@@ -332,15 +323,9 @@
 
     function escapeHTML(str) {
         if (!str) return "";
-        return String(str)
-            .replace(/&/g, "&amp;")
-            .replace(/</g, "&lt;")
-            .replace(/>/g, "&gt;")
-            .replace(/"/g, "&quot;")
-            .replace(/'/g, "&#039;");
+        return String(str).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
     }
 
-    // 🌟 HELPER: Compress Image for iPhone Compatibility
     function compressImage(file) {
         return new Promise((resolve, reject) => {
             const reader = new FileReader();
@@ -350,7 +335,7 @@
                 img.src = event.target.result;
                 img.onload = () => {
                     const canvas = document.createElement('canvas');
-                    const MAX_WIDTH = 800; // Resize huge iPhone photos
+                    const MAX_WIDTH = 800; 
                     const scaleSize = MAX_WIDTH / img.width;
                     canvas.width = MAX_WIDTH;
                     canvas.height = img.height * scaleSize;
@@ -358,10 +343,9 @@
                     const ctx = canvas.getContext('2d');
                     ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
 
-                    // Convert to standard JPEG (Fixes HEIC issues)
                     canvas.toBlob((blob) => {
                         resolve(blob);
-                    }, 'image/jpeg', 0.8); // 80% Quality
+                    }, 'image/jpeg', 0.8); 
                 };
                 img.onerror = (err) => reject(err);
             };
@@ -407,7 +391,6 @@
                     
                     loadMyItems(currentVendorID);
 
-                    // 🚀 FETCH TOTAL VIEWS
                     try {
                         const statDoc = await getDoc(doc(db, "vendor_stats", currentVendorID));
                         if (statDoc.exists()) {
@@ -416,13 +399,10 @@
                             document.getElementById('view-count').innerText = "0";
                         }
                     } catch(e) {
-                        console.error("Failed to load views", e);
                         document.getElementById('view-count').innerText = "0";
                     }
 
               } else {
-                    // We removed the signOut() command! 
-                    // Now, they stay logged in as a normal student, but are just kicked off the dashboard.
                     alert(`Access Denied: The email "${user.email}" is not registered as a Vendor.\n\nRedirecting you back to the main market.`);
                     window.location.href = "index.html"; 
                 }
@@ -451,7 +431,6 @@
             
             allFetchedItems = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
             
-            // Sort by timestamp descending so newest items are on top
             allFetchedItems.sort((a, b) => {
                 const timeA = a.timestamp ? (a.timestamp.seconds || 0) : 0;
                 const timeB = b.timestamp ? (b.timestamp.seconds || 0) : 0;
@@ -499,10 +478,15 @@
             const safeNameHTML = escapeHTML(data.name);
             const safePriceHTML = escapeHTML(data.price);
             
+            // 🚀 MAGIC FIX: Only show the first image on the dashboard grid!
+            const firstImage = String(data.image || "logo-blue.png").split(',')[0].trim();
+            const safeImgHTML = firstImage.startsWith('http') ? firstImage : `img/${firstImage}`;
+            const safeImgStrJS = String(data.image).replace(/'/g, "\\'").replace(/"/g, "&quot;");
+            
             grid.innerHTML += `
             <div class="ad-card" style="position:relative; opacity:${opacity};">
                 <div class="card-actions">
-                    <button onclick="editItem('${data.id}', '${safeNameJS}', '${safePriceJS}', '${safeDescJS}', '${data.category}', '${data.condition}', '${data.image}')" class="action-btn btn-edit" title="Edit Item">
+                    <button onclick="editItem('${data.id}', '${safeNameJS}', '${safePriceJS}', '${safeDescJS}', '${data.category}', '${data.condition}', '${safeImgStrJS}')" class="action-btn btn-edit" title="Edit Item">
                         <i class="fas fa-pencil-alt"></i>
                     </button>
                     <button onclick="toggleSold('${data.id}', '${data.status}')" class="action-btn ${soldBtnClass}" title="Mark Sold">
@@ -513,7 +497,7 @@
                     </button>
                 </div>
                 
-                <img class="ad-img" src="${data.image}" onerror="this.src='img/logo-blue.png'">
+                <img class="ad-img" src="${safeImgHTML}" onerror="this.src='img/logo-blue.png'">
                 <div class="ad-info">
                     <div class="ad-price">${safePriceHTML}</div>
                     <div class="ad-title">${safeNameHTML} ${badge}</div>
@@ -532,10 +516,10 @@
         }
     }
 
-    window.editItem = function(id, name, price, desc, cat, cond, img) {
+    window.editItem = function(id, name, price, desc, cat, cond, imgStr) {
         isEditing = true;
         editDocID = id;
-        currentImageURL = img;
+        currentImageURL = imgStr; // Could be comma separated now!
 
         document.getElementById('modal-title').innerText = "Edit Item";
         document.getElementById('btn-submit').innerText = "Update Item";
@@ -544,7 +528,7 @@
         document.getElementById('p-desc').value = desc;
         document.getElementById('p-cat').value = cat;
         document.getElementById('p-condition').value = cond || "Used";
-        document.getElementById('photo-label').innerText = "(Leave empty to keep current photo)";
+        document.getElementById('photo-label').innerText = "(Leave empty to keep current photos)";
 
         document.getElementById('upload-modal').style.display = 'flex';
     };
@@ -562,7 +546,7 @@
             document.getElementById('p-price').value = "";
             document.getElementById('p-desc').value = "";
             document.getElementById('p-file').value = "";
-            document.getElementById('photo-label').innerText = "";
+            document.getElementById('photo-label').innerText = "(Max 3 images)";
             
             document.getElementById('upload-modal').style.display = 'flex';
         }
@@ -581,28 +565,41 @@
 
         if (!name || !rawPrice) { alert("Name and Price are required."); return; }
         if (!isEditing && fileInput.files.length === 0) { alert("Please select an image."); return; }
+        
+        // 🚀 NEW: Limit Check!
+        if (fileInput.files.length > 3) {
+            alert("You can only upload a maximum of 3 images.");
+            return;
+        }
 
         const formattedPrice = "₦" + Number(rawPrice.replace(/[^0-9]/g, '')).toLocaleString(); 
 
-        btn.innerText = isEditing ? "Updating..." : "Uploading...";
+        btn.innerText = "Uploading Images... Please wait.";
         btn.disabled = true;
         btn.style.opacity = "0.7";
 
         try {
             let finalImageUrl = currentImageURL;
 
+            // 🚀 NEW: Loop through Multiple Images!
             if (fileInput.files.length > 0) {
-                const compressedBlob = await compressImage(fileInput.files[0]);
-                
-                const formData = new FormData();
-                formData.append("image", compressedBlob);
-                
-                const imgReq = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_KEY}`, { method: "POST", body: formData });
-                const imgData = await imgReq.json();
-                
-                if (!imgData.success) throw new Error("Image Upload Failed");
-                finalImageUrl = imgData.data.url;
+                let uploadedUrls = [];
+                for (let i = 0; i < fileInput.files.length; i++) {
+                    const compressedBlob = await compressImage(fileInput.files[i]);
+                    const formData = new FormData();
+                    formData.append("image", compressedBlob);
+                    
+                    const imgReq = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_KEY}`, { method: "POST", body: formData });
+                    const imgData = await imgReq.json();
+                    
+                    if (!imgData.success) throw new Error("Image Upload Failed");
+                    uploadedUrls.push(imgData.data.url);
+                }
+                // Join them with commas!
+                finalImageUrl = uploadedUrls.join(',');
             }
+
+            btn.innerText = "Saving to Database...";
 
             if (isEditing) {
                 const itemRef = doc(db, "products", editDocID);
@@ -612,7 +609,6 @@
                     owner_uid: auth.currentUser.uid, 
                     owner_email: auth.currentUser.email.toLowerCase() 
                 });
-                alert("Item Updated!");
             } else {
                 await addDoc(collection(db, "products"), {
                     name: name, price: formattedPrice, description: desc, 
@@ -622,14 +618,17 @@
                     owner_email: auth.currentUser.email.toLowerCase(), 
                     status: "Active", is_story: "false", timestamp: new Date()
                 });
-                alert("Item Posted successfully!");
             }
 
-            // 🚀 WIPING CACHE SO HOMEPAGE UPDATES INSTANTLY
             localStorage.removeItem('cache_firestore_products');
-
+            
+            // 🚀 NO MORE RELOAD! We just close modal and fetch new items!
             closeUploadModal();
-            location.reload();
+            loadMyItems(currentVendorID);
+
+            btn.innerText = isEditing ? "Update Item" : "Post Item"; 
+            btn.disabled = false; 
+            btn.style.opacity = "1";
 
         } catch (error) { 
             console.error(error);
@@ -650,10 +649,8 @@
                 owner_email: auth.currentUser.email.toLowerCase() 
             });
             
-            // 🚀 WIPING CACHE SO HOMEPAGE UPDATES INSTANTLY
             localStorage.removeItem('cache_firestore_products');
-            
-            loadMyItems(currentVendorID);
+            loadMyItems(currentVendorID); // NO RELOAD!
         } catch(e) { alert("Error: " + e.message); }
     };
 
@@ -661,17 +658,19 @@
         if(!confirm("Delete this item? You will get 1 slot back.")) return;
         try { 
             await deleteDoc(doc(db, "products", docID));
-            alert("Deleted! Slot recovered."); 
-            
-            // 🚀 WIPING CACHE SO HOMEPAGE UPDATES INSTANTLY
             localStorage.removeItem('cache_firestore_products');
-            
-            location.reload(); 
+            loadMyItems(currentVendorID); // NO RELOAD!
         } 
         catch(e) { alert("Error deleting: " + e.message); }
     };
 
-    window.closeUploadModal = function() { document.getElementById('upload-modal').style.display = 'none'; };
+    window.closeUploadModal = function() { 
+        document.getElementById('upload-modal').style.display = 'none'; 
+        document.getElementById('btn-submit').innerText = isEditing ? "Update Item" : "Post Item";
+        document.getElementById('btn-submit').disabled = false; 
+        document.getElementById('btn-submit').style.opacity = "1";
+    };
+    
     window.closeLimitModal = function() { document.getElementById('limit-modal').style.display = 'none'; };
 </script>
 </body>
