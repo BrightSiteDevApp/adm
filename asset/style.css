@@ -23,7 +23,7 @@ body {
   font-family: 'Poppins', sans-serif;
   background: #e0e0e0; 
   color: var(--text);
-  padding-bottom: 80px; 
+  padding-bottom: 0px; 
 }
 
 /* --- APP CONTAINER --- */
