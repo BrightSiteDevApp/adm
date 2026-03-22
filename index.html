@@ -271,7 +271,7 @@
 
 <body>
 
-  <div class="app-container">
+  <div class="app-container"> 
     <div class="header">
         <div class="header-top">
           <a href="/"> <img src="img/logo-white.png" alt="AFIT Market" class="site-logo"> </a>
@@ -832,7 +832,6 @@
        });
    }
 
-   // 🚀 UPDATED MODAL LAUNCHER + SIMILAR ITEMS
    window.viewProduct = function(name, price, desc, category, vendorId, vendorEmail, phone, imageString) {
        document.getElementById('m-title').innerText = name;
        document.getElementById('m-price').innerText = price;
@@ -873,8 +872,7 @@
        const waMsg = encodeURIComponent(`Hi, I saw "${name}" on AFIT Market (Price: ${price}). Is it available?`);
        document.getElementById('btn-wa').href = `https://wa.me/${phone}?text=${waMsg}`;
        document.getElementById('btn-inapp').onclick = function() { startRealChat(name, vendorId, vendorEmail); };
-
-       // 🚀 RESTORED: SIMILAR ITEMS LOGIC
+       
        const similarWrapper = document.getElementById('similar-wrapper');
        const similarGrid = document.getElementById('m-similar-grid'); 
        similarGrid.innerHTML = "";
@@ -913,7 +911,6 @@
        document.getElementById('detail-modal').style.display = 'flex';
    };
 
-   // 🚀 FULLSCREEN LOGIC FOR HOMEPAGE
    window.openFullscreenGallery = function(imageString, startIndex) {
        const fsModal = document.getElementById('fs-gallery');
        const fsCarousel = document.getElementById('fs-carousel-container');
@@ -939,27 +936,20 @@
        };
    };
 
-   // 🚀 NEW: Just redirect with parameters, DO NOT create a document!
-    window.startRealChat = async function(productName, vendorId, vendorEmail) {
-        const user = auth.currentUser;
-        if (!user) {
-            const loginModal = document.getElementById('login-modal');
-            const pTag = loginModal.querySelector('p');
-            if(pTag) pTag.innerText = "Please login to securely message this vendor.";
-            loginModal.style.display = 'flex'; 
-            return;
-        }
+   // Redirect directly to the chat interface URL without creating a document!
+   window.startRealChat = async function(productName, vendorId, vendorEmail) {
+       const user = auth.currentUser;
+       if (!user) { document.getElementById('login-modal').style.display = 'flex'; return; }
+       
+       const safeProd = encodeURIComponent(productName);
+       const safeVenId = encodeURIComponent(vendorId);
+       const safeVenEmail = encodeURIComponent(vendorEmail || "afitdgm@gmail.com");
 
-        const safeProd = encodeURIComponent(productName);
-        const safeVenId = encodeURIComponent(vendorId);
-        const safeVenEmail = encodeURIComponent(vendorEmail || "afitdgm@gmail.com");
+       const isRootPage = window.location.pathname.endsWith('index.html') && !window.location.pathname.includes('/');
+       const chatPath = isRootPage ? `chat/index.html` : `../chat/index.html`;
 
-        // Use `../chat/` for subfolder pages, and `chat/` for the main index.html page
-        const isRootPage = window.location.pathname.endsWith('index.html') && !window.location.pathname.includes('/');
-        const chatPath = isRootPage ? `chat/index.html` : `../chat/index.html`;
-
-        window.location.href = `${chatPath}?vendorId=${safeVenId}&vendorEmail=${safeVenEmail}&product=${safeProd}`;
-    }
+       window.location.href = `${chatPath}?vendorId=${safeVenId}&vendorEmail=${safeVenEmail}&product=${safeProd}`;
+   }
 
    window.closeProductModal = function() { document.getElementById('detail-modal').style.display = 'none'; };
 
@@ -1012,17 +1002,32 @@
        } else if(section) { section.style.display = 'none'; }
    }
 
+   // 🚀 UPDATED AD LOGIC FOR DIRECT LINKS & DYNAMIC BUTTONS
    function loadAds() { 
        fetch(`${apiRoot}/Ads`).then(res => res.json()).then(data => {
            const activeAds = data.filter(ad => String(ad.status || ad.Status).toLowerCase().trim() === "active");
            if(activeAds.length > 0) {
                const ad = activeAds[Math.floor(Math.random() * activeAds.length)];
-               const img = ad.image || ad.Image; const title = ad.title || ad.Title; const text = ad.text || ad.Text;
-               const cleanPhone = (ad.whatsapp || ad.Whatsapp) ? String(ad.whatsapp || ad.Whatsapp).replace(/[^0-9]/g, '') : ADMIN_PHONE;
-               const link = `https://wa.me/${cleanPhone}?text=Hi,%20I%20saw%20your%20ad%20"${title}"`;
-               const modalImg = document.getElementById('modal-img'); if(modalImg) modalImg.src = img.startsWith('http') ? img : `img/${img}`;
-               document.getElementById('modal-title').innerText = title; document.getElementById('modal-text').innerText = text;
-               const modalLink = document.getElementById('modal-link'); if(modalLink) { modalLink.href = link; modalLink.innerText = "Chat on WhatsApp"; }
+               const img = ad.image || ad.Image; 
+               const title = ad.title || ad.Title; 
+               const text = ad.text || ad.Text;
+               
+               // Pull direct link from whatsapp column, and button text from button_name column
+               const adLink = ad.whatsapp || ad.Whatsapp || ad.link || ad.Link || "#";
+               const btnName = ad.button_name || ad.Button_Name || ad.Button_name || "View Details";
+
+               const modalImg = document.getElementById('modal-img'); 
+               if(modalImg) modalImg.src = img.startsWith('http') ? img : `img/${img}`;
+               
+               document.getElementById('modal-title').innerText = title; 
+               document.getElementById('modal-text').innerText = text;
+               
+               const modalLink = document.getElementById('modal-link'); 
+               if(modalLink) { 
+                   modalLink.href = adLink; 
+                   modalLink.innerText = btnName; 
+               }
+
                const notifBtn = document.getElementById('notif-btn');
                if(notifBtn && !notifBtn.querySelector('.badge-dot')) {
                    notifBtn.style.position = 'relative';
