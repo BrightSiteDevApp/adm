@@ -147,8 +147,6 @@
                 <div class="info-row"><span class="info-label">Vendor ID:</span> <span class="info-val" id="disp-id">Loading...</span></div>
                 <div class="info-row"><span class="info-label">Business:</span> <span class="info-val" id="disp-biz">Loading...</span></div>
                 
-                <div class="info-row"><span class="info-label">Ambassador ID:</span> <span class="info-val" id="disp-amb">Loading...</span></div>
-
                 <div class="info-row"><span class="info-label">Current Plan:</span> <span class="info-val" id="disp-plan" style="color: #f39c12;">Loading...</span></div>
                 <div class="info-row"><span class="info-label">Next Payment Due:</span> <span class="info-val" id="disp-due" style="color: #ff4757;">Loading...</span></div>
                 
@@ -264,15 +262,6 @@
 
                     document.getElementById('disp-plan').innerText = currentPlan;
                     document.getElementById('disp-due').innerText = nextDue;
-
-                    // 🚀 FIXED: Fetch and Auto-fill Ambassador ID
-                    const ambassador = vendor.Ambassador_ID || vendor.ambassador_id || vendor.Ambassador || "N/A";
-                    document.getElementById('disp-amb').innerText = ambassador;
-                    
-                    // Pre-fill the input field if an ID exists in the database
-                    if (ambassador !== "N/A") {
-                        document.getElementById('p_ambassador').value = ambassador;
-                    }
 
                     document.getElementById('v-info-box').style.display = 'block';
                     document.getElementById('payment-form-area').style.display = 'block';
