@@ -125,7 +125,8 @@
             </a>
         </div>
         <span style="font-weight:bold; color: #333; flex: 2; text-align: center; white-space: nowrap; font-size: 16px;">Renew Plan</span>
-        <div style="flex: 1;"></div> </div>
+        <div style="flex: 1;"></div> 
+    </div>
 
     <div class="pay-container">
         
@@ -146,6 +147,8 @@
                 <div class="info-row"><span class="info-label">Vendor ID:</span> <span class="info-val" id="disp-id">Loading...</span></div>
                 <div class="info-row"><span class="info-label">Business:</span> <span class="info-val" id="disp-biz">Loading...</span></div>
                 
+                <div class="info-row"><span class="info-label">Ambassador ID:</span> <span class="info-val" id="disp-amb">Loading...</span></div>
+
                 <div class="info-row"><span class="info-label">Current Plan:</span> <span class="info-val" id="disp-plan" style="color: #f39c12;">Loading...</span></div>
                 <div class="info-row"><span class="info-label">Next Payment Due:</span> <span class="info-val" id="disp-due" style="color: #ff4757;">Loading...</span></div>
                 
@@ -216,7 +219,6 @@
         const API_ROOT = `https://opensheet.elk.sh/${SHEET_ID}`;
         const IMGBB_KEY = "2ac38bef2c73c5a65e7ddf94efe37962";
         
-        // 🚀 NEW PAYMENT SCRIPT URL
         const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz7OEC7WnvDcTjkjQYI4EoYPm_oyq_1_zG_w5kB5JX1zZfsHp-gVWnWIfY4NMUCbRx5Lw/exec";
 
         let currentVendorData = null;
@@ -253,17 +255,24 @@
                     document.getElementById('disp-biz').innerText = vendor.business_name || vendor.Business_Name || vendor.Name || "N/A";
                     document.getElementById('disp-email').innerText = vendor.Email;
                     
-                    // 🚀 FETCH PLAN AND DUE DATE
                     const currentPlan = vendor.Subscription_Plan || vendor.subscription_plan || vendor.Plan || "N/A";
                     let nextDue = vendor.Next_Payment_Due || vendor.next_payment_due || vendor.Due_Date || "N/A";
                     
-                    // Format the date slightly if it looks like an ugly timestamp string
                     if (nextDue !== "N/A" && String(nextDue).includes('T')) {
                         nextDue = new Date(nextDue).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
                     }
 
                     document.getElementById('disp-plan').innerText = currentPlan;
                     document.getElementById('disp-due').innerText = nextDue;
+
+                    // 🚀 FIXED: Fetch and Auto-fill Ambassador ID
+                    const ambassador = vendor.Ambassador_ID || vendor.ambassador_id || vendor.Ambassador || "N/A";
+                    document.getElementById('disp-amb').innerText = ambassador;
+                    
+                    // Pre-fill the input field if an ID exists in the database
+                    if (ambassador !== "N/A") {
+                        document.getElementById('p_ambassador').value = ambassador;
+                    }
 
                     document.getElementById('v-info-box').style.display = 'block';
                     document.getElementById('payment-form-area').style.display = 'block';
@@ -324,7 +333,6 @@
 
                 btn.innerText = "Submitting to Database...";
 
-                // 🚀 NEW: Grab Ambassador ID from the input and add to Payload!
                 const ambassadorId = document.getElementById('p_ambassador').value.trim();
 
                 const payload = {
@@ -332,7 +340,7 @@
                     business_name: currentVendorData.business_name || currentVendorData.Business_Name || currentVendorData.Name || "Unknown",
                     email: currentVendorData.Email,
                     selected_plan: document.getElementById('p_plan').value,
-                    ambassador_id: ambassadorId, // This matches the new column in your Google Sheet!
+                    ambassador_id: ambassadorId,
                     receipt_url: receiptUrl
                 };
 
