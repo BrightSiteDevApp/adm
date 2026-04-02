@@ -304,52 +304,55 @@
             }
         }
 
-        window.submitPayment = async function(e) {
-            e.preventDefault();
-            
-            if (!currentVendorData) {
-                alert("Account error. Please refresh the page.");
-                return;
-            }
+       window.submitPayment = async function(e) {
+    e.preventDefault();
+    
+    if (!currentVendorData) {
+        alert("Account error. Please refresh the page.");
+        return;
+    }
 
-            const btn = document.getElementById('submitBtn');
-            btn.disabled = true;
-            btn.innerText = "Uploading Receipt...";
+    const btn = document.getElementById('submitBtn');
+    btn.disabled = true;
+    btn.innerText = "Uploading Receipt...";
 
-            try {
-                const fileInput = document.getElementById('p_receipt').files[0];
-                const receiptUrl = await uploadImage(fileInput, 'uploadStatus');
+    try {
+        const fileInput = document.getElementById('p_receipt').files[0];
+        const receiptUrl = await uploadImage(fileInput, 'uploadStatus');
 
-                btn.innerText = "Submitting to Database...";
+        btn.innerText = "Submitting to Database...";
 
-                const ambassadorId = document.getElementById('p_ambassador').value.trim();
+        const ambassadorId = document.getElementById('p_ambassador').value.trim();
 
-                const payload = {
-                    vendor_id: currentVendorData.vendor_id || currentVendorData.Vendor_ID || "Unknown",
-                    business_name: currentVendorData.business_name || currentVendorData.Business_Name || currentVendorData.Name || "Unknown",
-                    email: currentVendorData.Email,
-                    selected_plan: document.getElementById('p_plan').value,
-                    ambassador_id: ambassadorId,
-                    receipt_url: receiptUrl
-                };
+        const payload = {
+            vendor_id: currentVendorData.vendor_id || currentVendorData.Vendor_ID || "Unknown",
+            business_name: currentVendorData.business_name || currentVendorData.Business_Name || currentVendorData.Name || "Unknown",
+            email: currentVendorData.Email,
+            selected_plan: document.getElementById('p_plan').value,
+            ambassador_id: ambassadorId,
+            receipt_url: receiptUrl
+        };
 
-                await fetch(SCRIPT_URL, {
-                    method: 'POST',
-                    mode: 'no-cors',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                });
+        // 🚀 THE DIAGNOSTIC ALERT
+        alert("Wait! The form is trying to send your data to this exact link:\n\n" + SCRIPT_URL + "\n\nDoes this PERFECTLY match your newest Web App URL? Does it end in /exec?");
 
-                alert("Payment proof submitted successfully! \n\nYour account will be updated once the admin verifies the transfer.");
-                window.location.href = "account.html";
+        await fetch(SCRIPT_URL, {
+            method: 'POST',
+            mode: 'no-cors',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
 
-            } catch (error) {
-                console.error(error);
-                alert("Failed to submit. Please check your internet connection and try again.");
-                btn.disabled = false;
-                btn.innerText = "Submit Payment";
-            }
-        }
+        alert("Payment proof submitted successfully! \n\nYour account will be updated once the admin verifies the transfer.");
+        window.location.href = "account.html";
+
+    } catch (error) {
+        console.error(error);
+        alert("Failed to submit. Please check your internet connection and try again.");
+        btn.disabled = false;
+        btn.innerText = "Submit Payment";
+    }
+}
     </script>
 </body>
 </html>
