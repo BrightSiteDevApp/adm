@@ -1,871 +1,368 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>All Items - AFIT Digital Market</title>
-    <link rel="stylesheet" href="../asset/style.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-     <link rel="icon" href="../img/app-logo.png" type="image/png" sizes="192x192">
-    <link rel="apple-touch-icon" href="../img/app-logo.png">
-    <link rel="icon" href="../favicon.ico" type="image/x-icon">
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-70VSGR5WBW"></script>
     
-    <script src="https://cdn.jsdelivr.net/npm/algoliasearch@4/dist/algoliasearch-lite.umd.js"></script>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+    <title>All Items & Services | AFIT Digital Market</title>
+    <meta name="description" content="Browse hundreds of products and services on AFIT Digital Market. Shop for gadgets, fashion, food, and more directly from verified AFIT student vendors.">
+    <meta name="keywords" content="AFIT market items, buy products AFIT, student market Kaduna, campus marketplace products, AFIT gadgets, AFIT fashion, student services ADM">
+    <meta name="author" content="BrightSiteDev">
+    <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large">
+    <link rel="canonical" href="https://afitdgm.store/items/">
+
+    <meta name="geo.region" content="NG-KD"> 
+    <meta name="geo.placename" content="Kaduna">
+    <meta name="geo.position" content="10.5105;7.4165"> 
+    <meta name="ICBM" content="10.5105, 7.4165">
+
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="AFIT Digital Market">
+    <meta property="og:locale" content="en_NG">
+    <meta property="og:url" content="https://afitdgm.store/items/">
+    <meta property="og:title" content="Shop All Items | AFIT Digital Market">
+    <meta property="og:description" content="Find exactly what you need on campus. Browse gadgets, food, fashion, and services securely on ADM.">
+    <meta property="og:image" content="https://afitdgm.store/asset/img/app-logo.png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:site" content="@brightsitedev"> 
+    <meta name="twitter:title" content="Shop Campus Items | AFIT Digital Market">
+    <meta name="twitter:description" content="Explore everything for sale on the AFIT campus marketplace.">
+    <meta name="twitter:image" content="https://afitdgm.store/asset/img/app-logo.png">
+
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "CollectionPage",
+      "name": "All Items & Services - AFIT Digital Market",
+      "url": "https://afitdgm.store/items/",
+      "description": "The main catalog of all products, gadgets, fashion, and services listed by verified student vendors on the AFIT campus.",
+      "publisher": {
+        "@type": "Organization",
+        "name": "AFIT Digital Market",
+        "logo": {
+          "@type": "ImageObject",
+          "url": "https://afitdgm.store/asset/img/app-logo.png"
+        }
+      }
+    }
+    </script>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="../asset/style.css">
+    <link rel="icon" href="../asset/img/app-logo.png" type="image/png" sizes="192x192">
+    <link rel="icon" href="../favicon.ico" type="image/x-icon">
 
     <style>
-        /* --- 1. ESSENTIAL GRID STYLES --- */
-        .trending-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr); 
-            gap: 15px;
-            padding: 15px;
-            padding-bottom: 20px; 
+        .header-top-flex { display: flex; align-items: center; gap: 15px; margin-bottom: 15px; }
+        .page-title { font-size: 20px; font-weight: 800; color: var(--text-main); margin: 0; }
+        
+        .search-container { background: #f8fafc; border-radius: 14px; display: flex; align-items: center; padding: 12px 15px; margin: 0; border: 2px solid #e2e8f0; transition: 0.2s;}
+        .search-container:focus-within { border-color: var(--brand-color); background: white; }
+        .search-container input[type="search"] { border: none; background: transparent; outline: none; width: 100%; font-size: 14px; color: var(--text-main); -webkit-appearance: none; }
+        
+        .cat-filter-scroll { display: flex; gap: 10px; overflow-x: auto; padding: 15px 20px; scrollbar-width: none; background: white; border-bottom: 1px solid #f1f5f9; }
+        .cat-filter-scroll::-webkit-scrollbar { display: none; }
+        
+        .filter-pill { 
+            background: white; border: 2px solid #e2e8f0; padding: 8px 18px; border-radius: 20px; 
+            font-size: 13px; font-weight: 700; color: var(--text-muted); cursor: pointer; white-space: nowrap; transition: 0.2s;
         }
-        @media (min-width: 768px) {
-            .trending-grid { grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); }
-        }
+        .filter-pill.active { background: #eff6ff; color: var(--brand-color); border-color: var(--brand-color); }
 
-        .ad-card {
-            background: white;
-            border-radius: 12px;
-            overflow: hidden;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
-            transition: transform 0.2s;
-            display: flex;
-            flex-direction: column;
-            position: relative;
-            border: 1px solid #f0f0f0;
-        }
-        .ad-card:active { transform: scale(0.98); }
-        
-        .ad-img {
-            width: 100%;
-            height: 160px;
-            object-fit: cover;
-            background: #f5f5f5;
-        }
-        
-        .ad-info { padding: 10px; flex: 1; display: flex; flex-direction: column; }
-        
-        /* Price Color: Blue */
-        .ad-price { 
-            font-weight: 800; color: #2d8eff; font-size: 16px; 
-            margin-bottom: 2px;
-        }
+        .items-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; padding: 20px 20px 0; }
 
-        /* Filter Bar Styles */
-        .filter-container {
-            background: white;
-            padding: 15px;
-            position: sticky; top: 0; z-index: 99;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
-        }
-        .search-bar {
-            display: flex; gap: 10px; margin-bottom: 10px;
-        }
-        .search-input {
-            flex: 1; padding: 12px; border-radius: 8px; border: 1px solid #ddd; background: #f9f9f9;
-        }
-        .filters-row {
-            display: flex; gap: 10px; overflow-x: auto; padding-bottom: 5px;
-        }
-        .filters-row::-webkit-scrollbar { display: none; }
-        
-        .filter-select {
-            padding: 8px 12px; border-radius: 20px; border: 1px solid #ddd; 
-            background: white; font-size: 13px; color: #555; white-space: nowrap;
-        }
-        .filter-select:focus { border-color: #2d8eff; outline: none; }
+        .product-card { background: white; border-radius: 20px; padding: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.02); cursor: pointer; border: 1px solid #f1f5f9; position: relative; transition: 0.2s; width: 100%; min-width: 0; box-sizing: border-box; overflow: hidden;}
+        .product-card:active { transform: scale(0.96); }
+        .product-img { width: 100%; height: 160px; object-fit: cover; border-radius: 12px; background: #f8fafc; margin-bottom: 12px; }
+        .product-price { font-size: 18px; font-weight: 900; color: var(--brand-color); margin-bottom: 4px; }
+        .product-title { font-size: 13px; font-weight: 700; color: var(--text-main); line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+        .product-location { font-size: 11px; color: var(--text-muted); margin-top: 6px; display: flex; align-items: center; gap: 4px; font-weight: 600; }
+        .multi-img-badge { position: absolute; top: 20px; right: 20px; background: rgba(0,0,0,0.6); color: white; font-size: 10px; padding: 4px 8px; border-radius: 8px; backdrop-filter: blur(4px); font-weight: bold; }
 
-        /* --- CARD TEXT FIXES --- */
-        .ad-title {
-            white-space: normal !important; 
-            line-height: 1.3;
-            font-size: 13px;
-            color: #555;
-            height: 34px;
-            display: -webkit-box;
-            -webkit-line-clamp: 2; 
-            -webkit-box-orient: vertical;
-            overflow: hidden;
-            margin-bottom: 5px;
-        }
-        .ad-desc-preview {
-            font-size: 10px; color: #999;
-            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-            margin-bottom: 8px;
-        }
-
-        /* BUTTON: WhatsApp Green */
-        .chat-btn {
-            background: #25D366; 
-            color: white; padding: 10px; 
-            border-radius: 8px; text-align: center; text-decoration: none; 
-            font-size: 13px; font-weight: bold; margin-top: auto;
-            border: none; cursor: pointer;
-        }
-
-        /* LOAD MORE CONTAINER: Flex Center */
-        #load-more-container { 
-            display: flex; 
-            justify-content: center;
-            width: 100%;
-            margin: 0 0 40px 0; 
-        }
+        .sk-shimmer { background: linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%); background-size: 200% 100%; animation: shimmer 1.5s infinite; border-radius: 6px;}
+        @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
         
-        /* LOAD MORE BUTTON: Blue & Centered */
-        #load-more-btn {
-            display: none; /* Hidden by default */
-            background: #2d8eff; 
-            color: white; border: none; padding: 12px 40px;
-            border-radius: 30px; font-weight: bold; cursor: pointer;
-            box-shadow: 0 4px 10px rgba(45, 142, 255, 0.3); 
-            transition: transform 0.2s;
-        }
-        #load-more-btn:active { transform: scale(0.95); }
+        .sk-card { background: white; border-radius: 20px; padding: 12px; border: 1px solid #f1f5f9; width: 100%; min-width: 0; box-sizing: border-box; overflow: hidden;}
+        .sk-img { width: 100%; height: 160px; border-radius: 12px; margin-bottom: 12px; }
+        .sk-line-1 { width: 50%; height: 16px; margin-bottom: 10px; }
+        .sk-line-2 { width: 90%; height: 12px; margin-bottom: 8px; }
+        .sk-line-3 { width: 70%; height: 12px; }
 
-        /* --- SKELETON LOADING STYLES --- */
-        .skeleton {
-            background: #eee;
-            background: linear-gradient(110deg, #ececec 8%, #f5f5f5 18%, #ececec 33%);
-            border-radius: 5px;
-            background-size: 200% 100%;
-            animation: 1.5s shine linear infinite;
-        }
-        @keyframes shine {
-            to { background-position-x: -200%; }
-        }
-        .sk-card {
-            background: white; border-radius: 10px; overflow: hidden;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.05); margin-bottom: 0;
-            height: 260px;
-        }
-        .sk-img { width: 100%; height: 160px; }
-        .sk-content { padding: 10px; }
-        .sk-line { height: 10px; margin-bottom: 8px; width: 100%; }
-        .sk-short { width: 60%; }
+        .end-message { text-align: center; padding: 40px 20px 50px; color: #94a3b8; font-size: 14px; font-weight: 700; display: none; }
+        .end-message i { font-size: 30px; color: #e2e8f0; margin-bottom: 10px; display: block; }
 
-        /* --- MODAL STYLES --- */
-        @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
-        .modal-sheet {
-            background: white; width: 100%; max-width: 500px;
-            border-radius: 20px 20px 0 0; padding: 25px;
-            animation: slideUp 0.3s ease-out;
-            position: relative;
-            max-height: 85vh; /* 🚀 Forces it to stay on screen */
-            overflow-y: auto; /* 🚀 Allows scrolling inside */
-        }
-
-        .modal-close-btn {
-            position: absolute; top: 15px; right: 15px;
-            background: rgba(0,0,0,0.05); border: none;
-            width: 35px; height: 35px; border-radius: 50%;
-            font-size: 22px; color: #555; cursor: pointer;
-            display: flex; align-items: center; justify-content: center;
-            z-index: 50; transition: 0.2s;
-        }
-        body.dark-mode .modal-close-btn { background: rgba(255,255,255,0.1); color: #ccc; }
-
-        .modal-desc-box {
-            max-height: 200px; overflow-y: auto; margin-bottom: 20px;
-            background: #f9f9f9; padding: 10px; border-radius: 10px;
-        }
-
-        /* 🌙 DARK MODE FIXES */
-        body.dark-mode .filter-container, body.dark-mode .modal-sheet {
-            background: #1e1e1e !important; box-shadow: 0 4px 10px rgba(0,0,0,0.3); color: white;
-        }
-        body.dark-mode .search-input, body.dark-mode .filter-select {
-            background: #333 !important; border-color: #444 !important; color: white !important;
-        }
-        body.dark-mode #result-count { color: #aaa !important; }
+        /* ========================================= */
+        /* 🌙 DARK MODE FIXES FOR ITEMS PAGE         */
+        /* ========================================= */
+        body.dark-mode { background-color: #020617 !important; }
+        body.dark-mode .app-container { background: #0f172a !important; }
+        body.dark-mode .header { background: #1e293b !important; box-shadow: 0 2px 10px rgba(0,0,0,0.5) !important; }
+        body.dark-mode .page-title, body.dark-mode .fa-arrow-left { color: #f1f5f9 !important; }
         
-        body.dark-mode .ad-desc-preview { color: #aaa; }
-        body.dark-mode .modal-desc-box { background: #2a2a2a !important; }
-        body.dark-mode #m-desc { color: #ccc !important; }
+        body.dark-mode .search-container { background: #0f172a !important; border-color: #334155 !important; }
+        body.dark-mode .search-container input { color: #f1f5f9 !important; }
         
-        body.dark-mode .ad-card { background: #2a2a2a; border-color: #333; }
-        body.dark-mode .ad-price { color: #2d8eff; } 
-        body.dark-mode .ad-title { color: #ccc; }
+        body.dark-mode .cat-filter-scroll { background: #1e293b !important; border-bottom-color: #334155 !important; }
+        body.dark-mode .filter-pill { background: #0f172a !important; border-color: #334155 !important; color: #94a3b8 !important; }
+        body.dark-mode .filter-pill.active { background: rgba(45, 142, 255, 0.1) !important; color: var(--brand-color) !important; border-color: var(--brand-color) !important; }
         
-        /* Dark Mode Skeleton & Footer */
-        body.dark-mode .sk-card { background: #2a2a2a; }
-        body.dark-mode .skeleton {
-            background: linear-gradient(110deg, #333 8%, #444 18%, #333 33%);
-        }
-        body.dark-mode .site-footer { border-top: 1px solid #333; }
-        /* 🚀 NEW CHAT ACTION BUTTONS */
-        .action-row {
-            display: flex;
-            gap: 5px;
-            margin-top: 5px;
-        }
-        .quick-chat-btn {
-            background: #eef7ff; color: #2d8eff;
-            border: none; border-radius: 8px;
-            width: 40px; display: flex; align-items: center; justify-content: center;
-            cursor: pointer; transition: 0.2s; font-size: 14px;
-        }
-        .quick-chat-btn:active { transform: scale(0.95); background: #dceefc; }
-
-        .btn-whatsapp {
-            background: #25D366; color: white; width: 100%;
-            text-align: center; display: block; padding: 14px;
-            border-radius: 10px; text-decoration: none; font-weight: bold;
-            margin-bottom: 10px; box-shadow: 0 4px 10px rgba(37, 211, 102, 0.2);
-        }
-        .btn-inapp {
-            background: #2d8eff; color: white; width: 100%;
-            text-align: center; display: block; padding: 14px; border: none; cursor: pointer;
-            border-radius: 10px; text-decoration: none; font-weight: bold; font-size: 14px;
-            box-shadow: 0 4px 10px rgba(45, 142, 255, 0.2); font-family: inherit;
-        }
-        /* --- 🚀 IMAGE CAROUSEL STYLES --- */
-        .modal-image-container {
-            width: 100%; height: 250px; border-radius: 15px;
-            overflow: hidden; position: relative; margin-bottom: 15px;
-            background: #f5f5f5; box-shadow: inset 0 2px 10px rgba(0,0,0,0.05);
-        }
-        .carousel-scroll {
-            display: flex; overflow-x: auto; scroll-snap-type: x mandatory;
-            height: 100%; -webkit-overflow-scrolling: touch; scrollbar-width: none;
-        }
-        .carousel-scroll::-webkit-scrollbar { display: none; }
-        .carousel-img {
-            flex: 0 0 100%; width: 100%; height: 100%;
-            object-fit: cover; scroll-snap-align: center;
-        }
-        .carousel-dots {
-            position: absolute; bottom: 10px; left: 0; width: 100%;
-            display: flex; justify-content: center; gap: 6px; z-index: 10;
-        }
-        .dot {
-            width: 8px; height: 8px; background: rgba(255, 255, 255, 0.5);
-            border-radius: 50%; transition: background 0.3s;
-        }
-        .dot.active { background: white; box-shadow: 0 1px 3px rgba(0,0,0,0.3); }
-        .swipe-hint {
-            position: absolute; top: 10px; right: 10px; background: rgba(0,0,0,0.6);
-            color: white; font-size: 10px; padding: 4px 10px; border-radius: 12px;
-            z-index: 10; backdrop-filter: blur(4px); font-weight: bold;
-        }
+        body.dark-mode .product-card { background: #1e293b !important; border-color: #334155 !important; }
+        body.dark-mode .product-title { color: #f1f5f9 !important; }
+        body.dark-mode .product-img { background: #0f172a !important; }
+        body.dark-mode .product-location { color: #94a3b8 !important; }
         
-        body.dark-mode .modal-image-container { background: #222; }
-        /* --- 🚀 FULLSCREEN GALLERY STYLES --- */
-        .fs-gallery-modal {
-            display: none; position: fixed; top: 0; left: 0;
-            width: 100%; height: 100%; background: rgba(0,0,0,0.95);
-            z-index: 5000; flex-direction: column;
-            backdrop-filter: blur(10px);
-        }
-        .fs-header {
-            padding: 20px; display: flex; justify-content: flex-end;
-        }
-        .fs-close-btn {
-            background: rgba(255,255,255,0.2); border: none; color: white;
-            width: 40px; height: 40px; border-radius: 50%; font-size: 24px; cursor: pointer;
-            display: flex; align-items: center; justify-content: center; transition: 0.2s;
-        }
-        .fs-close-btn:active { transform: scale(0.9); background: rgba(255,255,255,0.4); }
-        
-        .fs-carousel {
-            flex: 1; display: flex; overflow-x: auto; scroll-snap-type: x mandatory;
-            -webkit-overflow-scrolling: touch; scrollbar-width: none; align-items: center;
-        }
-        .fs-carousel::-webkit-scrollbar { display: none; }
-        
-        .fs-img {
-            flex: 0 0 100%; width: 100%; max-height: 85vh; 
-            object-fit: contain; scroll-snap-align: center;
-        }
-        
-        .fs-counter {
-            text-align: center; color: white; padding: 20px; 
-            font-size: 15px; font-weight: bold; letter-spacing: 2px;
-        }
+        body.dark-mode .end-message { color: #94a3b8 !important; }
+        body.dark-mode .end-message i { color: #334155 !important; }
+        body.dark-mode .sk-card { background: #1e293b !important; border-color: #334155 !important; }
+        body.dark-mode .sk-shimmer { background: linear-gradient(90deg, #1e293b 25%, #334155 50%, #1e293b 75%) !important; background-size: 200% 100% !important; }
     </style>
 </head>
 <body>
 
-    <script>
-        if (localStorage.getItem('theme') === 'dark') document.body.classList.add('dark-mode');
-    </script>
-
-    <div id="preloader">
-        <div class="loader-content">
-            <img src="../img/logo-blue.png" alt="Loading..." class="loader-logo">
-            <div class="loading-bar"></div>
-        </div>
-    </div>
-
     <div class="app-container">
         
         <div class="header">
-            <a href="../" class="back-btn"><i class="fas fa-arrow-left"></i></a>
-            <span style="font-weight:bold;">All Items</span>
-            <div style="width:30px;"></div>
+            <div class="header-top-flex">
+                <button onclick="window.history.back()" style="background:none; border:none; font-size:20px; color:var(--text-main); cursor:pointer;"><i class="fas fa-arrow-left"></i></button>
+                <h1 class="page-title">Explore Items</h1>
+            </div>
+            
+            <form class="search-container" action="#" onsubmit="return triggerSearch(event)">
+                <i class="fas fa-search" style="color: #94a3b8; margin-right: 10px;" onclick="triggerSearch(event)"></i>
+                <input type="search" id="item-search" placeholder="Search phones, food, services...">
+            </form>
         </div>
 
-        <div class="filter-container">
-            <div class="search-bar">
-                <input type="text" id="item-search" class="search-input" placeholder="Search items...">
-            </div>
-            
-            <div class="filters-row">
-                <select id="filter-price" class="filter-select">
-                    <option value="all">Any Price</option>
-                    <option value="under-5k">Under ₦5,000</option>
-                    <option value="5k-20k">₦5k - ₦20k</option>
-                    <option value="20k-50k">₦20k - ₦50k</option>
-                    <option value="above-50k">Above ₦50k</option>
-                </select>
-
-                <select id="filter-condition" class="filter-select">
-                    <option value="all">Any Condition</option>
-                    <option value="New">New</option>
-                    <option value="Used">Used</option>
-                </select>
-            </div>
-            <div id="result-count" style="font-size:11px; color:#888; margin-top:5px; text-align:center;">Loading items...</div>
+        <div class="cat-filter-scroll" id="category-filters">
+            <div class="filter-pill active" onclick="filterByCategory('All', this)">All Items</div>
+            <div class="filter-pill" onclick="filterByCategory('Gadgets', this)">Gadgets</div>
+            <div class="filter-pill" onclick="filterByCategory('Fashion', this)">Fashion</div>
+            <div class="filter-pill" onclick="filterByCategory('Food', this)">Food</div>
+            <div class="filter-pill" onclick="filterByCategory('Transport', this)">Transport</div>
+            <div class="filter-pill" onclick="filterByCategory('Beauty', this)">Beauty</div>
+            <div class="filter-pill" onclick="filterByCategory('Health', this)">Health</div>
+            <div class="filter-pill" onclick="filterByCategory('CampusServices', this)">Campus Services</div>
+            <div class="filter-pill" onclick="filterByCategory('Professional', this)">Professional</div>
+            <div class="filter-pill" onclick="filterByCategory('Tutorials', this)">Tutorials</div>
+            <div class="filter-pill" onclick="filterByCategory('Books', this)">Books</div>
+            <div class="filter-pill" onclick="filterByCategory('Accommodation', this)">Hostels</div>
+            <div class="filter-pill" onclick="filterByCategory('Electronics', this)">Electronics</div>
         </div>
 
-        <div class="trending-grid" id="all-items-container">
-            </div>
-        
-        <div id="loading-more-skeletons" class="trending-grid" style="display:none; padding-top:0;"></div>
+        <div class="content-area" style="padding: 0 0 90px 0;">
+            
+            <div class="items-grid" id="main-items-grid"></div>
 
-        <div id="load-more-container">
-            <button id="load-more-btn">Load More</button>
+            <div class="items-grid" id="skeleton-loader" style="padding-top: 12px; display: none;">
+                <div class="sk-card"><div class="sk-shimmer sk-img"></div><div class="sk-shimmer sk-line-1"></div><div class="sk-shimmer sk-line-2"></div><div class="sk-shimmer sk-line-3"></div></div>
+                <div class="sk-card"><div class="sk-shimmer sk-img"></div><div class="sk-shimmer sk-line-1"></div><div class="sk-shimmer sk-line-2"></div><div class="sk-shimmer sk-line-3"></div></div>
+                <div class="sk-card"><div class="sk-shimmer sk-img"></div><div class="sk-shimmer sk-line-1"></div><div class="sk-shimmer sk-line-2"></div><div class="sk-shimmer sk-line-3"></div></div>
+                <div class="sk-card"><div class="sk-shimmer sk-img"></div><div class="sk-shimmer sk-line-1"></div><div class="sk-shimmer sk-line-2"></div><div class="sk-shimmer sk-line-3"></div></div>
+                <div class="sk-card"><div class="sk-shimmer sk-img"></div><div class="sk-shimmer sk-line-1"></div><div class="sk-shimmer sk-line-2"></div><div class="sk-shimmer sk-line-3"></div></div>
+                <div class="sk-card"><div class="sk-shimmer sk-img"></div><div class="sk-shimmer sk-line-1"></div><div class="sk-shimmer sk-line-2"></div><div class="sk-shimmer sk-line-3"></div></div>
+            </div>
+
+            <div id="scroll-sentinel" style="height: 1px; width: 100%;"></div>
+
+            <div class="end-message" id="end-message">
+                <i class="fas fa-check-circle"></i>
+                You've seen all items in this category.
+            </div>
+
         </div>
 
-        <footer class="site-footer" style="margin-top: 20px; text-align: center; padding: 20px; color: #777; font-size: 12px;">
-            <p style="margin-top:10px; color:#777; font-size: 12px;">
-                &copy; 2026 All rights reserved. Powered by 
-                <a href="https://brightsitedev.tech" target="_blank" style="color:#2d8eff; text-decoration:none; font-weight:bold;">Brightsitedev</a>
-            </p>
-        </footer>
-
-    </div>
-
-    <div id="detail-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:3000; justify-content:center; align-items:end;">
-        <div class="modal-sheet">
-            
-            <button class="modal-close-btn" onclick="document.getElementById('detail-modal').style.display='none'">&times;</button>
-            
-            <div style="margin-bottom: 15px; padding-right: 40px;">
-                <h3 id="m-title" style="margin:0; font-size:18px; line-height:1.3;">...</h3>
-            </div>
-            
-            <div class="modal-image-container">
-                <div id="m-carousel" class="carousel-scroll"></div>
-                <div id="m-carousel-dots" class="carousel-dots"></div>
-                <div id="m-swipe-hint" class="swipe-hint" style="display:none;"><i class="fas fa-hand-pointer"></i> Swipe</div>
-            </div>
-
-            <p id="m-price" style="color:#2d8eff; font-weight:bold; font-size:20px; margin:10px 0;">...</p>
-            
-            <div class="modal-desc-box">
-                 <p id="m-desc" style="color:#555; font-size:14px; line-height:1.5; margin:0;">...</p>
-            </div>
-
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
-                 <span id="m-vendor" style="font-size:12px; color:#888; font-weight:bold;"></span>
-                 <span id="m-condition" style="font-size:12px; padding:4px 10px; background:#eee; border-radius:10px; color:#555;"></span>
-            </div>
-
-            <a id="btn-wa" href="#" target="_blank" class="btn-whatsapp">
-                <i class="fab fa-whatsapp"></i> Chat via WhatsApp
+        <div class="bottom-nav">
+            <a href="../index.html" class="nav-item"><i class="fas fa-home"></i><span>Home</span></a>
+            <a href="#" class="nav-item" onclick="requireLogin('../messages/index.html')">
+                <i class="fas fa-comment-dots"></i>
+                <span class="red-dot msg-dot"></span>
+                <span>Messages</span>
             </a>
-            <button id="btn-inapp" class="btn-inapp">
-                <i class="fas fa-comment-dots"></i> Message In-App (Secure)
-            </button>
+            
+            <div class="nav-fab" onclick="requireLogin('../add-product/index.html')">
+                <i class="fas fa-plus"></i>
+            </div>
+            
+            <a href="#" class="nav-item" onclick="requireLogin('../saved/index.html')"><i class="fas fa-heart"></i><span>Saved</span></a>
+            <a href="#" class="nav-item" onclick="requireLogin('../account/index.html')"><i class="fas fa-user"></i><span>Account</span></a>
         </div>
-    </div>
 
-    <div id="login-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:2000; justify-content:center; align-items:center;">
-        <div style="background:white; padding:30px; border-radius:15px; text-align:center; width:80%;">
-            <h3>Sign In Required</h3>
-            <p>Please login to save items.</p>
-            <a href="../login.html" class="chat-btn" style="display:inline-block; margin-top:10px;">Login Now</a>
-            <button onclick="document.getElementById('login-modal').style.display='none'" style="margin-top:10px; background:none; border:none; color:#777;">Close</button>
-        </div>
-    </div>
-    <div id="fs-gallery" class="fs-gallery-modal">
-        <div class="fs-header">
-            <button class="fs-close-btn" onclick="document.getElementById('fs-gallery').style.display='none'">&times;</button>
-        </div>
-        <div id="fs-carousel-container" class="fs-carousel"></div>
-        <div id="fs-counter" class="fs-counter">1 / 1</div>
     </div>
 
     <script src="../asset/script.js"></script>
 
-<script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-    import { getFirestore, doc, setDoc, deleteDoc, collection, getDocs, query, limit, where, getDoc, addDoc, serverTimestamp } 
-    from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-
-    const firebaseConfig = {
-        apiKey: "AIzaSyA1eQbrJpH9OtDNDN7z9oTFTRSAE7vCFbg",
-        authDomain: "afit-market-auth.firebaseapp.com",
-        projectId: "afit-market-auth"
-    };
-
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-    const db = getFirestore(app);
-
-    const algoliaClient = algoliasearch('IQSHEYK1XF', 'b78824ffc8318be2ef8c725cf902386a');
-    const algoliaIndex = algoliaClient.initIndex('afit_products');
-
-    let savedItemIds = new Set();
-    let masterItemList = []; 
-    let currentDisplayCount = 0; 
-    let phoneBook = {}; 
-    let emailBook = {}; 
-    let suspendedVendors = new Set(); 
-
-    const INITIAL_DISPLAY = 50; 
-    const LOAD_STEP = 20;    
-    
-    const sheetID = "1SvVUbEnDgqgw2Z_M1ShQkzyFTsnnS6n8mTs7UMXVvF4";
-    const apiRoot = `https://opensheet.elk.sh/${sheetID}`;
-    const ADMIN_PHONE = "2349153375488"; 
-    const CACHE_TTL = 30 * 60 * 1000; 
-
-    function getCachedData(key) {
-        const cached = localStorage.getItem(key);
-        if (!cached) return null;
-        const parsed = JSON.parse(cached);
-        if (Date.now() - parsed.timestamp > CACHE_TTL) {
-            localStorage.removeItem(key); 
-            return null;
-        }
-        return parsed.data; 
-    }
-
-    function setCachedData(key, data) {
-        localStorage.setItem(key, JSON.stringify({ timestamp: Date.now(), data: data }));
-    }
-
-    function escapeHTML(str) {
-        if (!str) return "";
-        return String(str).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
-    }
-
-    function renderSkeletons(targetId, count) {
-        const container = document.getElementById(targetId);
-        let html = '';
-        for(let i=0; i<count; i++) {
-            html += `<div class="sk-card"><div class="skeleton sk-img"></div><div class="sk-content"><div class="skeleton sk-line"></div><div class="skeleton sk-line sk-short"></div></div></div>`;
-        }
-        container.innerHTML = html;
-        container.style.display = 'grid'; 
-    }
-
-    function clearSkeletons(targetId) {
-        document.getElementById(targetId).innerHTML = '';
-        document.getElementById(targetId).style.display = 'none';
-    }
-
-    function shuffleArray(array) {
-        for (let i = array.length - 1; i > 0; i--) {
-            const j = Math.floor(Math.random() * (i + 1));
-            [array[i], array[j]] = [array[j], array[i]];
-        }
-        return array;
-    }
-
-    onAuthStateChanged(auth, async (user) => {
-        if (user) {
-            try {
-                const querySnapshot = await getDocs(collection(db, "users", user.uid, "saved_items"));
-                savedItemIds.clear();
-                querySnapshot.forEach((doc) => { savedItemIds.add(doc.id); });
-                updateHeartIcons(); 
-            } catch (e) { console.error("Error loading wishlist:", e); }
-        }
-    });
-
-    async function loadFirestoreProducts() {
-        let cachedProducts = getCachedData('cache_firestore_products');
-        if (cachedProducts) return cachedProducts;
-        try {
-            const docRef = doc(db, "aggregations", "master_product_list");
-            const docSnap = await getDoc(docRef);
-            if (docSnap.exists()) {
-                const data = docSnap.data().items || [];
-                setCachedData('cache_firestore_products', data);
-                return data;
-            } else { return []; }
-        } catch(e) { return []; }
-    }
-
-    document.addEventListener("DOMContentLoaded", async () => {
-        document.getElementById('load-more-btn').addEventListener('click', handleLoadMore);
+   <script>
+        let allProducts = [];
+        let currentDisplayList = [];
+        let itemsLoaded = 0;
+        const ITEMS_PER_PAGE = 50;
+        let isFetchingBatch = false;
         
-        const itemSearchInput = document.getElementById('item-search');
-        let searchTimeout;
+        let currentCategory = 'All'; 
 
-        itemSearchInput.addEventListener('input', () => {
-            clearTimeout(searchTimeout);
-            searchTimeout = setTimeout(() => { applyFilters(true); }, 300); 
+        document.addEventListener("DOMContentLoaded", () => {
+            fetchMarketItems();
         });
-        itemSearchInput.addEventListener('keyup', function(e) { if (e.key === 'Enter' || e.keyCode === 13) { e.preventDefault(); this.blur(); } });
-        itemSearchInput.addEventListener('search', function() { this.blur(); });
-        document.getElementById('filter-price').addEventListener('change', () => applyFilters(true));
-        document.getElementById('filter-condition').addEventListener('change', () => applyFilters(true));
-        
-        renderSkeletons('all-items-container', 8);
 
-        try {
-            let suspendedData = getCachedData('cache_suspended_vendors');
-            if (!suspendedData) {
-                const qSuspended = query(collection(db, "vendor_status"), where("status", "==", "suspended"));
-                const suspendedSnap = await getDocs(qSuspended);
-                suspendedData = [];
-                suspendedSnap.forEach(doc => { suspendedData.push(doc.id); });
-                setCachedData('cache_suspended_vendors', suspendedData);
-            }
-            suspendedData.forEach(id => suspendedVendors.add(id));
-
-            const [v1, v2] = await Promise.all([
-                fetch(`${apiRoot}/Vendors`).then(res => res.json().catch(() => [])),
-                fetch(`${apiRoot}/Vendors_v2`).then(res => res.json().catch(() => []))
-            ]);
-            
-            const allVendors = [...(Array.isArray(v1)?v1:[]), ...(Array.isArray(v2)?v2:[])];
-            allVendors.forEach(v => {
-                const vID = String(v.vendor_id || v.Vendor_ID || "").toUpperCase().trim(); 
-                if(vID) {
-                    phoneBook[vID] = String(v.whatsapp || v.Whatsapp || "").replace(/[^0-9]/g, '');
-                    emailBook[vID] = String(v.email || v.Email || "").toLowerCase().trim(); 
-                }
-            });
-
-            const sheetRes = await fetch(`${apiRoot}/Products`);
-            const sheetRaw = await sheetRes.json();
-            
-            const sheetItems = sheetRaw.map(p => {
-                const vID = String(p.vendor_id || p.Vendor_ID).toUpperCase().trim();
-                return {
-                    ...p, source: 'sheet',
-                    numericPrice: parseInt(String(p.price||p.Price).replace(/[^0-9]/g, '')) || 0,
-                    phone: phoneBook[vID] || ADMIN_PHONE,
-                    email: emailBook[vID] || "afitdgm@gmail.com" 
-                };
-            });
-
-            const firestoreItemsRaw = await loadFirestoreProducts(); 
-            const firestoreItems = firestoreItemsRaw.map(data => {
-                const vID = String(data.vendor_id || data.Vendor_ID).toUpperCase().trim();
-                return { 
-                    ...data, source: 'firestore',
-                    numericPrice: parseInt(String(data.price).replace(/[^0-9]/g, '')) || 0,
-                    phone: data.phone || phoneBook[vID] || ADMIN_PHONE,
-                    email: data.email || emailBook[vID] || "afitdgm@gmail.com" 
-                };
-            });
-
-            let combinedList = [...sheetItems, ...firestoreItems];
-            masterItemList = combinedList.filter(p => !suspendedVendors.has(String(p.vendor_id || p.Vendor_ID).toUpperCase().trim()));
-
-            shuffleArray(masterItemList);
-            clearSkeletons('all-items-container');
-            applyFilters(false); 
-
-        } catch (err) { 
-            document.getElementById('all-items-container').innerHTML = "<p style='text-align:center;'>Error loading items.</p>";
-        } finally {
-            const preloader = document.getElementById('preloader');
-            if (preloader) preloader.style.display = 'none';
+        async function requireLogin(targetUrl) {
+            const { data: { session } } = await supabaseClient.auth.getSession();
+            if (session) window.location.href = targetUrl;
+            else window.location.href = "../login/index.html";
         }
-    });
 
-    async function handleLoadMore() {
-        const loadBtn = document.getElementById('load-more-btn');
-        const skeletonContainer = document.getElementById('loading-more-skeletons');
-        loadBtn.style.display = 'none';
-        skeletonContainer.style.display = 'grid'; 
-        renderSkeletons('loading-more-skeletons', 4); 
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
 
-        setTimeout(() => {
-            clearSkeletons('loading-more-skeletons');
-            currentDisplayCount += LOAD_STEP;
-            applyFilters(false);
-        }, 1000); 
-    }
-
-    async function applyFilters(resetCount = false) {
-        if(resetCount) currentDisplayCount = INITIAL_DISPLAY;
-        if(currentDisplayCount === 0) currentDisplayCount = INITIAL_DISPLAY;
-
-        const term = document.getElementById('item-search').value.toLowerCase().trim();
-        const priceFilter = document.getElementById('filter-price').value;
-        const condFilter = document.getElementById('filter-condition').value;
-        const loadBtn = document.getElementById('load-more-btn');
-
-        let baseList = masterItemList;
-
-        if (term) {
+        async function fetchMarketItems() {
+            document.getElementById('skeleton-loader').style.display = 'grid';
+            
             try {
-                const { hits } = await algoliaIndex.search(term, { hitsPerPage: 100 });
-                const hitIds = new Set(hits.map(h => h.objectID));
+                const { data, error } = await supabaseClient
+                    .from('products')
+                    .select('id, name, price, category, image_urls, status, is_pinned')
+                    .eq('status', 'Active')
+                    .order('is_pinned', { ascending: false });
+
+                if (error) throw error;
+
+                const pinnedItems = data.filter(p => p.is_pinned === true);
+                const unpinnedItems = shuffleArray(data.filter(p => p.is_pinned !== true));
+
+                allProducts = [...pinnedItems, ...unpinnedItems];
+                currentDisplayList = [...allProducts]; 
                 
-                baseList = masterItemList.filter(p => {
-                    const rawID = p.id || (p.vendor_id + "-" + p.name).replace(/\s+/g, '-').toLowerCase().replace(/'/g, "").replace(/"/g, "");
-                    const nameMatch = (p.name || p.Name).toLowerCase().includes(term);
-                    return hitIds.has(p.id) || hitIds.has(rawID) || nameMatch;
-                });
-            } catch (error) {
-                baseList = masterItemList.filter(p => (p.name || p.Name).toLowerCase().includes(term));
-            }
-        }
-
-        let filteredItems = baseList.filter(p => {
-            const pCond = p.condition || p.Condition || "Used";
-            if(condFilter !== 'all' && pCond.toLowerCase() !== condFilter.toLowerCase()) return false;
-
-            const price = p.numericPrice;
-            if (priceFilter === 'under-5k' && price >= 5000) return false;
-            if (priceFilter === '5k-20k' && (price < 5000 || price > 20000)) return false;
-            if (priceFilter === '20k-50k' && (price <= 20000 || price > 50000)) return false;
-            if (priceFilter === 'above-50k' && price <= 50000) return false;
-            return true;
-        });
-
-        const totalMatches = filteredItems.length;
-        const itemsToShow = filteredItems.slice(0, currentDisplayCount);
-        renderCustomGrid(itemsToShow);
-
-        document.getElementById('result-count').innerText = `${itemsToShow.length} of ${totalMatches} items`;
-
-        if (itemsToShow.length < totalMatches) {
-            loadBtn.style.display = 'block'; loadBtn.innerText = "Load More"; 
-        } else {
-            loadBtn.style.display = 'none';
-        }
-    }
-
-    function renderCustomGrid(items) {
-        const container = document.getElementById('all-items-container');
-        container.style.display = 'grid'; 
-
-        if(items.length === 0) {
-            container.innerHTML = "<p style='text-align:center; width:100%; color:#888; margin-top:20px; grid-column:span 2;'>No items found.</p>";
-            return;
-        }
-
-        let fullHTML = ""; 
-        items.forEach(p => {
-            const pName = p.name || p.Name;
-            const pPrice = p.price || p.Price;
-            const pVendor = String(p.vendor_id || p.Vendor_ID).toUpperCase().trim();
-            const pImageString = p.image || p.Image || "logo-blue.png";
-            const pCond = p.condition || p.Condition || "Used";
-            const pStatus = p.status || p.Status || "Active";
-            const pDesc = p.description || p.Description || "No additional details.";
-            
-            const rawID = p.id || (pVendor + "-" + pName).replace(/\s+/g, '-').toLowerCase();
-            const pID = rawID.replace(/'/g, "").replace(/"/g, ""); 
-
-            const firstImage = String(pImageString).split(',')[0].trim();
-            const img = firstImage.startsWith('http') ? firstImage : `../img/${firstImage}`;
-            
-            const isSaved = savedItemIds.has(pID);
-            const heartClass = isSaved ? 'fas' : 'far';
-            const heartColor = isSaved ? '#ff4757' : '#777';
-
-            const isSold = pStatus === "Sold";
-            const opacity = isSold ? 'opacity:0.6;' : '';
-            const soldBadge = isSold ? '<span style="background:red; color:white; font-size:9px; padding:2px 5px; position:absolute; top:10px; left:10px; border-radius:4px; z-index:10;">SOLD</span>' : '';
-            const condBadge = (!isSold && pCond === "New") ? `<span style="background:#00b894; color:white; font-size:9px; padding:2px 5px; position:absolute; top:10px; left:10px; z-index:10;">NEW</span>` : '';
-
-            const safeNameHTML = escapeHTML(pName);
-            const safePriceHTML = escapeHTML(pPrice);
-            
-            const safeNameJS = String(pName).replace(/'/g, "\\'").replace(/"/g, "&quot;");
-            const safePriceJS = String(pPrice).replace(/'/g, "\\'").replace(/"/g, "&quot;");
-            const safeDescJS = String(pDesc).replace(/'/g, "\\'").replace(/"/g, "&quot;").replace(/[\n\r]+/g, " "); 
-            
-            const safeImgStrJS = String(pImageString).replace(/'/g, "\\'").replace(/"/g, "&quot;");
-
-            const pPhone = p.phone || ADMIN_PHONE;
-            const pEmail = p.email || "afitdgm@gmail.com"; 
-            
-            const btnAction = isSold ? "" : `openDetailModal('${safeNameJS}', '${safePriceJS}', '${safeDescJS}', '${pVendor}', '${pCond}', '${pPhone}', '${pEmail}', '${safeImgStrJS}')`;
-            
-            const btnText = isSold ? "Sold" : "Get Item";
-            const btnStyle = isSold ? "background:#777; pointer-events:none;" : "";
-
-            fullHTML += `
-            <div class="ad-card" style="${opacity}">
-                ${soldBadge} ${condBadge}
-                <button onclick="toggleSave('${pID}', '${safeNameJS}', '${safePriceJS}', '${firstImage}', '${pVendor}')" 
-                        class="save-btn" id="save-${pID}"
-                        style="position:absolute; top:10px; right:10px; background:white; border:none; border-radius:50%; width:30px; height:30px; display:flex; align-items:center; justify-content:center; cursor:pointer; box-shadow:0 2px 5px rgba(0,0,0,0.2); z-index:10;">
-                    <i class="${heartClass} fa-heart" style="color:${heartColor}; font-size:16px;"></i>
-                </button>
-                <img class="ad-img" src="${img}" onerror="this.src='../img/logo-blue.png'">
-                <div class="ad-info">
-                    <div class="ad-price">${safePriceHTML}</div>
-                    <div class="ad-title">${safeNameHTML}</div>
-                    <div class="ad-desc-preview">${escapeHTML(pDesc)}</div>
-                    <div class="ad-location" style="font-size:11px; color:#888;">${pCond} • ${pVendor}</div>
-                    <div class="action-row">
-                        <button onclick="${btnAction}" class="chat-btn" style="flex:1; border:none; cursor:pointer; margin:0; ${btnStyle}">${btnText}</button>
-                        ${isSold ? '' : `<button onclick="startRealChat('${safeNameJS}', '${pVendor}', '${pEmail}')" class="quick-chat-btn" title="Quick Chat"><i class="fas fa-comment-dots"></i></button>`}
-                    </div>
-                </div>
-            </div>`;
-        });
-        container.innerHTML = fullHTML;
-    }
-
-    // 🚀 UPDATED MODAL LOGIC WITH ONCLICK TO LAUNCH FULLSCREEN
-    window.openDetailModal = function(title, price, desc, vendorId, cond, phone, vendorEmail, imageString) {
-        document.getElementById('m-title').innerText = title;
-        document.getElementById('m-price').innerText = price;
-        document.getElementById('m-desc').innerText = desc;
-        document.getElementById('m-vendor').innerText = "Vendor: " + vendorId;
-        document.getElementById('m-condition').innerText = cond;
-        
-        const carousel = document.getElementById('m-carousel');
-        const dotsContainer = document.getElementById('m-carousel-dots');
-        const swipeHint = document.getElementById('m-swipe-hint');
-        
-        carousel.innerHTML = "";
-        dotsContainer.innerHTML = "";
-        
-        let images = [];
-        if(imageString) {
-            images = imageString.split(',').map(img => img.trim()).filter(img => img.length > 0);
-        }
-        if(images.length === 0) images = ['logo-blue.png'];
-        
-        // 🚀 SAFE STRING FOR FULLSCREEN CLICK
-        const safeImgStringForClick = images.join(',').replace(/'/g, "\\'");
-
-        images.forEach((imgSrc, index) => {
-            const finalSrc = imgSrc.startsWith('http') ? imgSrc : `../img/${imgSrc}`;
-            // 🚀 ADDED ONCLICK EVENT HERE
-            carousel.innerHTML += `<img src="${finalSrc}" class="carousel-img" onerror="this.src='../img/logo-blue.png'" onclick="openFullscreenGallery('${safeImgStringForClick}', ${index})" style="cursor:zoom-in;">`;
-            if(images.length > 1) {
-                dotsContainer.innerHTML += `<div class="dot ${index === 0 ? 'active' : ''}" id="dot-${index}"></div>`;
-            }
-        });
-        
-        if(images.length > 1) {
-            swipeHint.style.display = 'block';
-            carousel.onscroll = function() {
-                const scrollPos = carousel.scrollLeft;
-                const width = carousel.clientWidth;
-                if(width > 0) {
-                    const activeIndex = Math.round(scrollPos / width);
-                    document.querySelectorAll('.dot').forEach((d, i) => {
-                        d.classList.toggle('active', i === activeIndex);
-                    });
+                const urlParams = new URLSearchParams(window.location.search);
+                const passedCat = urlParams.get('cat');
+                
+                if (passedCat) {
+                    const pill = Array.from(document.querySelectorAll('.filter-pill')).find(p => p.innerText.includes(passedCat) || p.getAttribute('onclick').includes(`'${passedCat}'`));
+                    if (pill) filterByCategory(passedCat, pill);
+                } else {
+                    loadNextBatch();
                 }
-            };
-        } else {
-            swipeHint.style.display = 'none';
-            carousel.onscroll = null;
-        }
-        
-        const waMsg = encodeURIComponent(`Hi, I saw "${title}" on AFIT Market (Price: ${price}). Is it available?`);
-        document.getElementById('btn-wa').href = `https://wa.me/${phone}?text=${waMsg}`;
-        document.getElementById('btn-inapp').onclick = function() { startRealChat(title, vendorId, vendorEmail); };
-        
-        document.getElementById('detail-modal').style.display = 'flex';
-    };
 
-    // 🚀 NEW FULLSCREEN GALLERY LOGIC
-    window.openFullscreenGallery = function(imageString, startIndex) {
-        const fsModal = document.getElementById('fs-gallery');
-        const fsCarousel = document.getElementById('fs-carousel-container');
-        const fsCounter = document.getElementById('fs-counter');
-        
-        fsCarousel.innerHTML = "";
-        const images = imageString.split(',');
-        
-        images.forEach((imgSrc) => {
-            const finalSrc = imgSrc.startsWith('http') ? imgSrc : `../img/${imgSrc}`;
-            fsCarousel.innerHTML += `<img src="${finalSrc}" class="fs-img" onerror="this.src='../img/logo-blue.png'">`;
-        });
-        
-        fsModal.style.display = 'flex';
-        
-        setTimeout(() => {
-            const width = fsCarousel.clientWidth;
-            fsCarousel.scrollLeft = width * startIndex;
-            fsCounter.innerText = `${startIndex + 1} / ${images.length}`;
-        }, 10);
-        
-        fsCarousel.onscroll = function() {
-            const width = fsCarousel.clientWidth;
-            if(width > 0) {
-                const activeIndex = Math.round(fsCarousel.scrollLeft / width);
-                fsCounter.innerText = `${activeIndex + 1} / ${images.length}`;
+                observer.observe(document.getElementById('scroll-sentinel'));
+
+            } catch (error) {
+                document.getElementById('skeleton-loader').style.display = 'none';
+                document.getElementById('main-items-grid').innerHTML = `<p style="grid-column:span 2; text-align:center; color:red; padding: 40px;">Failed to load items.</p>`;
             }
-        };
-    };
+        }
 
-    // 🚀 NEW: Just redirect with parameters, DO NOT create a document!
-    window.startRealChat = async function(productName, vendorId, vendorEmail) {
-        const user = auth.currentUser;
-        if (!user) {
-            const loginModal = document.getElementById('login-modal');
-            if (loginModal) {
-                const pTag = loginModal.querySelector('p');
-                if(pTag) pTag.innerText = "Please login to securely message this vendor.";
-                loginModal.style.display = 'flex'; 
-            } else {
-                alert("You must be signed in to message vendors directly.");
-                window.location.href = "../login.html";
+        function loadNextBatch() {
+            if (isFetchingBatch) return;
+
+            const grid = document.getElementById('main-items-grid');
+            const skeleton = document.getElementById('skeleton-loader');
+            const endMsg = document.getElementById('end-message');
+            
+            if (currentDisplayList.length === 0) {
+                grid.innerHTML = `
+                    <div style="grid-column: span 2; text-align: center; padding: 60px 20px; color: #94a3b8;">
+                        <i class="fas fa-box-open" style="font-size: 50px; margin-bottom: 15px; color: #cbd5e1;"></i>
+                        <h3 style="font-size: 16px; color: #1e293b; margin: 0 0 5px;">No items found</h3>
+                        <p style="font-size: 13px;">Try adjusting your search, category, or spelling.</p>
+                    </div>`;
+                endMsg.style.display = 'none';
+                skeleton.style.display = 'none';
+                return;
             }
-            return;
+
+            if (itemsLoaded >= currentDisplayList.length) return;
+
+            isFetchingBatch = true;
+            skeleton.style.display = 'grid';
+
+            setTimeout(() => {
+                skeleton.style.display = 'none';
+
+                const nextBatch = currentDisplayList.slice(itemsLoaded, itemsLoaded + ITEMS_PER_PAGE);
+
+                nextBatch.forEach(p => {
+                    const imgUrl = (p.image_urls && p.image_urls.length > 0) ? p.image_urls[0] : 'https://via.placeholder.com/300x300?text=No+Image';
+                    const multiImageBadge = (p.image_urls && p.image_urls.length > 1) ? `<div class="multi-img-badge"><i class="far fa-images"></i> ${p.image_urls.length}</div>` : '';
+                    const fPrice = new Intl.NumberFormat('en-NG', { style: 'currency', currency: 'NGN', maximumFractionDigits: 0 }).format(p.price);
+                    const pinBadge = p.is_pinned ? `<div style="position: absolute; top: 12px; left: 12px; background: rgba(0,0,0,0.7); color: white; padding: 4px 10px; border-radius: 8px; font-size: 10px; font-weight: 800; backdrop-filter: blur(4px); z-index: 10;">Featured</div>` : '';
+
+                    // 🚀 XSS FIX: Wrap name and category in escapeHTML
+                    grid.insertAdjacentHTML('beforeend', `
+                        <div class="product-card" onclick="window.location.href='../product/index.html?id=${p.id}'" style="position: relative;">
+                            ${pinBadge}
+                            <img src="${imgUrl}" class="product-img" onerror="this.src='https://via.placeholder.com/300x300?text=No+Image'">
+                            ${multiImageBadge}
+                            <div class="product-price">${fPrice}</div>
+                            <div class="product-title">${escapeHTML(p.name)}</div>
+                            <div class="product-location"><i class="fas fa-tag" style="color: var(--brand-color);"></i> ${escapeHTML(p.category)}</div>
+                        </div>
+                    `);
+                });
+
+                itemsLoaded += nextBatch.length;
+                isFetchingBatch = false;
+
+                if (itemsLoaded >= currentDisplayList.length) {
+                    endMsg.style.display = 'block';
+                }
+
+            }, 600);
         }
 
-        // Encode the variables so they are safe to put in a URL
-        const safeProd = encodeURIComponent(productName);
-        const safeVenId = encodeURIComponent(vendorId);
-        const safeVenEmail = encodeURIComponent(vendorEmail || "afitdgm@gmail.com");
-
-        // 🚀 We use ../chat/ because this file is in the /items/ subfolder
-        window.location.href = `../chat/index.html?vendorId=${safeVenId}&vendorEmail=${safeVenEmail}&product=${safeProd}`;
-    }
-
-    window.toggleSave = async function(id, name, price, image, vendor) {
-        const user = auth.currentUser;
-        if (!user) { 
-            const loginModal = document.getElementById('login-modal');
-            const pTag = loginModal.querySelector('p');
-            if(pTag) pTag.innerText = "Please login to save items.";
-            loginModal.style.display = 'flex'; return; 
-        }
-
-        const userRef = doc(db, "users", user.uid, "saved_items", id);
-        if (savedItemIds.has(id)) {
-            savedItemIds.delete(id); await deleteDoc(userRef);
-        } else {
-            savedItemIds.add(id);
-            await setDoc(userRef, { product_id: id, name: name, price: price, image: image, vendor: vendor, saved_at: new Date() });
-        }
-        updateHeartIcons();
-    }; 
-
-    function updateHeartIcons() {
-        document.querySelectorAll('.save-btn').forEach(btn => {
-            const id = btn.id.replace('save-', '');
-            const icon = btn.querySelector('i');
-            if (savedItemIds.has(id)) {
-                icon.classList.replace('far', 'fas'); icon.style.color = '#ff4757';
-            } else {
-                icon.classList.replace('fas', 'far'); icon.style.color = '#777';
+        const observer = new IntersectionObserver((entries) => {
+            if (entries[0].isIntersecting) {
+                loadNextBatch();
             }
-        });
-    }
+        }, { rootMargin: "100px" });
+
+        function resetAndReload() {
+            itemsLoaded = 0;
+            document.getElementById('main-items-grid').innerHTML = "";
+            document.getElementById('end-message').style.display = 'none';
+            loadNextBatch();
+        }
+
+        function filterByCategory(categoryName, btnElement) {
+            document.querySelectorAll('.filter-pill').forEach(b => b.classList.remove('active'));
+            if(btnElement) btnElement.classList.add('active');
+
+            currentCategory = categoryName;
+            triggerSearch(null); 
+        }
+
+        function triggerSearch(e) {
+            if (e) e.preventDefault(); 
+            if (document.getElementById('item-search')) {
+                document.getElementById('item-search').blur(); 
+            }
+
+            const query = document.getElementById('item-search').value.toLowerCase().trim();
+            
+            const filteredList = allProducts.filter(p => {
+                const matchesSearchText = p.name.toLowerCase().includes(query) || p.category.toLowerCase().includes(query);
+                const matchesCategory = (currentCategory === 'All') || (p.category === currentCategory);
+                
+                return matchesSearchText && matchesCategory;
+            });
+
+            const pinnedFiltered = filteredList.filter(p => p.is_pinned === true);
+            const unpinnedFiltered = filteredList.filter(p => p.is_pinned !== true);
+            
+            currentDisplayList = [...pinnedFiltered, ...unpinnedFiltered];
+            
+            resetAndReload();
+            return false;
+        }
 </script>
 </body>
 </html>

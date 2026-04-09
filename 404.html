@@ -1,270 +1,88 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
-  <title>Page Not Found | AFIT Digital Market</title>
-  
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
-  
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <link rel="icon" href="img/app-logo.png" type="image/png" sizes="192x192">
-  <link rel="apple-touch-icon" href="img/app-logo.png">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Page Not Found | AFIT Digital Market</title>
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="icon" href="asset/img/app-logo.png" type="image/png" sizes="192x192">
   <link rel="icon" href="favicon.ico" type="image/x-icon">
 
-  <style>
-      /* CSS Variables for seamless Light/Dark mode */
-      :root {
-          --bg-color: #f8fafc;
-          --text-main: #0f172a;
-          --text-muted: #64748b;
-          --card-bg: #ffffff;
-          --card-border: #e2e8f0;
-          --primary: #3b82f6;
-          --primary-hover: #2563eb;
-          --shadow-sm: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
-          --shadow-md: 0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -4px rgba(0, 0, 0, 0.04);
-          --watermark: rgba(15, 23, 42, 0.03);
-      }
+    
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;800;900&display=swap');
+        
+        :root {
+            --brand-color: #2d8eff;
+            --bg-color: #f8fafc;
+            --text-main: #1e293b;
+            --text-muted: #64748b;
+        }
 
-      body.dark-mode {
-          --bg-color: #0f172a;
-          --text-main: #f8fafc;
-          --text-muted: #94a3b8;
-          --card-bg: #1e293b;
-          --card-border: #334155;
-          --primary: #60a5fa;
-          --primary-hover: #93c5fd;
-          --shadow-sm: 0 4px 6px -1px rgba(0, 0, 0, 0.2);
-          --shadow-md: 0 10px 15px -3px rgba(0, 0, 0, 0.3);
-          --watermark: rgba(255, 255, 255, 0.02);
-      }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Poppins', sans-serif; }
+        
+        body { 
+            background-color: var(--bg-color); 
+            display: flex; justify-content: center; align-items: center; 
+            min-height: 100vh; overflow: hidden; 
+        }
 
-      * {
-          box-sizing: border-box;
-          margin: 0;
-          padding: 0;
-      }
+        .container {
+            background: white; width: 90%; max-width: 400px;
+            padding: 40px 30px; border-radius: 24px; text-align: center;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.05);
+            border: 1px solid #f1f5f9;
+            animation: popUp 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        }
 
-      body {
-          font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-          background-color: var(--bg-color);
-          color: var(--text-main);
-          transition: background-color 0.3s ease, color 0.3s ease;
-          min-height: 100vh;
-          display: flex;
-          flex-direction: column;
-      }
+        @keyframes popUp {
+            from { transform: translateY(20px) scale(0.95); opacity: 0; }
+            to { transform: translateY(0) scale(1); opacity: 1; }
+        }
 
-      .app-container {
-          flex: 1;
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          padding: 2rem 1.5rem;
-          position: relative;
-          overflow: hidden;
-      }
+        .error-code {
+            font-size: 80px; font-weight: 900; color: var(--brand-color);
+            line-height: 1; margin-bottom: 5px;
+            text-shadow: 4px 4px 0px rgba(45, 142, 255, 0.2);
+        }
 
-      /* Subtle background watermark */
-      .watermark {
-          position: absolute;
-          top: 50%;
-          left: 50%;
-          transform: translate(-50%, -50%);
-          font-size: clamp(150px, 30vw, 400px);
-          font-weight: 800;
-          color: var(--watermark);
-          z-index: 0;
-          pointer-events: none;
-          user-select: none;
-      }
+        h1 { font-size: 20px; font-weight: 800; color: var(--text-main); margin-bottom: 10px; }
+        p { font-size: 14px; color: var(--text-muted); line-height: 1.6; margin-bottom: 30px; }
 
-      .header {
-          width: 100%;
-          text-align: center;
-          z-index: 1;
-          margin-bottom: 2rem;
-      }
+        .home-btn {
+            background: var(--brand-color); color: white; border: none; text-decoration: none;
+            width: 100%; padding: 15px; border-radius: 14px; font-size: 15px; font-weight: 800;
+            cursor: pointer; transition: 0.2s; box-shadow: 0 8px 20px rgba(45, 142, 255, 0.3);
+            display: inline-flex; justify-content: center; align-items: center; gap: 10px;
+        }
+        .home-btn:active { transform: scale(0.96); }
 
-      .site-logo {
-          height: 36px;
-          transition: transform 0.3s ease;
-      }
-      
-      .site-logo:hover {
-          transform: scale(1.05);
-      }
-
-      .error-content {
-          text-align: center;
-          z-index: 1;
-          display: flex;
-          flex-direction: column;
-          justify-content: center;
-          align-items: center;
-          flex: 1;
-          width: 100%;
-          max-width: 420px;
-      }
-
-      /* Gradient Icon */
-      .error-icon {
-          font-size: 72px;
-          background: linear-gradient(135deg, var(--primary), #8b5cf6);
-          -webkit-background-clip: text;
-          -webkit-text-fill-color: transparent;
-          margin-bottom: 1.5rem;
-          animation: float 4s ease-in-out infinite;
-      }
-
-      @keyframes float {
-          0% { transform: translateY(0px); }
-          50% { transform: translateY(-12px); }
-          100% { transform: translateY(0px); }
-      }
-
-      .error-title {
-          font-size: 28px;
-          font-weight: 800;
-          margin-bottom: 0.75rem;
-          letter-spacing: -0.02em;
-      }
-
-      .error-text {
-          color: var(--text-muted);
-          font-size: 15px;
-          margin-bottom: 2.5rem;
-          line-height: 1.6;
-      }
-
-      .link-grid {
-          display: grid;
-          grid-template-columns: repeat(2, 1fr);
-          gap: 1rem;
-          width: 100%;
-      }
-
-      .link-card {
-          background: var(--card-bg);
-          padding: 1.25rem 1rem;
-          border-radius: 16px;
-          box-shadow: var(--shadow-sm);
-          text-decoration: none;
-          color: var(--text-main);
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-          border: 1px solid var(--card-border);
-      }
-
-      .link-card:hover { 
-          transform: translateY(-4px);
-          box-shadow: var(--shadow-md);
-          border-color: var(--primary);
-      }
-
-      .link-card:active { 
-          transform: scale(0.96); 
-      }
-
-      .link-card i { 
-          font-size: 24px; 
-          color: var(--primary); 
-          margin-bottom: 0.75rem; 
-          transition: transform 0.3s ease;
-      }
-
-      .link-card:hover i {
-          transform: scale(1.1);
-      }
-
-      .link-card span { 
-          font-size: 13px; 
-          font-weight: 600; 
-      }
-
-      .site-footer {
-          text-align: center;
-          z-index: 1;
-          margin-top: auto;
-          padding-top: 2rem;
-      }
-
-      .site-footer p {
-          color: var(--text-muted);
-          font-size: 13px;
-      }
-
-      .site-footer a {
-          color: var(--primary);
-          text-decoration: none;
-          font-weight: 600;
-          transition: color 0.2s;
-      }
-      
-      .site-footer a:hover {
-          color: var(--primary-hover);
-          text-decoration: underline;
-      }
-  </style>
+        /* 🌙 DARK MODE */
+        body.dark-mode { background-color: #020617; }
+        body.dark-mode .container { background: #0f172a; border-color: #334155; box-shadow: 0 10px 40px rgba(0,0,0,0.5); }
+        body.dark-mode h1 { color: #f1f5f9; }
+        body.dark-mode p { color: #94a3b8; }
+        body.dark-mode .error-code { text-shadow: 4px 4px 0px rgba(45, 142, 255, 0.1); }
+    </style>
 </head>
 <body>
 
-  <div class="app-container">
-    
-    <div class="watermark">404</div>
-    
-    <div class="header">
-      <a href="/"> 
-        <img src="/img/logo-blue.png" alt="AFIT Market" class="site-logo" onerror="this.src='https://via.placeholder.com/150x40?text=AFIT+Market'"> 
-      </a>
+    <script>
+        if (localStorage.getItem('theme') === 'dark') {
+            document.body.classList.add('dark-mode');
+        }
+    </script>
+
+    <div class="container">
+        <div class="error-code">404</div>
+        <h1>Lost on Campus?</h1>
+        <p>Oops! It looks like the page or item you are looking for doesn't exist, was moved, or was deleted by the vendor.</p>
+        
+        <a href="./" class="home-btn">
+            <i class="fas fa-home"></i> Back to Market
+        </a>
     </div>
-
-    <div class="error-content">
-        <i class="fas fa-map-signs error-icon"></i>
-        <div class="error-title">Oops! Page Not Found</div>
-        <p class="error-text">We couldn't find the page you were looking for. It might have been removed or the link is broken.</p>
-
-        <div class="link-grid">
-            <a href="/" class="link-card">
-                <i class="fas fa-home"></i>
-                <span>Home Page</span>
-            </a>
-            <a href="/items/" class="link-card">
-                <i class="fas fa-box-open"></i>
-                <span>All Items</span>
-            </a>
-            <a href="/vendors/" class="link-card">
-                <i class="fas fa-store"></i>
-                <span>Vendors</span>
-            </a>
-            <a href="https://wa.me/2349153375488" class="link-card">
-                <i class="fas fa-headset"></i>
-                <span>Support</span>
-            </a>
-        </div>
-    </div>
-
-    <footer class="site-footer">
-        <p>
-            &copy; 2026 All rights reserved. Powered by 
-            <a href="https://brightsitedev.tech" target="_blank">Brightsitedev</a>
-        </p>
-    </footer>
-
-  </div>
-
-  <script>
-    // Check local storage or system preference for dark mode
-    const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
-    if (localStorage.getItem('theme') === 'dark' || (!localStorage.getItem('theme') && prefersDark)) {
-        document.body.classList.add('dark-mode');
-    }
-  </script>
 
 </body>
 </html>

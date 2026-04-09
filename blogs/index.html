@@ -1,578 +1,381 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-70VSGR5WBW"></script>
+    
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
-    
-    <title>Campus Gist & News | AFIT Digital Market</title>
-    
-    <meta property="og:title" content="Campus Gist & News | AFIT Digital Market">
-    <meta property="og:description" content="Stay updated with the latest Exams, Gossip, and Important Notices from AFIT.">
-    <meta property="og:image" content="https://afitdgm.store/img/app-logo.png"> 
-    <meta property="og:url" content="https://afitdgm.store/blogs/">
-    <meta property="og:type" content="website">
 
+    <title>Campus News & Gist | AFIT Digital Market</title>
+    <meta name="description" content="Stay updated with the latest campus news, student gist, events, and market announcements on AFIT Digital Market. Your #1 source for AFIT Kaduna updates.">
+    <meta name="keywords" content="AFIT news, campus gist Kaduna, AFIT student blog, ADM announcements, AFIT Digital Market news, university updates Nigeria, AFIT events">
+    <meta name="author" content="BrightSiteDev">
+    <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1">
+    <link rel="canonical" href="https://afitdgm.store/blogs/">
+
+    <meta name="geo.region" content="NG-KD"> 
+    <meta name="geo.placename" content="Kaduna">
+    <meta name="geo.position" content="10.5105;7.4165"> 
+    <meta name="ICBM" content="10.5105, 7.4165">
+
+    <meta property="og:type" content="blog">
+    <meta property="og:site_name" content="AFIT Digital Market">
+    <meta property="og:locale" content="en_NG">
+    <meta property="og:url" content="https://afitdgm.store/blogs/">
+    <meta property="og:title" content="Campus News & Updates | AFIT Digital Market">
+    <meta property="og:description" content="Get the latest gist, academic updates, and vendor announcements straight from the AFIT campus.">
+    <meta property="og:image" content="https://afitdgm.store/asset/img/app-logo.png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:site" content="@brightsitedev"> 
+    <meta name="twitter:title" content="Campus News | AFIT Digital Market">
+    <meta name="twitter:description" content="Catch up on the latest AFIT campus gist, news, and market updates.">
+    <meta name="twitter:image" content="https://afitdgm.store/asset/img/app-logo.png">
+
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Blog",
+      "name": "AFIT Digital Market Campus News",
+      "url": "https://afitdgm.store/blogs/",
+      "description": "The latest news, gist, and updates from the AFIT campus and Digital Market community.",
+      "publisher": {
+        "@type": "Organization",
+        "name": "AFIT Digital Market",
+        "logo": {
+          "@type": "ImageObject",
+          "url": "https://afitdgm.store/asset/img/app-logo.png"
+        }
+      }
+    }
+    </script>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="../asset/style.css">
-    
-    <link rel="icon" href="../img/app-logo.png" type="image/png" sizes="192x192">
-    
+    <link rel="icon" href="../asset/img/app-logo.png" type="image/png" sizes="192x192">
+    <link rel="icon" href="../favicon.ico" type="image/x-icon">
+
     <style>
-        body { background-color: #f8f9fa; }
+        :root {
+            --brand-color: #2d8eff; /* AFIT Blue */
+        }
+        .header-top-flex { display: flex; align-items: center; gap: 15px; margin-bottom: 15px; }
+        .page-title { font-size: 20px; font-weight: 800; color: var(--text-main); margin: 0; }
         
-        /* Header */
-        .blog-header-modern {
-            padding: 35px 20px 15px;
-            background: linear-gradient(to bottom, #ffffff, #f8f9fa);
-            text-align: center;
-        }
-        .page-title { font-size: 28px; font-weight: 800; margin: 0 0 8px 0; color: #2d8eff; }
-        .header-subtitle { font-size: 14px; color: #777; margin: 0; line-height: 1.5; }
-
-        /* Search */
-        .search-wrapper { position: relative; max-width: 450px; margin: 25px auto 15px; }
-        .search-icon { position: absolute; left: 18px; top: 50%; transform: translateY(-50%); color: #aaa; font-size: 16px; }
-        .blog-search-input {
-            width: 100%; padding: 16px 16px 16px 45px; border-radius: 30px;
-            border: 1px solid #eaeaea; font-size: 14px; background: white;
-            box-shadow: 0 8px 20px rgba(0,0,0,0.04); outline: none; transition: all 0.3s;
-        }
-        .blog-search-input:focus { border-color: #2d8eff; box-shadow: 0 8px 25px rgba(45, 142, 255, 0.15); }
-
+        .search-container { background: white; border-radius: 12px; display: flex; align-items: center; padding: 14px 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.02); margin-bottom: 15px;}
+        .search-container input { border: none; background: transparent; outline: none; width: 100%; font-size: 14px; color: var(--text-main); }
+        
         /* Category Chips */
-        .chip-container {
-            display: flex; gap: 10px; overflow-x: auto; padding: 5px 20px 15px;
-            scrollbar-width: none; /* Firefox */
-        }
-        .chip-container::-webkit-scrollbar { display: none; }
-        .cat-chip {
-            padding: 8px 16px; background: white; border: 1px solid #ddd; border-radius: 20px;
-            font-size: 12px; font-weight: 600; color: #555; white-space: nowrap; cursor: pointer;
-            transition: all 0.2s; box-shadow: 0 2px 5px rgba(0,0,0,0.02);
-        }
-        .cat-chip.active { background: #2d8eff; color: white; border-color: #2d8eff; }
+        .chip-scroll { display: flex; gap: 10px; overflow-x: auto; padding-bottom: 10px; scrollbar-width: none; }
+        .chip-scroll::-webkit-scrollbar { display: none; }
+        .chip { padding: 8px 16px; background: white; border: 1px solid #e2e8f0; border-radius: 20px; font-size: 12px; font-weight: 600; color: var(--text-muted); white-space: nowrap; cursor: pointer; transition: 0.2s; }
+        .chip.active { background: var(--brand-color); color: white; border-color: var(--brand-color); }
 
-        /* Modern Blog Card */
-        .modern-blog-card {
-            background: white; border-radius: 16px; overflow: hidden; margin-bottom: 20px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.05); border: 1px solid #f0f0f0; transition: transform 0.2s;
+        /* Cool Horizontal News Card Layout */
+        .news-card { 
+            background: white; border-radius: 16px; margin-bottom: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.02); 
+            border: 1px solid #f1f5f9; transition: transform 0.2s, box-shadow 0.2s; cursor: pointer; 
+            display: flex; gap: 15px; padding: 12px; align-items: center;
         }
-        .modern-blog-card:active { transform: scale(0.98); }
-        .blog-cover { width: 100%; height: 180px; object-fit: cover; display: block; cursor: pointer; }
-        .blog-content-box { padding: 15px; cursor: pointer; }
+        .news-card:active { transform: scale(0.98); }
         
-        .blog-meta {
-            display: flex; justify-content: space-between; align-items: center;
-            font-size: 11px; color: #888; margin-bottom: 8px; font-weight: 600; text-transform: uppercase;
+        .news-cover { 
+            width: 95px; height: 95px; border-radius: 12px; object-fit: cover; 
+            background: #f8fafc; flex-shrink: 0; border: 1px solid #f1f5f9;
         }
-        .cat-badge { background: #eef7ff; color: #2d8eff; padding: 3px 8px; border-radius: 10px; }
-        .modern-title { font-size: 16px; font-weight: 800; color: #2d3436; margin: 0 0 8px 0; line-height: 1.4; }
-        .modern-snippet { font-size: 13px; color: #636e72; line-height: 1.5; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-
-        .action-row {
-            display: flex; justify-content: space-between; align-items: center;
-            margin-top: 15px; padding-top: 15px; border-top: 1px solid #f5f5f5;
-        }
-        .stats-group { display: flex; gap: 15px; }
-        .stat-item { display: flex; align-items: center; gap: 5px; color: #888; font-size: 12px; font-weight: bold; }
-        .stat-item.active-like { color: #ff4757; }
-        .share-icon { font-size: 16px; color: #2d8eff; padding: 8px; cursor: pointer; }
-
-        /* Modal & Comments */
-        @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
-        .blog-modal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:3000; justify-content:center; align-items:end; }
-        .blog-modal-content { 
-            background: white; width: 100%; max-width: 500px; border-radius: 20px 20px 0 0; 
-            max-height: 90vh; overflow-y: auto; animation: slideUp 0.3s ease-out; position: relative; padding-bottom: 80px;
-        }
-        .modal-hero-img { width: 100%; height: 200px; object-fit: cover; }
-        .modal-body { padding: 20px; }
-        .modal-title { font-size: 20px; font-weight: 800; margin: 0 0 5px; color: #2d3436; line-height: 1.3; }
-        .modal-text { white-space: pre-wrap; line-height: 1.8; color: #2d3436; font-size: 15px; margin-top: 20px; word-wrap: break-word; }
-        .modal-text a { color: #2d8eff; text-decoration: underline; font-weight: 600; }
-
-        /* Comment UI */
-        .comments-section { margin-top: 30px; border-top: 1px solid #eee; padding-top: 20px; }
-        .comment-card { display: flex; gap: 10px; margin-bottom: 15px; }
-        .comment-img { width: 35px; height: 35px; border-radius: 50%; object-fit: cover; background:#eee; }
-        .comment-bubble { background: #f5f6fa; padding: 10px 15px; border-radius: 0 15px 15px 15px; flex: 1; }
-        .comment-name { font-size: 12px; font-weight: bold; color: #333; margin-bottom: 3px; }
-        .comment-text { font-size: 13px; color: #555; line-height: 1.4; }
         
-        .comment-input-area {
-            position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); width: 100%; max-width: 500px;
-            background: white; padding: 15px; box-shadow: 0 -5px 15px rgba(0,0,0,0.05); display: flex; gap: 10px; align-items: center;
-        }
-        .comment-input {
-            flex: 1; padding: 12px 15px; border-radius: 20px; border: 1px solid #ddd; background: #f9f9f9; outline: none; font-size: 13px;
-        }
-        .comment-send-btn {
-            background: #2d8eff; color: white; border: none; width: 40px; height: 40px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 16px;
-        }
-
-        /* Load More Button */
-        #load-more-container { text-align: center; margin: 30px 0; display: none; }
-        #load-more-btn {
-            background: #333; color: white; border: none; padding: 12px 30px; border-radius: 30px; font-weight: bold; cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.1); transition: transform 0.2s;
-        }
-        #load-more-btn:active { transform: scale(0.95); }
-
-        /* Dark Mode Updates */
-        body.dark-mode { background: #121212; }
-        body.dark-mode .blog-header-modern { background: #1e1e1e; }
-        body.dark-mode .blog-search-input { background: #2d3436; border-color: #444; color: white; }
-        body.dark-mode .cat-chip { background: #2d3436; border-color: #444; color: #ccc; }
-        body.dark-mode .cat-chip.active { background: #2d8eff; color: white; }
-        body.dark-mode .modern-blog-card { background: #1e1e1e; border-color: #333; }
-        body.dark-mode .modern-title { color: #dfe6e9; }
-        body.dark-mode .modern-snippet { color: #b2bec3; }
-        body.dark-mode .cat-badge { background: #111; border: 1px solid #333; }
-        body.dark-mode .action-row, body.dark-mode .comments-section { border-color: #333; }
-        body.dark-mode .blog-modal-content { background: #1e1e1e; color: white; }
-        body.dark-mode .modal-title { color: white; }
-        body.dark-mode .modal-text { color: #ddd; }
-        body.dark-mode .comment-input-area { background: #1e1e1e; border-top: 1px solid #333; }
-        body.dark-mode .comment-input { background: #2d3436; border-color: #444; color: white; }
-        body.dark-mode .comment-bubble { background: #2d3436; }
-        body.dark-mode .comment-name { color: #eee; }
-        body.dark-mode .comment-text { color: #ccc; }
-        /* --- SKELETON LOADING UI --- */
-        @keyframes skeleton-loading {
-            0% { background-position: -200px 0; }
-            100% { background-position: calc(200px + 100%) 0; }
-        }
-
-        .skeleton-blog-card {
-            background: white; border-radius: 16px; overflow: hidden;
-            margin-bottom: 20px; box-shadow: 0 4px 20px rgba(0,0,0,0.05);
-            border: 1px solid #f0f0f0;
-        }
-
-        .sk-shimmer {
-            background: #eee;
-            background-image: linear-gradient(90deg, #eee, #f5f5f5, #eee);
-            background-size: 200px 100%;
-            animation: skeleton-loading 1.5s infinite linear;
-            border-radius: 4px;
-        }
-
-        .sk-img-large { width: 100%; height: 180px; border-radius: 0; }
-        .sk-content { padding: 15px; }
-        .sk-meta { width: 30%; height: 12px; margin-bottom: 15px; }
-        .sk-title { width: 80%; height: 20px; margin-bottom: 10px; }
-        .sk-text { width: 100%; height: 14px; margin-bottom: 8px; }
-        .sk-text-short { width: 60%; height: 14px; margin-bottom: 15px; }
-        .sk-action { width: 100%; height: 40px; border-radius: 20px; margin-top: 15px; }
+        .news-content { flex: 1; min-width: 0; display: flex; flex-direction: column; justify-content: center; }
         
-        body.dark-mode .skeleton-blog-card { background: #1e1e1e; border-color: #333; box-shadow: none; }
-        body.dark-mode .sk-shimmer {
-            background-color: #333; background-image: linear-gradient(90deg, #333, #444, #333);
+        .blog-meta { display: flex; justify-content: space-between; align-items: center; font-size: 10px; font-weight: 800; color: var(--text-muted); text-transform: uppercase; margin-bottom: 6px; }
+        .cat-badge { color: var(--brand-color); background: rgba(45, 142, 255, 0.1); padding: 4px 8px; border-radius: 6px; letter-spacing: 0.5px;}
+        
+        .blog-title { font-size: 15px; font-weight: 800; color: var(--text-main); margin-bottom: 4px; line-height: 1.3; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+        .blog-snippet { font-size: 12px; color: var(--text-muted); line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden; margin-bottom: 8px;}
+        
+        /* Interaction Row */
+        .interaction-row { display: flex; justify-content: space-between; align-items: center; }
+        .stats-group { display: flex; gap: 12px; }
+        .stat-item { display: flex; align-items: center; gap: 4px; color: #94a3b8; font-size: 11px; font-weight: 700; }
+        .stat-item i { font-size: 12px; transition: 0.2s; }
+        .liked { color: #ef4444 !important; }
+        
+        .share-btn { 
+            color: var(--text-muted); background: #f1f5f9; width: 28px; height: 28px; border-radius: 50%; 
+            display: flex; justify-content: center; align-items: center; cursor: pointer; font-size: 12px; transition: 0.2s;
         }
+        .share-btn:active { transform: scale(0.9); background: #e2e8f0; }
+
+        /* 🚀 SKELETON LOADER STYLES */
+        .sk-shimmer { background: linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%); background-size: 200% 100%; animation: shimmer 1.5s infinite; border-radius: 4px; }
+        @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+        .sk-news-cover { width: 95px; height: 95px; border-radius: 12px; flex-shrink: 0; }
+
+        /* ========================================= */
+        /* 🌙 DARK MODE FIXES FOR CAMPUS NEWS        */
+        /* ========================================= */
+        body.dark-mode { background-color: #020617 !important; }
+        body.dark-mode .app-container { background: #0f172a !important; }
+        body.dark-mode .page-title, body.dark-mode .back-btn { color: #f1f5f9 !important; }
+        body.dark-mode .search-container { background: #1e293b !important; border: 1px solid #334155 !important; box-shadow: none !important; }
+        body.dark-mode .search-container input { color: #f1f5f9 !important; }
+        body.dark-mode .chip { background: #1e293b !important; border-color: #334155 !important; color: #94a3b8 !important; }
+        body.dark-mode .chip.active { background: var(--brand-color) !important; color: white !important; border-color: var(--brand-color) !important; }
+        
+        body.dark-mode .news-card { background: #1e293b !important; border-color: #334155 !important; }
+        body.dark-mode .news-cover { border-color: #334155 !important; background: #0f172a !important;}
+        body.dark-mode .blog-title { color: #f1f5f9 !important; }
+        body.dark-mode .blog-snippet { color: #cbd5e1 !important; }
+        body.dark-mode .cat-badge { background: rgba(45, 142, 255, 0.15) !important; }
+        body.dark-mode .share-btn { background: #334155 !important; color: #cbd5e1 !important; }
+        body.dark-mode .share-btn:active { background: #475569 !important; }
+        
+        body.dark-mode .sk-shimmer { background: linear-gradient(90deg, #1e293b 25%, #334155 50%, #1e293b 75%) !important; background-size: 200% 100% !important; }
     </style>
 </head>
 <body>
 
-<div id="preloader">
-    <div class="loader-content">
-        <img src="../img/logo-blue.png" alt="Loading..." class="loader-logo">
-        <div class="loading-bar"></div>
-    </div>
-</div>
-
-<script>
-    if (localStorage.getItem('theme') === 'dark') document.body.classList.add('dark-mode');
-</script>
-
-<div class="app-container">
-    
-    <div class="header">
-        <a href="../index.html" class="back-btn"><i class="fas fa-arrow-left"></i></a>
-        <span style="font-weight:bold;">Campus Gist</span>
-        <div class="notification-icon-box" id="theme-toggle" style="margin-left:auto;"><i class="fas fa-moon"></i></div>
-    </div>
-
-    <div class="blog-header-modern">
-        <h2 class="page-title">AFIT Campus News</h2>
-        <p class="header-subtitle">Stay in the loop with the latest updates, exams, gossip, and trending stories.</p>
+    <div class="app-container">
         
-        <div class="search-wrapper">
-            <i class="fas fa-search search-icon"></i>
-            <input type="text" id="blogSearchInput" class="blog-search-input" placeholder="Search for news, updates...">
-        </div>
-    </div>
-
-    <div class="chip-container" id="category-filters">
-        <div class="cat-chip active" onclick="filterCategory('All')">All Updates</div>
-        <div class="cat-chip" onclick="filterCategory('News')">News</div>
-        <div class="cat-chip" onclick="filterCategory('Gossip')">🔥 Gossip</div>
-        <div class="cat-chip" onclick="filterCategory('Academics')">📚 Academics</div>
-        <div class="cat-chip" onclick="filterCategory('Events')">🎉 Events</div>
-    </div>
-
-   <div class="blog-list" id="blog-container" style="padding: 0 15px;">
-        <div class="skeleton-blog-card">
-            <div class="sk-shimmer sk-img-large"></div>
-            <div class="sk-content">
-                <div class="sk-shimmer sk-meta"></div>
-                <div class="sk-shimmer sk-title"></div>
-                <div class="sk-shimmer sk-text"></div>
-                <div class="sk-shimmer sk-text-short"></div>
-                <div class="sk-shimmer sk-action"></div>
+        <div class="header" style="background: transparent; border: none; padding-bottom: 5px;">
+            <div class="header-top-flex">
+                <a href="../index.html" class="back-btn" style="color: var(--text-main); font-size: 20px;"><i class="fas fa-arrow-left"></i></a>
+                <h1 class="page-title">Campus News</h1>
+            </div>
+            <div class="search-container">
+                <i class="fas fa-search" style="color: #94a3b8; margin-right: 10px;"></i>
+                <input type="text" id="blog-search" placeholder="Search gossips, news..." oninput="filterBlogs()">
             </div>
         </div>
-        <div class="skeleton-blog-card">
-            <div class="sk-shimmer sk-img-large"></div>
-            <div class="sk-content">
-                <div class="sk-shimmer sk-meta"></div>
-                <div class="sk-shimmer sk-title"></div>
-                <div class="sk-shimmer sk-text"></div>
-                <div class="sk-shimmer sk-text-short"></div>
-                <div class="sk-shimmer sk-action"></div>
-            </div>
-        </div>
-        <div class="skeleton-blog-card">
-            <div class="sk-shimmer sk-img-large"></div>
-            <div class="sk-content">
-                <div class="sk-shimmer sk-meta"></div>
-                <div class="sk-shimmer sk-title"></div>
-                <div class="sk-shimmer sk-text"></div>
-                <div class="sk-shimmer sk-text-short"></div>
-                <div class="sk-shimmer sk-action"></div>
-            </div>
-        </div>
-    </div>
-    <div id="load-more-container">
-        <button id="load-more-btn" onclick="loadMore()">Load More</button>
-    </div>
 
-    <div id="no-posts-msg" style="text-align: center; margin-top: 60px; color: #999; display:none;">
-        <i class="fas fa-search" style="font-size: 50px; margin-bottom: 15px; opacity: 0.3;"></i>
-        <h3 id="no-posts-text" style="font-size: 16px; color: #555;">No Updates Found</h3>
-    </div>
-    
-    <footer class="site-footer" style="margin-top: 40px; text-align: center; padding: 20px; color: #777; font-size: 12px;">
-        <p style="margin-top:20px; color:#777; font-size: 12px;">
-    &copy; 2026 All rights reserved. Powered by <a href="https://brightsitedev.tech" target="_blank" style="color:#2d8eff; text-decoration:none; font-weight:bold;">Brightsitedev</a>
-</p>
-    </footer>
-
-</div>
-
-<div id="blogModal" class="blog-modal" onclick="closeBlog(event)">
-    <div class="blog-modal-content" onclick="event.stopPropagation()">
-        <div class="close-blog-btn" onclick="closeBlogForce()" style="position:absolute; top:15px; right:15px; background:rgba(0,0,0,0.5); color:white; width:30px; height:30px; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; z-index:10;"><i class="fas fa-times"></i></div>
-        <img id="modalImg" src="" class="modal-hero-img" onerror="this.src='../img/logo-blue.png'">
-        <div class="modal-body">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 10px;">
-                <span id="modalCat" class="cat-badge">News</span>
-                <span id="modalDate" style="font-size:12px; color:#888;"></span>
-            </div>
-            <h3 id="modalTitle" class="modal-title"></h3>
+        <div class="content-area" style="padding: 0 20px 90px;">
             
-            <div id="modalText" class="modal-text"></div>
-            
-           <div style="display: flex; align-items: center; gap: 15px; margin-top: 30px; padding-bottom: 20px; border-bottom: 1px solid #eee;">
-    <span style="font-size: 14px; font-weight: bold; color: #888;">Share this update:</span>
-    <button id="shareBtn" style="background: #25D366; color: white; border: none; width: 45px; height: 45px; border-radius: 50%; font-size: 24px; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 15px rgba(37, 211, 102, 0.4); transition: transform 0.2s;">
-        <i class="fab fa-whatsapp"></i>
-    </button>
-</div>
+            <div class="chip-scroll">
+                <div class="chip active" onclick="setCategory('All', this)">All News</div>
+                <div class="chip" onclick="setCategory('News', this)">News</div>
+                <div class="chip" onclick="setCategory('Academics', this)">Academics</div>
+                <div class="chip" onclick="setCategory('Gossip', this)">Gossip</div>
+                <div class="chip" onclick="setCategory('Events', this)">Events</div>
+            </div>
 
-            <div class="comments-section">
-                <h4 style="margin:0 0 15px 0; color:#555; font-size:16px;">Comments (<span id="commentCount">0</span>)</h4>
-                <div id="commentsList">
+            <div id="blog-list" style="margin-top: 20px;">
+                
+                <div class="news-card" style="cursor: default;">
+                    <div class="sk-shimmer sk-news-cover"></div>
+                    <div class="news-content" style="padding: 0;">
+                        <div style="display:flex; justify-content:space-between; margin-bottom: 8px;">
+                            <div class="sk-shimmer" style="width: 45px; height: 16px;"></div>
+                            <div class="sk-shimmer" style="width: 60px; height: 12px;"></div>
+                        </div>
+                        <div class="sk-shimmer" style="width: 100%; height: 16px; margin-bottom: 6px;"></div>
+                        <div class="sk-shimmer" style="width: 75%; height: 16px; margin-bottom: 12px;"></div>
+                        <div class="sk-shimmer" style="width: 100%; height: 12px; margin-bottom: 15px;"></div>
+                        <div style="display:flex; justify-content:space-between; align-items:center;">
+                            <div class="sk-shimmer" style="width: 110px; height: 14px;"></div>
+                            <div class="sk-shimmer" style="width: 28px; height: 28px; border-radius: 50%;"></div>
+                        </div>
                     </div>
+                </div>
+
+                <div class="news-card" style="cursor: default;">
+                    <div class="sk-shimmer sk-news-cover"></div>
+                    <div class="news-content" style="padding: 0;">
+                        <div style="display:flex; justify-content:space-between; margin-bottom: 8px;">
+                            <div class="sk-shimmer" style="width: 55px; height: 16px;"></div>
+                            <div class="sk-shimmer" style="width: 50px; height: 12px;"></div>
+                        </div>
+                        <div class="sk-shimmer" style="width: 90%; height: 16px; margin-bottom: 6px;"></div>
+                        <div class="sk-shimmer" style="width: 60%; height: 16px; margin-bottom: 12px;"></div>
+                        <div class="sk-shimmer" style="width: 95%; height: 12px; margin-bottom: 15px;"></div>
+                        <div style="display:flex; justify-content:space-between; align-items:center;">
+                            <div class="sk-shimmer" style="width: 90px; height: 14px;"></div>
+                            <div class="sk-shimmer" style="width: 28px; height: 28px; border-radius: 50%;"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="news-card" style="cursor: default;">
+                    <div class="sk-shimmer sk-news-cover"></div>
+                    <div class="news-content" style="padding: 0;">
+                        <div style="display:flex; justify-content:space-between; margin-bottom: 8px;">
+                            <div class="sk-shimmer" style="width: 40px; height: 16px;"></div>
+                            <div class="sk-shimmer" style="width: 65px; height: 12px;"></div>
+                        </div>
+                        <div class="sk-shimmer" style="width: 100%; height: 16px; margin-bottom: 6px;"></div>
+                        <div class="sk-shimmer" style="width: 85%; height: 16px; margin-bottom: 12px;"></div>
+                        <div class="sk-shimmer" style="width: 80%; height: 12px; margin-bottom: 15px;"></div>
+                        <div style="display:flex; justify-content:space-between; align-items:center;">
+                            <div class="sk-shimmer" style="width: 120px; height: 14px;"></div>
+                            <div class="sk-shimmer" style="width: 28px; height: 28px; border-radius: 50%;"></div>
+                        </div>
+                    </div>
+                </div>
+
             </div>
         </div>
 
-        <div class="comment-input-area" id="comment-box">
-            <input type="text" id="commentInput" class="comment-input" placeholder="Add a comment...">
-            <button class="comment-send-btn" onclick="postComment()"><i class="fas fa-paper-plane"></i></button>
+        <div class="bottom-nav">
+            <a href="../index.html" class="nav-item"><i class="fas fa-home"></i><span>Home</span></a>
+            <a href="#" class="nav-item" onclick="requireLogin('../messages/index.html')">
+                <i class="fas fa-comment-dots"></i><span class="red-dot msg-dot"></span><span>Messages</span>
+            </a>
+            <div class="nav-fab" onclick="requireLogin('../add-product/index.html')"><i class="fas fa-plus"></i></div>
+            <a href="#" class="nav-item" onclick="requireLogin('../saved/index.html')"><i class="fas fa-heart"></i><span>Saved</span></a>
+            <a href="#" class="nav-item" onclick="requireLogin('../account/index.html')"><i class="fas fa-user"></i><span>Account</span></a>
         </div>
+
     </div>
-</div>
 
-<script src="../asset/script.js"></script>
+    <script src="../asset/script.js"></script>
 
-<script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import { getAuth, onAuthStateChanged, signInWithPopup, GoogleAuthProvider } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-    import { getFirestore, collection, getDocs, doc, updateDoc, arrayUnion, arrayRemove, query, orderBy, limit, startAfter, increment, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-
-    const firebaseConfig = {
-        apiKey: "AIzaSyA1eQbrJpH9OtDNDN7z9oTFTRSAE7vCFbg",
-        authDomain: "afit-market-auth.firebaseapp.com",
-        projectId: "afit-market-auth",
-        storageBucket: "afit-market-auth.firebasestorage.app",
-        messagingSenderId: "894920886640",
-        appId: "1:894920886640:web:77d0a6b39bf89ff8f767b5"
-    };
-
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-    const db = getFirestore(app);
-    const provider = new GoogleAuthProvider();
-
+    <script>
     let currentUser = null;
-    let allFetchedBlogs = []; 
-    let lastVisibleDoc = null; 
-    let currentActiveCategory = "All"; 
-    let activeBlogId = null; 
-    let editingCommentTime = null; 
-    let hasMoreInDB = false;
+    let allBlogs = [];
+    let activeCategory = 'All';
 
-    onAuthStateChanged(auth, (user) => {
-        currentUser = user;
-        if(allFetchedBlogs.length === 0) {
-            loadInitialBlogs(); 
-        } else {
-            renderBlogs(); 
-        }
+    document.addEventListener("DOMContentLoaded", async () => {
+        const { data: { session } } = await supabaseClient.auth.getSession();
+        if (session) currentUser = session.user;
+        fetchBlogs();
     });
 
-   async function loadInitialBlogs() {
-       const container = document.getElementById('blog-container');
-       const preloader = document.getElementById('preloader'); // 🚀 GET PRELOADER
-       
-       try {
-           const q = query(collection(db, "blogs"), orderBy("timestamp", "desc"), limit(5));
-           const snapshot = await getDocs(q);
-           container.innerHTML = ""; 
-           if(!snapshot.empty) {
-               lastVisibleDoc = snapshot.docs[snapshot.docs.length - 1];
-               hasMoreInDB = snapshot.docs.length === 5;
-               allFetchedBlogs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-               renderBlogs();
-
-               const urlParams = new URLSearchParams(window.location.search);
-               const postId = urlParams.get('post');
-               if (postId) {
-                   const targetBlog = allFetchedBlogs.find(b => b.id === postId);
-                   if (targetBlog) { triggerOpenBlog(targetBlog); } 
-                   else {
-                       const docSnap = await getDoc(doc(db, "blogs", postId));
-                       if (docSnap.exists()) {
-                           const oldBlog = { id: docSnap.id, ...docSnap.data() };
-                           allFetchedBlogs.push(oldBlog); 
-                           triggerOpenBlog(oldBlog); 
-                       }
-                   }
-               }
-           } else {
-               document.getElementById('no-posts-msg').style.display = 'block';
-           }
-       } catch(e) { 
-           console.error(e); 
-           container.innerHTML = "<p style='text-align:center;'>Failed to load network.</p>";
-       } finally {
-           // 🚀 ALWAYS HIDE PRELOADER WHEN DONE
-           if(preloader) preloader.style.display = 'none';
-       }
-   }
-
-    window.loadMore = async function() {
-        if (!lastVisibleDoc) return;
-        const btn = document.getElementById('load-more-btn');
-        btn.innerText = "Loading...";
-        try {
-            const q = query(collection(db, "blogs"), orderBy("timestamp", "desc"), startAfter(lastVisibleDoc), limit(5));
-            const snapshot = await getDocs(q);
-            if(!snapshot.empty) {
-                lastVisibleDoc = snapshot.docs[snapshot.docs.length - 1];
-                hasMoreInDB = snapshot.docs.length === 5;
-                const newBlogs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                allFetchedBlogs = [...allFetchedBlogs, ...newBlogs];
-                renderBlogs();
-            } else {
-                hasMoreInDB = false;
-                document.getElementById('load-more-container').style.display = 'none';
-            }
-        } catch(e) { console.error(e); }
-        btn.innerText = "Load More";
+    async function requireLogin(targetUrl) {
+        if (currentUser) window.location.href = targetUrl;
+        else window.location.href = "../login/index.html";
     }
 
-    window.filterCategory = function(cat) {
-        currentActiveCategory = cat;
-        document.querySelectorAll('.cat-chip').forEach(chip => chip.classList.remove('active'));
-        event.target.classList.add('active');
+    function createSlug(title) {
+        return title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
+    }
+
+    async function fetchBlogs() {
+        try {
+            const { data, error } = await supabaseClient
+                .from('blogs')
+                .select('id, title, snippet, category, image_url, views, likes, created_at, blog_comments(count)')
+                .order('created_at', { ascending: false });
+
+            if (error) throw error;
+            allBlogs = data;
+            renderBlogs();
+
+        } catch (error) {
+            console.error(error);
+            document.getElementById('blog-list').innerHTML = `<p style="color:red; text-align:center;">Failed to load news.</p>`;
+        }
+    }
+
+    function renderBlogs() {
+        const container = document.getElementById('blog-list');
+        const query = document.getElementById('blog-search').value.toLowerCase();
+        
+        container.innerHTML = "";
+
+        const filtered = allBlogs.filter(b => {
+            const matchesSearch = b.title.toLowerCase().includes(query) || (b.snippet && b.snippet.toLowerCase().includes(query));
+            const matchesCat = activeCategory === 'All' || b.category === activeCategory;
+            return matchesSearch && matchesCat;
+        });
+
+        if (filtered.length === 0) {
+            container.innerHTML = `
+                <div style="text-align:center; padding: 40px 20px;">
+                    <i class="fas fa-newspaper" style="font-size:40px; color:#cbd5e1; margin-bottom:15px;"></i>
+                    <h3 style="color:var(--text-main); margin:0 0 5px; font-size: 16px;">No news found</h3>
+                    <p style="color:var(--text-muted); font-size:13px;">Try selecting a different category or adjusting your search.</p>
+                </div>
+            `;
+            return;
+        }
+
+        filtered.forEach(b => {
+            const isLiked = currentUser && b.likes && b.likes.includes(currentUser.id);
+            const likeClass = isLiked ? 'fas fa-heart liked' : 'far fa-heart';
+            const likeCount = b.likes ? b.likes.length : 0;
+            const commentCount = (b.blog_comments && b.blog_comments.length > 0) ? b.blog_comments[0].count : 0;
+            
+            const safeTitle = b.title.replace(/'/g, "\\'").replace(/"/g, '&quot;');
+            const safeSnippet = b.snippet ? b.snippet.replace(/'/g, "\\'").replace(/"/g, '&quot;') : '';
+            const slug = createSlug(b.title);
+            
+            const dateObj = new Date(b.created_at);
+            const shortDate = `${dateObj.toLocaleString('en-US', { month: 'short' })} ${dateObj.getDate()}`;
+
+            // 🚀 XSS FIX: Escape title, snippet, and category
+            container.innerHTML += `
+                <div class="news-card" onclick="window.location.href='../blog-content/index.html?post=${slug}--${b.id}'">
+                    <img src="${b.image_url || 'https://via.placeholder.com/100'}" class="news-cover" onerror="this.src='https://via.placeholder.com/100'">
+                    <div class="news-content">
+                        <div class="blog-meta">
+                            <span class="cat-badge">${escapeHTML(b.category || 'News')}</span>
+                            <span class="blog-date">${shortDate}</span>
+                        </div>
+                        <h3 class="blog-title">${escapeHTML(b.title)}</h3>
+                        <div class="blog-snippet">${escapeHTML(b.snippet || '')}</div>
+                        
+                        <div class="interaction-row">
+                            <div class="stats-group">
+                                <div class="stat-item" onclick="event.stopPropagation(); toggleLike('${b.id}')">
+                                    <i class="${likeClass}"></i> ${likeCount}
+                                </div>
+                                <div class="stat-item"><i class="far fa-comment"></i> ${commentCount}</div>
+                                <div class="stat-item"><i class="far fa-eye"></i> ${b.views || 0}</div>
+                            </div>
+                            <div class="share-btn" onclick="event.stopPropagation(); shareBlog('${b.id}', '${safeTitle}', '${safeSnippet}')"><i class="fas fa-share-alt"></i></div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        });
+    }
+
+    window.setCategory = function(cat, btn) {
+        activeCategory = cat;
+        document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+        btn.classList.add('active');
         renderBlogs();
     }
 
-    document.getElementById('blogSearchInput').addEventListener('input', (e) => {
-        renderBlogs(e.target.value.toLowerCase().trim());
-    });
-
-    function renderBlogs(searchTerm = "") {
-        const container = document.getElementById('blog-container');
-        const noMsg = document.getElementById('no-posts-msg');
-        const loadMoreContainer = document.getElementById('load-more-container');
-        container.innerHTML = "";
-        let visibleCount = 0;
-
-        allFetchedBlogs.forEach(b => {
-            const category = b.category || "News"; 
-            const titleText = b.title.toLowerCase();
-            const matchesCat = currentActiveCategory === "All" || category === currentActiveCategory;
-            const matchesSearch = !searchTerm || titleText.includes(searchTerm);
-
-            if (matchesCat && matchesSearch) {
-                visibleCount++;
-                const date = b.timestamp ? new Date(b.timestamp.seconds * 1000).toLocaleDateString() : "Recent";
-                const isLiked = currentUser && (b.likes || []).includes(currentUser.uid);
-                const heartIcon = isLiked ? 'fas fa-heart' : 'far fa-heart';
-
-                const div = document.createElement('div');
-                div.className = "modern-blog-card";
-                div.innerHTML = `
-                    <img src="${b.image}" class="blog-cover" onclick="openBlogById('${b.id}')">
-                    <div class="blog-content-box" onclick="openBlogById('${b.id}')">
-                        <div class="blog-meta"><span class="cat-badge">${category}</span><span>${date}</span></div>
-                        <h3 class="modern-title">${b.title}</h3>
-                        <div class="modern-snippet">${b.snippet}</div>
-                        <div class="action-row" onclick="event.stopPropagation()">
-                            <div class="stats-group">
-                                <div class="stat-item ${isLiked ? 'active-like' : ''}" onclick="toggleLike('${b.id}')">
-                                    <i class="${heartIcon}"></i> <span id="count-${b.id}">${(b.likes || []).length}</span>
-                                </div>
-                                <div class="stat-item"><i class="far fa-eye"></i> ${b.views || 0}</div>
-                                <div class="stat-item"><i class="far fa-comment-dots"></i> ${(b.comments || []).length}</div>
-                            </div>
-                            <i class="fas fa-share-alt share-icon" onclick="performShare('${b.id}', '${b.title.replace(/'/g, "\\'")}', '${(b.snippet||"").replace(/'/g, "\\'")}')"></i>
-                        </div>
-                    </div>
-                `;
-                container.appendChild(div);
-            }
-        });
-        noMsg.style.display = visibleCount === 0 ? 'block' : 'none';
-        loadMoreContainer.style.display = (visibleCount > 0 && hasMoreInDB) ? 'block' : 'none';
-    }
-
-    window.openBlogById = function(blogId) {
-        const targetBlog = allFetchedBlogs.find(b => b.id === blogId);
-        if (targetBlog) triggerOpenBlog(targetBlog);
-    }
-
-    function triggerOpenBlog(b) {
-        activeBlogId = b.id;
-        document.getElementById('modalImg').src = b.image;
-        document.getElementById('modalCat').innerText = b.category || "News";
-        document.getElementById('modalTitle').innerText = b.title;
-        document.getElementById('modalDate').innerText = b.timestamp ? new Date(b.timestamp.seconds * 1000).toLocaleDateString() : "Recent";
-        
-        const linkifiedContent = b.content.replace(/(https?:\/\/[^\s<]+)/g, '<a href="$1" target="_blank">$1</a>');
-        document.getElementById('modalText').innerHTML = linkifiedContent.replace(/\n/g, '<br>'); 
-        document.getElementById('shareBtn').onclick = function() { performShare(b.id, b.title, b.snippet); };
-
-        const newUrl = `${window.location.pathname}?post=${b.id}`;
-        window.history.pushState({path: newUrl}, '', newUrl);
-        renderComments(b.comments || []);
-        document.getElementById('blogModal').style.display = 'flex';
-        document.body.style.overflow = 'hidden'; 
-
-        const viewedPosts = JSON.parse(localStorage.getItem('viewed_blogs') || "[]");
-        if(!viewedPosts.includes(b.id)) {
-            b.views = (b.views || 0) + 1;
-            renderBlogs(); 
-
-            const blogRef = doc(db, "blogs", b.id);
-            updateDoc(blogRef, { views: increment(1) }).catch(err => {
-                console.warn("View record failed. Check Security Rules.", err);
-                b.views -= 1; 
-                renderBlogs();
-            });
-            
-            viewedPosts.push(b.id);
-            localStorage.setItem('viewed_blogs', JSON.stringify(viewedPosts));
-        }
-    }
-
-    function renderComments(commentsArray) {
-        const list = document.getElementById('commentsList');
-        document.getElementById('commentCount').innerText = commentsArray.length;
-        list.innerHTML = "";
-        if(commentsArray.length === 0) {
-            list.innerHTML = "<p style='font-size:12px; color:#999; text-align:center;'>No comments yet.</p>";
-            return;
-        }
-        commentsArray.forEach(c => {
-            let editBtn = (currentUser && c.uid === currentUser.uid) ? `<i class="fas fa-edit" style="font-size:11px; color:#2d8eff; cursor:pointer; margin-left:8px;" onclick="startEditComment('${c.time}', '${c.text.replace(/'/g, "\\'")}')"></i>` : "";
-            list.innerHTML += `
-                <div class="comment-card">
-                    <img src="${c.userPic || '../img/person.png'}" class="comment-img">
-                    <div class="comment-bubble">
-                        <div class="comment-name">${c.userName} ${editBtn}</div>
-                        <div class="comment-text">${c.text}</div>
-                    </div>
-                </div>`;
-        });
-    }
-
-    window.startEditComment = function(timeId, text) {
-        editingCommentTime = timeId;
-        const input = document.getElementById('commentInput');
-        input.value = text;
-        input.focus();
-    }
-
-    window.postComment = async function() {
-        if (!currentUser) {
-            if(confirm("Sign in to comment?")) signInWithPopup(auth, provider);
-            return;
-        }
-        const input = document.getElementById('commentInput');
-        const text = input.value.trim();
-        if(!text || !activeBlogId) return;
-        input.value = ""; 
-        const blog = allFetchedBlogs.find(b => b.id === activeBlogId);
-        try {
-            if (editingCommentTime) {
-                const idx = blog.comments.findIndex(c => String(c.time) === String(editingCommentTime));
-                if(idx > -1) {
-                    blog.comments[idx].text = text; 
-                    await updateDoc(doc(db, "blogs", activeBlogId), { comments: blog.comments });
-                }
-                editingCommentTime = null; 
-            } else {
-                const newComment = { uid: currentUser.uid, userName: currentUser.displayName, userPic: currentUser.photoURL, text: text, time: Date.now() };
-                if(!blog.comments) blog.comments = [];
-                blog.comments.push(newComment);
-                await updateDoc(doc(db, "blogs", activeBlogId), { comments: arrayUnion(newComment) });
-            }
-            renderComments(blog.comments);
-            renderBlogs(); 
-        } catch(e) { alert("Comment failed"); }
-    }
+    window.filterBlogs = function() { renderBlogs(); }
 
     window.toggleLike = async function(blogId) {
         if (!currentUser) {
-            if(confirm("Sign in to like?")) signInWithPopup(auth, provider);
+            alert("Please log in to like posts.");
+            window.location.href = "../login/index.html";
             return;
         }
-        const blog = allFetchedBlogs.find(b => b.id === blogId);
-        const isLiked = (blog.likes || []).includes(currentUser.uid);
-        blog.likes = isLiked ? blog.likes.filter(id => id !== currentUser.uid) : [...(blog.likes || []), currentUser.uid];
-        renderBlogs();
-        try {
-            const ref = doc(db, "blogs", blogId);
-            await updateDoc(ref, { likes: isLiked ? arrayRemove(currentUser.uid) : arrayUnion(currentUser.uid) });
-        } catch(e) { console.error(e); }
+
+        const b = allBlogs.find(x => x.id === blogId);
+        let currentLikes = b.likes || [];
+        
+        if (currentLikes.includes(currentUser.id)) currentLikes = currentLikes.filter(id => id !== currentUser.id);
+        else currentLikes.push(currentUser.id);
+
+        b.likes = currentLikes; renderBlogs();
+        try { await supabaseClient.from('blogs').update({ likes: currentLikes }).eq('id', blogId); } 
+        catch (error) { console.error("Like failed to sync."); }
     }
 
-    window.performShare = function(blogId, title, snippet) {
-        const url = `${window.location.origin}${window.location.pathname}?post=${blogId}`;
-        const shareText = `*${title}*\n${snippet}\n\nRead more on AFIT Digital Market:`;
-        if (navigator.share) { navigator.share({ title: "AFIT News", text: shareText, url: url }); } 
-        else { navigator.clipboard.writeText(`${shareText}\n${url}`).then(() => alert("Link copied!")); }
-    }
+    window.shareBlog = function(blogId, title, snippet) {
+        const slug = createSlug(title);
+        const url = `${window.location.origin}/blog-content/index.html?post=${slug}--${blogId}`;
+        
+        const shareText = `*${title}*\n\n${snippet}\n\nRead the full article on AFIT Digital Market:\n${url}`;
 
-    window.closeBlogForce = function() {
-        document.getElementById('blogModal').style.display = 'none';
-        document.body.style.overflow = 'auto'; 
-        window.history.pushState({}, '', window.location.pathname);
+        if (navigator.share) {
+            navigator.share({
+                title: "AFIT Campus News",
+                text: `*${title}*\n${snippet}\n\nRead the full article on AFIT Digital Market:`,
+                url: url
+            }).catch(err => console.log('Share cancelled', err));
+        } else {
+            const waUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(shareText)}`;
+            window.open(waUrl, '_blank');
+        }
     }
-    
-    window.closeBlog = (e) => { if (e.target.id === 'blogModal') closeBlogForce(); }
 </script>
 </body>
 </html>

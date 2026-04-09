@@ -1,1191 +1,303 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 
-  <title>AFIT Digital Market (ADM) | Campus Buy & Sell Platform</title>
-  <meta name="description" content="AFIT Digital Market (ADM) is a student-focused digital marketplace for AFIT. Discover campus vendors, browse products and services, and connect directly with sellers fast and safely.">
-  <meta name="keywords" content="AFIT Digital Market, AFIT marketplace, campus marketplace Nigeria, student vendors AFIT, buy and sell on campus, AFIT services, AFIT online market">
-  <meta name="author" content="Brightsitedev Team">
-  <link rel="canonical" href="https://afitdgm.store/">
+    <title>AFIT Digital Market (ADM) | #1 Campus Marketplace</title>
+    <meta name="description" content="Join AFIT Digital Market (ADM) to buy, sell, and discover services on campus. The ultimate student marketplace connecting AFIT vendors and buyers securely.">
+    <meta name="keywords" content="AFIT Digital Market, AFIT marketplace, campus marketplace Nigeria, student vendors AFIT, buy and sell on campus, ADM AFIT, AFIT services, student market Kaduna">
+    <meta name="author" content="BrightSiteDev">
+    
+    <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1">
+    <link rel="canonical" href="https://afitdgm.store/">
 
-  <meta property="og:type" content="website">
-  <meta property="og:title" content="AFIT Digital Market (ADM) | Discover. Connect. Trade.">
-  <meta property="og:description" content="A campus digital marketplace built for AFIT students and vendors. Discover businesses, compare prices, and connect instantly.">
-  <meta property="og:url" content="https://afitdgm.store/">
-  <meta property="og:image" content="https://afitdgm.store/img/app-logo.png">
-  <meta property="og:site_name" content="AFIT Digital Market">
+    <meta name="geo.region" content="NG-KD"> <meta name="geo.placename" content="Kaduna">
+    <meta name="geo.position" content="10.5105;7.4165"> <meta name="ICBM" content="10.5105, 7.4165">
 
-  <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="AFIT Digital Market (ADM)">
-  <meta name="twitter:description" content="Your campus digital marketplace — discover and connect with AFIT vendors easily.">
-  <meta name="twitter:image" content="https://afitdgm.store/img/app-logo.png">
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="AFIT Digital Market">
+    <meta property="og:locale" content="en_NG">
+    <meta property="og:url" content="https://afitdgm.store/">
+    <meta property="og:title" content="AFIT Digital Market (ADM) | Discover. Connect. Trade.">
+    <meta property="og:description" content="Your campus digital marketplace built for AFIT students. Discover businesses, compare prices, and connect instantly.">
+    <meta property="og:image" content="https://afitdgm.store/asset/img/app-logo.png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
 
-  <link rel="manifest" href="manifest.json">
-  <meta name="theme-color" content="#2d8eff">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <meta name="apple-mobile-web-app-title" content="AFIT DGM">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:site" content="@brightsitedev"> <meta name="twitter:title" content="AFIT Digital Market (ADM)">
+    <meta name="twitter:description" content="Buy, sell, and discover services securely on the AFIT campus.">
+    <meta name="twitter:image" content="https://afitdgm.store/asset/img/app-logo.png">
 
-  <link rel="icon" href="img/app-logo.png" type="image/png" sizes="192x192">
-  <link rel="apple-touch-icon" href="img/app-logo.png">
-  <link rel="icon" href="favicon.ico" type="image/x-icon">
-  
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <link rel="stylesheet" href="asset/style.css">
-
-  <script async src="https://www.googletagmanager.com/gtag/js?id=G-70VSGR5WBW"></script>
-  <script>
-    window.dataLayer = window.dataLayer || [];
-    function gtag(){dataLayer.push(arguments);}
-    gtag('js', new Date());
-    gtag('config', 'G-70VSGR5WBW');
-  </script>
-  <script src="https://cdn.jsdelivr.net/npm/algoliasearch@4/dist/algoliasearch-lite.umd.js"></script>
-
-  <style>
-      /* --- REVIEW CARD TEXT WRAPPING FIX --- */
-      .review-card {
-          min-width: 250px;
-          max-width: 280px; 
-          white-space: normal !important; 
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebSite",
+      "name": "AFIT Digital Market",
+      "alternateName": "ADM",
+      "url": "https://afitdgm.store/",
+      "description": "A student-focused digital marketplace for AFIT.",
+      "potentialAction": {
+        "@type": "SearchAction",
+        "target": "https://afitdgm.store/search/index.html?q={search_term_string}",
+        "query-input": "required name=search_term_string"
       }
-      
-      .review-text {
-          white-space: normal !important; 
-          word-wrap: break-word; 
-          overflow-wrap: break-word;
-          line-height: 1.5;
-          margin-top: 10px;
-          display: -webkit-box;
-          -webkit-line-clamp: 3; 
-          -webkit-box-orient: vertical;
-          overflow: hidden;
-          text-overflow: ellipsis;
-      }
-      
-      /* Dark Mode Fixes for Reviews */
-      body.dark-mode .review-card { background: #1e1e1e; border: 1px solid #333; }
-      body.dark-mode .review-name { color: #eee; }
-      body.dark-mode .review-text { color: #bbb; }
+    }
+    </script>
 
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#2d8eff">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="AFIT DGM">
 
-      .ad-title {
-          white-space: normal !important;
-          line-height: 1.3;
-          height: auto !important;
-          display: -webkit-box;
-          -webkit-line-clamp: 2;
-          -webkit-box-orient: vertical;
-          overflow: hidden;
-          margin-bottom: 5px;
-      }
-      .ad-desc-preview {
-          font-size: 11px; color: #888;
-          white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-          margin-bottom: 8px;
-      }
+    <link rel="icon" href="asset/img/app-logo.png" type="image/png" sizes="192x192">
+    <link rel="apple-touch-icon" href="asset/img/app-logo.png">
+    <link rel="icon" href="favicon.ico" type="image/x-icon">
 
-      /* New Modal Animation */
-      @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
-      .modal-sheet {
-          background: white; width: 100%; max-width: 500px;
-          border-radius: 20px 20px 0 0; padding: 25px;
-          animation: slideUp 0.3s ease-out;
-          position: relative;
-          max-height: 85vh; 
-          overflow-y: auto;
-      }
-
-      /* Similar Items Grid */
-      .similar-grid {
-          display: grid;
-          grid-template-columns: repeat(3, 1fr);
-          gap: 10px;
-          margin-top: 10px;
-      }
-      .sim-card { cursor: pointer; }
-      .sim-img { width: 100%; height: 80px; object-fit: cover; border-radius: 8px; background: #eee; }
-      .sim-price { font-size: 10px; font-weight: bold; margin-top: 3px; color: #333; }
-
-      /* Description Box Style */
-      .desc-box {
-          max-height: 200px; 
-          overflow-y: auto; 
-          margin-bottom: 20px; 
-          background: #f9f9f9; 
-          padding: 10px; 
-          border-radius: 10px;
-      }
-
-      /* See All Button Style */
-      .see-all-container {
-        text-align: center;
-        margin-top: 15px;
-        margin-bottom: 10px;
-      }
-
-      .see-all-btn-large {
-        display: inline-block;
-        background: white;
-        color: #2d8eff;
-        border: 1px solid #2d8eff;
-        padding: 12px 30px;
-        border-radius: 30px;
-        font-weight: bold;
-        text-decoration: none;
-        font-size: 13px;
-        box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-        transition: all 0.2s;
-      }
-
-      .see-all-btn-large:active {
-        background: #2d8eff;
-        color: white;
-      }
-
-      /* 🚀 NEW: HOME BLOG PREVIEW CARDS 🚀 */
-      .home-blog-card {
-          display: flex; gap: 15px; background: white; padding: 12px; border-radius: 15px;
-          box-shadow: 0 4px 10px rgba(0,0,0,0.03); text-decoration: none; color: inherit;
-          border: 1px solid #eee; transition: transform 0.2s; align-items: center; margin-bottom: 12px;
-      }
-      .home-blog-card:active { transform: scale(0.98); }
-      .home-blog-img { width: 80px; height: 80px; border-radius: 10px; object-fit: cover; background: #f0f0f0; }
-      .home-blog-info { flex: 1; overflow: hidden; }
-      .home-blog-cat { font-size: 10px; color: #2d8eff; font-weight: 800; margin-bottom: 5px; text-transform: uppercase;}
-      .home-blog-title { font-size: 14px; font-weight: 800; margin: 0 0 5px; color:#333; line-height:1.3; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-      .home-blog-snippet { font-size: 11px; color: #777; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-
-      /* Dark Mode Fixes */
-      body.dark-mode .modal-sheet { background: #1e1e1e !important; color: white; }
-      body.dark-mode .ad-desc-preview { color: #aaa; }
-      body.dark-mode .sim-price { color: #ccc; }
-      body.dark-mode .desc-box { background: #333 !important; color: #ddd; }
-      body.dark-mode #m-desc { color: #ddd !important; }
-      body.dark-mode .see-all-btn-large { background: #2a2a2a; border-color: #2d8eff; color: #2d8eff; }
-      
-      /* Dark mode for new blogs */
-      body.dark-mode .home-blog-card { background: #1e1e1e; border-color: #333; box-shadow: none; }
-      body.dark-mode .home-blog-title { color: #eee; }
-      body.dark-mode .home-blog-snippet { color: #aaa; }
-
-      #magic-install-overlay {
-            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.85); backdrop-filter: blur(10px); z-index: 9999;
-            justify-content: center; align-items: center; padding: 20px;
-        }
-        .magic-card {
-            background: white; width: 100%; max-width: 350px; border-radius: 24px;
-            padding: 40px 20px; text-align: center; box-shadow: 0 20px 50px rgba(0,0,0,0.5);
-            animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        }
-        .magic-card img { width: 80px; margin-bottom: 15px; filter: drop-shadow(0 4px 10px rgba(45,142,255,0.3)); }
-        .magic-card h2 { margin: 0 0 10px; font-size: 22px; color: #1e293b; }
-        .magic-card p { font-size: 14px; color: #64748b; margin-bottom: 25px; line-height: 1.5; }
-        .btn-magic-install {
-            background: #2d8eff; color: white; border: none; padding: 15px; width: 100%;
-            border-radius: 30px; font-weight: bold; font-size: 16px; cursor: pointer;
-            box-shadow: 0 4px 15px rgba(45,142,255,0.3); transition: transform 0.2s;
-        }
-        .btn-magic-install:active { transform: scale(0.95); }
-        .btn-magic-skip { background: none; border: none; color: #94a3b8; font-size: 13px; margin-top: 15px; cursor: pointer; text-decoration: underline; }
-        body.dark-mode .magic-card { background: #1e293b; }
-        body.dark-mode .magic-card h2 { color: white; }
-
-        /* Dark Mode for Login Modal */
-      body.dark-mode .login-box { background: #1e1e1e !important; box-shadow: 0 10px 30px rgba(0,0,0,0.5) !important; }
-      body.dark-mode .login-box h3 { color: #ffffff !important; }
-      body.dark-mode .login-box p { color: #bbbbbb !important; }
-      body.dark-mode #popup-google-btn { background: #2a2a2a !important; color: #ffffff !important; border-color: #444 !important; }
-      /* 🚀 NEW CHAT ACTION BUTTONS */
-      .action-row { display: flex; gap: 5px; align-items: center; }
-      .quick-chat-btn { background: #eef7ff; color: #2d8eff; border: none; border-radius: 8px; width: 40px; height: 35px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.2s; font-size: 14px; }
-      .quick-chat-btn:active { transform: scale(0.95); background: #dceefc; }
-      .btn-whatsapp { background: #25D366; color: white; width: 100%; text-align: center; display: block; padding: 14px; border-radius: 10px; text-decoration: none; font-weight: bold; margin-bottom: 10px; box-shadow: 0 4px 10px rgba(37, 211, 102, 0.2); }
-      .btn-inapp { background: #2d8eff; color: white; width: 100%; text-align: center; display: block; padding: 14px; border: none; cursor: pointer; border-radius: 10px; font-weight: bold; font-size: 14px; box-shadow: 0 4px 10px rgba(45, 142, 255, 0.2); font-family: inherit; }
-
-      /* Dark Mode Fixes */
-      body.dark-mode .quick-chat-btn { background: #2a2a2a; }
-      /* --- 🚀 IMAGE CAROUSEL & FULLSCREEN STYLES --- */
-      .modal-image-container {
-          width: 100%; height: 250px; border-radius: 15px;
-          overflow: hidden; position: relative; margin-bottom: 15px;
-          background: #f5f5f5; box-shadow: inset 0 2px 10px rgba(0,0,0,0.05);
-      }
-      .carousel-scroll {
-          display: flex; overflow-x: auto; scroll-snap-type: x mandatory;
-          height: 100%; -webkit-overflow-scrolling: touch; scrollbar-width: none;
-      }
-      .carousel-scroll::-webkit-scrollbar { display: none; }
-      .carousel-img {
-          flex: 0 0 100%; width: 100%; height: 100%;
-          object-fit: cover; scroll-snap-align: center;
-      }
-      .carousel-dots {
-          position: absolute; bottom: 10px; left: 0; width: 100%;
-          display: flex; justify-content: center; gap: 6px; z-index: 10;
-      }
-      .dot { width: 8px; height: 8px; background: rgba(255, 255, 255, 0.5); border-radius: 50%; transition: background 0.3s; }
-      .dot.active { background: white; box-shadow: 0 1px 3px rgba(0,0,0,0.3); }
-      .swipe-hint {
-          position: absolute; top: 10px; right: 10px; background: rgba(0,0,0,0.6);
-          color: white; font-size: 10px; padding: 4px 10px; border-radius: 12px;
-          z-index: 10; backdrop-filter: blur(4px); font-weight: bold;
-      }
-      
-      .fs-gallery-modal {
-          display: none; position: fixed; top: 0; left: 0;
-          width: 100%; height: 100%; background: rgba(0,0,0,0.95);
-          z-index: 5000; flex-direction: column; backdrop-filter: blur(10px);
-      }
-      .fs-header { padding: 20px; display: flex; justify-content: flex-end; }
-      .fs-close-btn {
-          background: rgba(255,255,255,0.2); border: none; color: white;
-          width: 40px; height: 40px; border-radius: 50%; font-size: 24px; cursor: pointer;
-          display: flex; align-items: center; justify-content: center; transition: 0.2s;
-      }
-      .fs-close-btn:active { transform: scale(0.9); background: rgba(255,255,255,0.4); }
-      .fs-carousel {
-          flex: 1; display: flex; overflow-x: auto; scroll-snap-type: x mandatory;
-          -webkit-overflow-scrolling: touch; scrollbar-width: none; align-items: center;
-      }
-      .fs-carousel::-webkit-scrollbar { display: none; }
-      .fs-img { flex: 0 0 100%; width: 100%; max-height: 85vh; object-fit: contain; scroll-snap-align: center; }
-      .fs-counter { text-align: center; color: white; padding: 20px; font-size: 15px; font-weight: bold; letter-spacing: 2px; }
-
-      .modal-close-btn {
-          position: absolute; top: 15px; right: 15px;
-          background: rgba(0,0,0,0.05); border: none;
-          width: 35px; height: 35px; border-radius: 50%; font-size: 22px; color: #555; cursor: pointer;
-          display: flex; align-items: center; justify-content: center; z-index: 50; transition: 0.2s;
-      }
-
-      body.dark-mode .modal-image-container { background: #222; }
-      body.dark-mode .modal-close-btn { background: rgba(255,255,255,0.1); color: #ccc; }
-  </style>
-  
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="asset/style.css">
 </head>
-
 <body>
 
-  <div class="app-container"> 
-    <div class="header">
-        <div class="header-top">
-          <a href="/"> <img src="img/logo-white.png" alt="AFIT Market" class="site-logo"> </a>
-         <div style="display: flex; gap: 15px; align-items: center;">
-    
-    <div class="notification-icon-box" id="theme-toggle" style="cursor: pointer; color: white; font-size: 18px;">
-        <i class="fas fa-moon"></i>
-    </div>
-    
-    <div class="notification-icon-box" id="notif-btn" style="cursor: pointer; color: white; font-size: 18px;">
-        <i class="fas fa-bell"></i>
-    </div>
-    
-    <a href="inbox/" class="notification-icon-box" style="text-decoration: none; color: white; font-size: 18px;">
-        <i class="fas fa-comment-dots"></i>
-    </a>
-    
-    <a href="saved.html" class="notification-icon-box" style="text-decoration: none; color: white; font-size: 18px;">
-        <i class="fas fa-heart"></i>
-    </a>
-    
-    <a href="account.html" class="notification-icon-box" id="header-profile-btn" style="text-decoration: none; color: white; font-size: 18px; display: flex; align-items: center;">
-        <i class="fas fa-user-circle" style="font-size: 22px;"></i>
-    </a>
-    
-</div>
-        </div>
-        <div class="search-box">
-          <select id="search-type">
-            <option value="product">Product</option>
-            <option value="vendor">Vendor</option>
-          </select>
-          <input type="text" id="main-search" placeholder="Search..." />
-          <i class="fas fa-search" style="padding:10px; color:#777;"></i>
-        </div>
-    </div>
-
-    <div id="global-announcement">
-        <marquee scrollamount="5" id="announce-text">Welcome to AFIT Market!</marquee>
-    </div>
-
-    <section class="stories-container" id="stories-section" style="display:none;">
-        <div style="font-size:12px; font-weight:bold; margin-bottom:8px; color:#555; padding-left:5px;">⚡ Flash Sales</div>
-        <div class="stories-scroll" id="stories-list"></div>
-    </section> 
-
-    <section class="info-cards">
-      <a href="requests/"><div class="info-card"><i class="fas fa-bullhorn"></i> Requests</div></a>
-      <a href="ambassadors/"><div class="info-card"><i class="fas fa-briefcase"></i> Ambassadors</div> </a>
-      <a href="safety/"><div class="info-card"><i class="fas fa-shield-alt"></i> Safety</div></a>
-      <a href="blogs/"><div class="info-card"><i class="fas fa-newspaper"></i> Blog</div></a>
-      <a href="vendor-reg/"><div class="info-card"><i class="fas fa-store-alt"></i> Vendor Reg</div></a>
-       <a href="vendor-info/"><div class="info-card"><i class="fas fa-id-card"></i> Vendor INFO</div></a>
-    </section>
-
-    <section class="categories">
-      <a href="category.html?cat=Phones" class="cat" style="text-decoration:none;"><div class="cat-icon"><i class="fas fa-mobile-alt"></i></div> Phones</a>
-      <a href="category.html?cat=Laptops" class="cat" style="text-decoration:none;"><div class="cat-icon"><i class="fas fa-laptop"></i></div> Laptops</a>
-      <a href="category.html?cat=Fashion" class="cat" style="text-decoration:none;"><div class="cat-icon"><i class="fas fa-tshirt"></i></div> Fashion</a>
-      <a href="category.html?cat=Fashion Accessories" class="cat" style="text-decoration:none;"><div class="cat-icon"><i class="fas fa-glasses"></i></div> Accessories</a>
-      <a href="category.html?cat=Phone Accessories" class="cat" style="text-decoration:none;"><div class="cat-icon"><i class="fas fa-headphones"></i></div> Phone Accessories</a>
-      <a href="category.html?cat=Gadgets" class="cat" style="text-decoration:none;"><div class="cat-icon"><i class="fas fa-gamepad"></i></div> Gadgets</a>
-      <a href="category.html?cat=Food" class="cat" style="text-decoration:none;"><div class="cat-icon"><i class="fas fa-utensils"></i></div> Food</a>
-      <a href="category.html?cat=Footwear" class="cat" style="text-decoration:none;"><div class="cat-icon"><i class="fas fa-shoe-prints"></i></div> Footwear</a>
-      <a href="category.html?cat=Services" class="cat" style="text-decoration:none;"><div class="cat-icon"><i class="fas fa-briefcase"></i></div>Services</a>
-      <a href="category.html?cat=Fragrance" class="cat" style="text-decoration:none;"><div class="cat-icon"><i class="fas fa-air-freshener"></i></div>Fragrance</a>
-      <a href="category.html?cat=Hair Service" class="cat" style="text-decoration:none;"><div class="cat-icon"><i class="fas fa-cut"></i></div>Hair Service</a>
-    <a href="category.html?cat=Pastries" class="cat" style="text-decoration:none;"><div class="cat-icon"><i class="fas fa-bread-slice"></i></div>Pastries</a>
-    </section>
-
-    <section class="reviews-container">
-        <div class="section-header" style="padding: 0 14px;">
-            <div class="trending-title">Student Reviews</div>
-            <a href="reviews/" style="font-size:12px; color:var(--primary-blue); font-weight:600; text-decoration:none;">See all</a>
-        </div>
-        <div class="reviews-slider" id="reviews-slider">
-            <div class="skeleton-card" style="min-width: 250px;"><div style="display:flex; gap:10px; margin-bottom:10px;"><div class="skeleton sk-img" style="width:40px; height:40px;"></div><div style="flex:1;"><div class="skeleton sk-text-short" style="width:60%; margin-bottom:5px;"></div><div class="skeleton sk-text-short" style="width:30%;"></div></div></div><div class="skeleton sk-text-long"></div><div class="skeleton sk-text-long" style="width:70%;"></div></div>
-        </div>
-    </section>
-
-    <section class="trending-section" id="items-section-container">
-      <div class="section-header">
-        <div class="trending-title">Available Items</div>
-        <a href="items/" style="font-size:12px; color:var(--primary-blue); font-weight:600; text-decoration:none;">See all</a>
-      </div>
-      <div class="trending-grid" id="home-items-grid">
-        <div class="skeleton-card"><div class="skeleton sk-img-rect"></div><div class="skeleton sk-text-short"></div><div class="skeleton sk-text-long"></div><div class="skeleton sk-btn"></div></div>
-        <div class="skeleton-card"><div class="skeleton sk-img-rect"></div><div class="skeleton sk-text-short"></div><div class="skeleton sk-text-long"></div><div class="skeleton sk-btn"></div></div>
-      </div>
-      <div class="see-all-container">
-          <a href="items/" class="see-all-btn-large">Go to see all items page</a>
-      </div>
-    </section>
-
-    <section id="recent-section" style="display:none; margin-top: 20px;">
-        <div class="section-header"><div class="trending-title" style="font-size: 14px; color: #555;">Recently Viewed</div></div>
-        <div class="trending-grid" id="recent-grid" style="display:flex; overflow-x:auto; gap:10px; padding-bottom:10px;"></div>
-    </section> 
-
-    <section class="trust-banner" style="display: flex; justify-content: space-around; background: #f9f9f9; padding: 15px; margin: 20px 0; border-radius: 8px;">
-        <div style="text-align: center;"><i class="fas fa-user-check" style="color: #2d8eff; font-size: 20px;"></i><div style="font-size: 10px; margin-top: 5px; font-weight: bold;">Verified</div></div>
-        <div style="text-align: center;"><i class="fas fa-handshake" style="color: #2d8eff; font-size: 20px;"></i><div style="font-size: 10px; margin-top: 5px; font-weight: bold;">Meetups</div></div>
-        <div style="text-align: center;"><i class="fas fa-headset" style="color: #2d8eff; font-size: 20px;"></i><div style="font-size: 10px; margin-top: 5px; font-weight: bold;">Support</div></div>
-    </section>
-
-    <section class="pricing-promo-section" style="padding: 10px 14px 20px;">
-        <div style="border-radius: 12px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.1); margin-bottom: 20px;">
-            <img src="https://i.ibb.co/TDM32c75/picture.jpg" alt="Banner" style="width: 100%; display: block;">
-        </div>
-        <div style="text-align: center;">
-            <a href="waitlist/" style="background: #2d8eff; color: white; padding: 12px 35px; border-radius: 30px; text-decoration: none; font-weight: bold; font-size: 14px; box-shadow: 0 4px 10px rgba(45, 142, 255, 0.3); display: inline-block;">Join Waitlist</a>
-        </div>
-    </section>
-
-    <section class="vendor-section-wrapper" id="vendor-section-container" style="padding: 0 14px 20px;">
-        <div class="section-header">
-            <div class="trending-title">Verified Vendors</div>
-            <a href="vendors/" style="font-size:12px; color:var(--primary-blue); font-weight:600; text-decoration:none;">See all</a>
-        </div>
-       <div class="trending-grid" id="vendor-grid">
-           <div class="skeleton-card"><div class="skeleton sk-img"></div><div class="skeleton sk-text-short"></div></div>
-           <div class="skeleton-card"><div class="skeleton sk-img"></div><div class="skeleton sk-text-short"></div></div>
-       </div>
-       <div class="see-all-container">
-        <a href="vendors/" class="see-all-btn-large">Go to see all vendors</a>
-    </div>
-    </section>
-
-   <section class="blog-preview-section" style="padding: 0 14px 20px;">
-        <div class="section-header">
-            <div class="trending-title">Campus Gist & News</div>
-            <a href="blogs/" style="font-size:12px; color:var(--primary-blue); font-weight:600; text-decoration:none;">See all</a>
-        </div>
-        <div id="home-blog-grid">
-            <div class="home-blog-card" style="border:none; box-shadow:none; padding:0; margin-bottom:15px;">
-                <div class="skeleton" style="width:80px; height:80px; border-radius:10px; flex-shrink:0;"></div>
-                <div class="home-blog-info" style="display:flex; flex-direction:column; gap:8px;">
-                    <div class="skeleton" style="width:40px; height:12px; border-radius:4px;"></div>
-                    <div class="skeleton" style="width:100%; height:16px; border-radius:4px;"></div>
-                    <div class="skeleton" style="width:70%; height:12px; border-radius:4px;"></div>
-                </div>
+    <div class="app-container">
+        
+        <div class="header">
+            <div class="header-top">
+               <a href="./" class="logo-link">
+                    <img src="asset/img/logo.png" alt="AFIT Digital Market Logo" class="header-logo" onerror="this.src='https://via.placeholder.com/150x45?text=AFIT+DGM'">
+                </a>
+                <a href="notification/" class="notify-icon-container" style="position: relative; text-decoration: none; color: var(--brand-color); display: inline-block; font-size: 22px;">
+    <i class="fas fa-bell"></i>
+    <span class="notify-dot" style="display: none; position: absolute; top: -2px; right: -2px; width: 10px; height: 10px; background-color: #ef4444; border-radius: 50%; border: 2px solid white;"></span>
+</a>
             </div>
-            <div class="home-blog-card" style="border:none; box-shadow:none; padding:0;">
-                <div class="skeleton" style="width:80px; height:80px; border-radius:10px; flex-shrink:0;"></div>
-                <div class="home-blog-info" style="display:flex; flex-direction:column; gap:8px;">
-                    <div class="skeleton" style="width:40px; height:12px; border-radius:4px;"></div>
-                    <div class="skeleton" style="width:100%; height:16px; border-radius:4px;"></div>
-                    <div class="skeleton" style="width:70%; height:12px; border-radius:4px;"></div>
-                </div>
+            <div class="search-box">
+                <i class="fas fa-search search-icon" id="search-btn-icon"></i>
+                <input type="text" id="main-search" placeholder="Search for items, vendors, services on campus...">
             </div>
         </div>
-    </section>
 
-    <footer class="site-footer">
-        <div class="footer-newsletter" style="margin-bottom: 20px; padding-bottom: 20px; border-bottom: 1px solid #444; text-align: center;">
-            <h4 style="color: white; margin-bottom: 8px; font-size: 14px;">Join our Community</h4>
-            <p style="font-size: 11px; color: #aaa; margin-bottom: 12px;">Get updates on new vendors and flash sales.</p>
-           <script>var newsletterSubmitted = false;</script>
-            <iframe name="hidden_iframe" id="hidden_iframe" style="display:none;" onload="if(newsletterSubmitted) { const btn = document.getElementById('newsletter-btn'); btn.innerText = 'Joined!'; btn.style.background = '#00b894'; document.getElementById('newsletter-input').value = ''; }"></iframe>
-
-            <form action="https://911871cf.sibforms.com/serve/MUIFAO0kK5NqC3Lt3qqm0AjZncTyrISNYXCW5Y7TPT00xuLzqbsf6hPpIlB6ZVb3c_AlFH8nlB4gVn62183nfwCuPOYOztEFx8W6oAKhKsevaTMJFj3EiB503WbRLCEODeQxIL07pN8nqk_xhiisZykJXsB_mYI0pKyQuPHDGN31Q-OtumrjgswUkS_m1jl_7VTWiZTFesOicU6s-A==" method="POST" target="hidden_iframe" onsubmit="newsletterSubmitted = true; document.getElementById('newsletter-btn').innerText='Wait...';" style="display: flex; justify-content: center; gap: 8px; max-width: 300px; margin: 0 auto;">
-                
-                <input type="email" id="newsletter-input" name="EMAIL" placeholder="Enter email" required style="width: 70%; padding: 8px 12px; border-radius: 20px; border: none; outline: none; font-size: 12px;">
-                
-                <input type="text" name="email_address_check" value="" style="display:none;">
-                <input type="hidden" name="locale" value="en">
-                
-                <button type="submit" id="newsletter-btn" style="width: 30%; background: var(--primary-blue); color: white; border: none; padding: 8px; border-radius: 20px; font-size: 11px; font-weight: bold; cursor: pointer; transition: background 0.3s;">Join</button>
-            </form>
-            <button id="manual-install-btn" style="display: none; background: #2d8eff; color: white; border: none; padding: 10px 25px; border-radius: 25px; font-weight: bold; font-size: 13px; margin-top: 20px; cursor: pointer;">
-              <i class="fas fa-cloud-download-alt"></i> Install ADM App
-            </button>
-        </div>
-        <div class="footer-links">
-            <a href="about-us/">About Us</a> | <a href="faq/">FAQ</a> | <a href="t&c/">T & C</a> | <a href="contact-us/">Contact</a>
-        </div>
-        <p style="margin-top:20px; color:#777; font-size: 12px;">
-    &copy; 2026 All rights reserved. Powered by 
-    <a href="https://brightsitedev.tech" target="_blank" style="color:#2d8eff; text-decoration:none; font-weight:bold;">Brightsitedev</a>
-</p>
-    </footer>
-
-    <div id="magic-install-overlay">
-        <div class="magic-card">
-            <img src="img/logo-blue.png" alt="AFIT Market">
-            <h2>Get the Full Experience!</h2>
-            <p>Install the AFIT Market app on your phone for faster browsing, easy access, and instant updates.</p>
-            <button id="btn-magic-install" class="btn-magic-install">Install App Now</button>
-            <button class="btn-magic-skip" onclick="document.getElementById('magic-install-overlay').style.display='none'">Continue to website</button>
-        </div>
-    </div>
-
-    <div id="ios-install-overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); backdrop-filter: blur(10px); z-index: 9999; justify-content: center; align-items: center; padding: 20px; text-align: center;">
-        <div class="magic-card" style="position: relative;">
-            <span onclick="document.getElementById('ios-install-overlay').style.display='none'" style="position: absolute; top: 15px; right: 20px; font-size: 24px; color: #999; cursor: pointer;">&times;</span>
-            <img src="img/logo-blue.png" alt="AFIT Market" style="width: 70px; margin-bottom: 10px;">
-            <h2>Install AFIT Digital Market</h2>
-            <p style="font-size: 14px; color: #64748b; margin-bottom: 20px; line-height: 1.6;">
-                Install this app on your iPhone for the best experience! <br><br>
-                1. Tap the <b>Share</b> icon <i class="fas fa-external-link-alt" style="color:#2d8eff;"></i> (at the bottom in Safari, or top-right in Chrome).<br>
-                2. Scroll down and tap <b>Add to Home Screen</b> <i class="fas fa-plus-square" style="color:#2d8eff;"></i>.
-            </p>
-            <div style="font-size: 30px; color: #2d8eff; animation: bounceBounce 2s infinite;">
-                <i class="fas fa-arrow-down"></i>
-            </div>
-        </div>
-    </div>
-
-    <style>
-        @keyframes bounceBounce {
-            0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
-            40% { transform: translateY(15px); }
-            60% { transform: translateY(7px); }
-        }
-    </style>
-
-    <div id="promo-modal" class="modal-overlay">
-      <div class="modal-content">
-        <span class="close-modal">&times;</span>
-        <img id="modal-img" src="img/ads.png" alt="Promo" class="modal-img">
-        <div class="promo-text">
-            <h3 id="modal-title"></h3>
-            <p id="modal-text"></p>
-            <a id="modal-link" href="#" class="modal-btn">View Details</a>
-        </div>
-      </div>
-    </div>
-    
-    <div id="login-modal" class="login-modal-overlay">
-        <div class="login-box">
-            <div style="text-align:right;">
-                <span onclick="document.getElementById('login-modal').style.display='none'" style="cursor:pointer; font-size:20px; color:#999;">&times;</span>
-            </div>
-            <img src="img/logo-blue.png" style="width: 50px; margin-bottom: 10px;">
-            <h3 style="margin: 0; font-size: 16px; color:#333;">Welcome to AFIT Market</h3>
-            <p style="font-size: 12px; color: #777; margin: 10px 0;">Sign in to save items and customize your profile.</p>
-            <button id="popup-google-btn" class="google-btn-small" style="width:100%; padding:10px; background:white; border:1px solid #ddd; border-radius:20px; display:flex; align-items:center; justify-content:center; gap:10px; cursor:pointer;">
-                <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" width="18">
-                Sign in with Google
-            </button>
-            <p style="margin-top:15px; font-size:11px; color:#aaa; cursor:pointer;" onclick="document.getElementById('login-modal').style.display='none'">Maybe later</p>
-        </div>
-    </div>
-
-    <div id="detail-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:3000; justify-content:center; align-items:end;">
-        <div class="modal-sheet">
-            <button class="modal-close-btn" onclick="document.getElementById('detail-modal').style.display='none'">&times;</button>
-            <div style="margin-bottom: 15px; padding-right: 40px;">
-                <h3 id="m-title" style="margin:0; font-size:18px; line-height:1.3;">...</h3>
-            </div>
+        <div class="content-area">
             
-            <div class="modal-image-container">
-                <div id="m-carousel" class="carousel-scroll"></div>
-                <div id="m-carousel-dots" class="carousel-dots"></div>
-                <div id="m-swipe-hint" class="swipe-hint" style="display:none;"><i class="fas fa-hand-pointer"></i> Swipe</div>
-            </div>
-
-            <p id="m-price" style="color:#2d8eff; font-weight:bold; font-size:20px; margin:10px 0;">...</p>
-            <div class="desc-box">
-                 <p id="m-desc" style="color:#555; font-size:14px; line-height:1.5; margin:0;">...</p>
-            </div>
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
-                 <span id="m-category" style="font-size:12px; color:#888; font-weight:bold;"></span>
-            </div>
-            <a id="btn-wa" href="#" target="_blank" class="btn-whatsapp"><i class="fab fa-whatsapp"></i> Chat via WhatsApp</a>
-            <button id="btn-inapp" class="btn-inapp"><i class="fas fa-comment-dots"></i> Message In-App (Secure)</button>
-
-            <div id="similar-wrapper" style="display:none; margin-top: 20px; border-top: 1px solid #eee; padding-top: 10px;">
-                <div style="font-size: 12px; font-weight: bold; color: #555; margin-bottom: 10px;">You might also like</div>
-                <div class="similar-grid" id="m-similar-grid"></div>
-            </div>
-
-        </div>
-    </div>
-
-    <div id="fs-gallery" class="fs-gallery-modal">
-        <div class="fs-header">
-            <button class="fs-close-btn" onclick="document.getElementById('fs-gallery').style.display='none'">&times;</button>
-        </div>
-        <div id="fs-carousel-container" class="fs-carousel"></div>
-        <div id="fs-counter" class="fs-counter">1 / 1</div>
-    </div>
-
-    <div id="fs-gallery" class="fs-gallery-modal">
-        <div class="fs-header">
-            <button class="fs-close-btn" onclick="document.getElementById('fs-gallery').style.display='none'">&times;</button>
-        </div>
-        <div id="fs-carousel-container" class="fs-carousel"></div>
-        <div id="fs-counter" class="fs-counter">1 / 1</div>
-    </div>
-
-    <div id="install-popup" style="display: none; position: fixed; bottom: 20px; left: 5%; width: 90%; background: white; padding: 20px; border-radius: 15px; box-shadow: 0 5px 20px rgba(0,0,0,0.2); z-index: 5000; text-align: center; animation: zoomIn 0.3s ease;">
-        <img src="img/logo-blue.png" style="width: 50px; margin-bottom: 10px;">
-        <h3 style="margin: 0; font-size: 16px; color: #333;">Install AFIT Market App</h3>
-        <p style="font-size: 12px; color: #777; margin: 5px 0 15px;">Get better experience and faster access!</p>
-        <button id="install-btn" style="background: #2d8eff; color: white; border: none; padding: 10px 30px; border-radius: 20px; font-weight: bold; width: 100%;">Install Now</button>
-        <button onclick="document.getElementById('install-popup').style.display='none'" style="background: none; border: none; color: #999; font-size: 12px; margin-top: 10px;">Maybe later</button>
-    </div>
-
-    <a href="https://wa.me/2349153375488?text=Hello%20Admin" class="whatsapp-float" target="_blank">
-        <i class="fab fa-whatsapp my-float"></i>
-        <span class="tooltip-text">Chat with Admin</span>
+           <div class="category-grid">
+    <a href="requests/" class="cat-item">
+        <div class="cat-icon-box" style="color: #f43f5e; background: #fff1f2;"><i class="fas fa-bullhorn"></i></div>
+        <span class="cat-name">Request</span>
     </a>
 
-  </div>
-
-  <script src="asset/script.js"></script>
-
-<script type="module">
-    if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('sw.js')
-        .then(reg => console.log("SW Registered!", reg))
-        .catch(err => console.log("SW Manual Error:", err));
-    }
-
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import { getAuth, onAuthStateChanged, signInWithPopup, GoogleAuthProvider, getAdditionalUserInfo } 
-    from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-    import { getFirestore, doc, setDoc, deleteDoc, collection, getDocs, query, getDoc, where, addDoc, serverTimestamp, orderBy, limit } 
-    from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-
-    const firebaseConfig = {
-        apiKey: "AIzaSyA1eQbrJpH9OtDNDN7z9oTFTRSAE7vCFbg",
-        authDomain: "afit-market-auth.firebaseapp.com",
-        projectId: "afit-market-auth",
-        storageBucket: "afit-market-auth.firebasestorage.app",
-        messagingSenderId: "894920886640",
-        appId: "1:894920886640:web:77d0a6b39bf89ff8f767b5"
-    };
-
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-    const db = getFirestore(app);
-    const provider = new GoogleAuthProvider();
-
-    let savedItemIds = new Set();
-    const sheetID = "1SvVUbEnDgqgw2Z_M1ShQkzyFTsnnS6n8mTs7UMXVvF4";
-    const apiRoot = `https://opensheet.elk.sh/${sheetID}`;
-    const ADMIN_PHONE = "2349153375488"; 
-    let allProducts = [];
-    let allVendors = [];
-    let globalPhoneBook = {}; 
-    let globalEmailBook = {}; 
-    let suspendedVendors = new Set(); 
-
-    const algoliaClient = algoliasearch('IQSHEYK1XF', 'b78824ffc8318be2ef8c725cf902386a');
-    const algoliaIndex = algoliaClient.initIndex('afit_products');
-    const CACHE_TTL = 10 * 60 * 1000; 
-
-    function getCachedData(key) {
-        const cached = localStorage.getItem(key);
-        if (!cached) return null;
-        const parsed = JSON.parse(cached);
-        if (Date.now() - parsed.timestamp > CACHE_TTL) { localStorage.removeItem(key); return null; }
-        return parsed.data; 
-    }
-    function setCachedData(key, data) { localStorage.setItem(key, JSON.stringify({ timestamp: Date.now(), data: data })); }
+    <a href="items/index.html?cat=Gadgets" class="cat-item">
+        <div class="cat-icon-box" style="color: #3b82f6; background: #eff6ff;"><i class="fas fa-mobile-screen"></i></div>
+        <span class="cat-name">Gadgets</span>
+    </a>
     
-    function escapeHTML(str) {
-        if (!str) return "";
-        return String(str).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
-    } 
+    <a href="items/index.html?cat=Fashion" class="cat-item">
+        <div class="cat-icon-box" style="color: #ec4899; background: #fdf2f8;"><i class="fas fa-bag-shopping"></i></div>
+        <span class="cat-name">Fashion</span>
+    </a>
+    
+    <a href="items/index.html?cat=Food" class="cat-item">
+        <div class="cat-icon-box" style="color: #f59e0b; background: #fffbeb;"><i class="fas fa-bowl-food"></i></div>
+        <span class="cat-name">Food</span>
+    </a>
+    
+    <a href="items/index.html?cat=Transport" class="cat-item">
+        <div class="cat-icon-box" style="color: #eab308; background: #fefce8;"><i class="fas fa-truck-fast"></i></div>
+        <span class="cat-name">Transport</span>
+    </a>
+    
+    <a href="items/index.html?cat=Beauty" class="cat-item">
+        <div class="cat-icon-box" style="color: #f43f5e; background: #fff1f2;"><i class="fas fa-spa"></i></div>
+        <span class="cat-name">Beauty</span>
+    </a>
+    
+    <a href="items/index.html?cat=CampusServices" class="cat-item">
+        <div class="cat-icon-box" style="color: #10b981; background: #ecfdf5;"><i class="fas fa-copy"></i></div>
+        <span class="cat-name">Services</span>
+    </a>
+    
+    <a href="category/" class="cat-item">
+        <div class="cat-icon-box" style="color: #64748b; background: #f8fafc;"><i class="fas fa-ellipsis-h"></i></div>
+        <span class="cat-name">Others</span>
+    </a>
+</div>
 
-   let deferredPrompt;
-   const urlParams = new URLSearchParams(window.location.search);
-   const isMagicLink = urlParams.get('action') === 'install';
-   const isIos = /iphone|ipad|ipod/.test(window.navigator.userAgent.toLowerCase());
-   const isInStandaloneMode = ('standalone' in window.navigator) && (window.navigator.standalone) || window.matchMedia('(display-mode: standalone)').matches;
+            <div class="section-wrapper">
+                <div class="section-header">
+                    <div class="section-title">Student Reviews</div>
+                    <a href="reviews/" class="see-all">See all</a>
+                </div>
+               <div class="reviews-slider" id="reviews-slider">
+                    <div class="review-card">
+                        <div class="rev-header">
+                            <div class="sk-shimmer sk-avatar"></div>
+                            <div style="flex: 1;">
+                                <div class="sk-shimmer sk-line short"></div>
+                                <div class="sk-shimmer sk-line medium" style="height: 8px;"></div>
+                            </div>
+                        </div>
+                        <div class="sk-shimmer sk-line long"></div>
+                        <div class="sk-shimmer sk-line medium"></div>
+                    </div>
+                </div>
+            </div>
 
-   if (isMagicLink && !isInStandaloneMode) {
-       if (isIos) document.getElementById('ios-install-overlay').style.display = 'flex';
-       else document.getElementById('magic-install-overlay').style.display = 'flex';
-   }
+            <div class="section-wrapper">
+                <div class="section-header">
+                    <div class="section-title">Available Items</div>
+                    <a href="items/" class="see-all">See all</a>
+                </div>
+                <div class="product-grid" id="product-grid">
+                    <div class="sk-card">
+                        <div class="sk-shimmer sk-img"></div>
+                        <div class="sk-shimmer sk-line short"></div>
+                        <div class="sk-shimmer sk-line long"></div>
+                        <div class="sk-shimmer sk-line medium"></div>
+                    </div>
+                    <div class="sk-card">
+                        <div class="sk-shimmer sk-img"></div>
+                        <div class="sk-shimmer sk-line short"></div>
+                        <div class="sk-shimmer sk-line long"></div>
+                        <div class="sk-shimmer sk-line medium"></div>
+                    </div>
+                </div>
+            </div>
 
-   window.addEventListener('beforeinstallprompt', (e) => {
-       e.preventDefault(); deferredPrompt = e;
-       if (!isMagicLink && !isIos) setTimeout(() => { const popup = document.getElementById('install-popup'); if(popup) popup.style.display = 'block'; }, 4000);
-       const footerBtn = document.getElementById('manual-install-btn'); if(footerBtn) footerBtn.style.display = 'inline-block';
-   });
+            <div class="section-wrapper">
+                <div class="section-header">
+                    <div class="section-title">Verified Vendors</div>
+                    <a href="vendors/" class="see-all">See all</a>
+                </div>
+               <div class="product-grid" id="vendor-grid">
+                    <div class="sk-card" style="align-items: center;">
+                        <div class="sk-shimmer sk-v-avatar"></div>
+                        <div class="sk-shimmer sk-line medium"></div>
+                        <div class="sk-shimmer sk-line short"></div>
+                    </div>
+                    <div class="sk-card" style="align-items: center;">
+                        <div class="sk-shimmer sk-v-avatar"></div>
+                        <div class="sk-shimmer sk-line medium"></div>
+                        <div class="sk-shimmer sk-line short"></div>
+                    </div>
+                </div>
+            </div>
 
-   const triggerAppInstall = async () => {
-       if (isIos) { document.getElementById('ios-install-overlay').style.display = 'flex'; document.getElementById('install-popup').style.display = 'none'; return; }
-       if (!deferredPrompt) { alert("App is already installed or browser doesn't support installation."); return; }
-       deferredPrompt.prompt();
-       const { outcome } = await deferredPrompt.userChoice;
-       deferredPrompt = null;
-       document.getElementById('install-popup').style.display = 'none';
-       document.getElementById('manual-install-btn').style.display = 'none';
-       document.getElementById('magic-install-overlay').style.display = 'none';
-   };
+            <div class="section-wrapper" style="margin-top: 10px;">
+                <div class="section-header">
+                    <div class="section-title">Campus Gist & News</div>
+                    <a href="blogs/" class="see-all">See all</a>
+                </div>
+               <div id="blog-list">
+                    <div class="blog-card">
+                        <div class="sk-shimmer sk-b-img"></div>
+                        <div style="flex: 1; display: flex; flex-direction: column; justify-content: center;">
+                            <div class="sk-shimmer sk-line short" style="margin-bottom: 10px;"></div>
+                            <div class="sk-shimmer sk-line long"></div>
+                            <div class="sk-shimmer sk-line medium"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
 
-   document.getElementById('install-btn').addEventListener('click', triggerAppInstall);
-   document.getElementById('manual-install-btn').addEventListener('click', triggerAppInstall);
-   const magicBtn = document.getElementById('btn-magic-install'); if(magicBtn) magicBtn.addEventListener('click', triggerAppInstall);
-   window.addEventListener('appinstalled', () => { document.getElementById('install-popup').style.display = 'none'; document.getElementById('manual-install-btn').style.display = 'none'; document.getElementById('magic-install-overlay').style.display = 'none'; });
+            <div class="footer collapsed" id="main-app-footer">
+                <div class="footer-toggle" id="footer-expand-btn">
+                    <i class="fas fa-chevron-down" id="footer-arrow-icon"></i>
+                </div>
 
-   setupMainSearch(); loadAds(); initData(); loadAnnouncement(); loadReviews(); loadRecentBlogs(); 
+                <div class="footer-top-collapsed">
+                    <a href="./" class="logo-link">
+                    <img src="asset/img/logo-1.png" alt="AFIT Digital Market Logo" class="header-logo" onerror="this.src='https://via.placeholder.com/150x45?text=AFIT+DGM'">
+                </a>
+                    <button class="download-app-btn" onclick="downloadApp()">Download App</button>
+                </div>
 
-   async function loadAnnouncement() {
-       try {
-           let alertData = getCachedData('cache_global_alert');
-           if (!alertData) {
-               const docSnap = await getDoc(doc(db, "settings", "global_alert"));
-               if(docSnap.exists()) { alertData = docSnap.data(); setCachedData('cache_global_alert', alertData); }
-           }
-           if(alertData && alertData.active) {
-               const banner = document.getElementById('global-announcement');
-               document.getElementById('announce-text').innerText = alertData.message;
-               banner.style.display = 'block';
-           }
-       } catch(e) { }
-   }
+                <div class="footer-expanded-links">
+                    <div class="footer-links-grid">
+                        <a href="about/">About</a>
+                        <a href="privacy-policy/">Privacy</a>
+                        <a href="terms/">T&C</a>
+                        <a href="contact/">Contact</a>
+                    </div>
+                    <p class="copyright-text">
+                        &copy; 2026 AFIT Digital Market<br>
+                    </p>
+                </div>
+            </div>
 
-   onAuthStateChanged(auth, async (user) => {
-       const headerBtn = document.getElementById('header-profile-btn');
-       if (user) {
-           headerBtn.innerHTML = `<img src="${user.photoURL}" class="header-profile-img" alt="Profile">`;
-           try {
-               const querySnapshot = await getDocs(collection(db, "users", user.uid, "saved_items"));
-               savedItemIds.clear(); querySnapshot.forEach((doc) => { savedItemIds.add(doc.id); }); updateHeartIcons(); 
-           } catch (e) { }
-       } else {
-           headerBtn.innerHTML = `<i class="far fa-user" style="padding: 8px;"></i>`;
-           savedItemIds.clear(); updateHeartIcons(); 
-           setTimeout(() => { if(!sessionStorage.getItem('loginPopupDismissed')) { document.getElementById('login-modal').style.display = 'flex'; } }, 5000);
-       }
-   });
+        </div>
 
-  document.getElementById('popup-google-btn').addEventListener('click', async () => {
-   try {
-       const result = await signInWithPopup(auth, provider);
-       document.getElementById('login-modal').style.display = 'none'; sessionStorage.setItem('loginPopupDismissed', 'true');
-       const additionalInfo = getAdditionalUserInfo(result);
-       if (additionalInfo && additionalInfo.isNewUser) {
-           await addDoc(collection(db, "mail"), {
-               to: result.user.email, createdAt: serverTimestamp(),
-               message: { subject: "Welcome to AFIT Digital Market! 🎉", html: `<div style="font-family: Arial, sans-serif; color: #333; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eaeaea; border-radius: 10px;"><h2 style="color: #0056b3;">Welcome to AFIT Digital Market! 🎓</h2><p>Hi ${result.user.displayName || "there"},</p><p>We are thrilled to have you here! You can now:</p><ul><li>❤️ Save items to your wishlist</li><li>💬 Contact vendors directly</li><li>📢 Post public requests</li></ul><p>Happy hunting!</p><p><strong>- The AFIT Digital Market Team</strong></p></div>` }
-           });
-       }
-   } catch (error) { alert("Login failed: " + error.message); }
-  });
+        <div class="bottom-nav">
+            <a href="./" class="nav-item active">
+                <i class="fas fa-home"></i>
+                <span>Home</span>
+            </a>
+            <a href="#" class="nav-item" onclick="requireLogin('messages/index.html')">
+                <i class="fas fa-comment-dots"></i>
+                <span class="red-dot msg-dot"></span>
+                <span>Messages</span>
+            </a>
+            <div class="nav-fab" onclick="requireLogin('add-product/index.html')">
+                <i class="fas fa-plus"></i>
+            </div>
+            <a href="#" class="nav-item" onclick="requireLogin('saved/index.html')">
+                <i class="fas fa-heart"></i>
+                <span>Saved</span>
+            </a>
+            <a href="#" class="nav-item" onclick="requireLogin('account/index.html')">
+                <i class="fas fa-user"></i>
+                <span>Account</span>
+            </a>
+        </div>
 
-   async function initData() {
-       try {
-           let suspendedData = getCachedData('cache_suspended_vendors');
-           if (!suspendedData) {
-               const qSuspended = query(collection(db, "vendor_status"), where("status", "==", "suspended"));
-               const suspendedSnap = await getDocs(qSuspended);
-               suspendedData = []; suspendedSnap.forEach(doc => { suspendedData.push(doc.id); });
-               setCachedData('cache_suspended_vendors', suspendedData);
-           }
-           suspendedData.forEach(id => suspendedVendors.add(id));
+        <style>
+            .ad-modal-box { background: white; border-radius: 24px; overflow: hidden; max-width: 350px; width: 100%; box-shadow: 0 20px 40px rgba(0,0,0,0.3); position: relative; animation: slideUp 0.3s ease-out; margin: 20px; }
+            .ad-close-btn { position: absolute; top: 15px; right: 15px; background: rgba(0,0,0,0.5); color: white; border: none; width: 30px; height: 30px; border-radius: 50%; cursor: pointer; z-index: 10; display: flex; justify-content: center; align-items: center; backdrop-filter: blur(4px); }
+            body.dark-mode .ad-modal-box { background: #1e293b; border: 1px solid #334155; }
+            body.dark-mode #ad-title { color: #f1f5f9 !important; }
+            body.dark-mode #ad-content { color: #cbd5e1 !important; }
+            @keyframes slideUp { from { transform: translateY(50px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        </style>
+        
+        <div id="ad-popup" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(2, 6, 23, 0.8); backdrop-filter: blur(5px); z-index: 10000; justify-content: center; align-items: center;">
+            <div class="ad-modal-box">
+                <button class="ad-close-btn" onclick="document.getElementById('ad-popup').style.display='none'"><i class="fas fa-times"></i></button>
+                <img id="ad-image" src="" style="width: 100%; height: 180px; object-fit: cover; display: none;">
+                <div style="padding: 25px 20px; text-align: center;">
+                    <h3 id="ad-title" style="margin: 0 0 10px; font-size: 18px; font-weight: 900; color: #1e293b;">...</h3>
+                    <p id="ad-content" style="font-size: 13px; color: #64748b; line-height: 1.6; margin-bottom: 20px;">...</p>
+                    <a id="ad-btn" href="#" target="_blank" style="display: block; background: var(--brand-color); color: white; text-decoration: none; padding: 14px; border-radius: 14px; font-weight: 800; font-size: 14px; transition: 0.2s;">Learn More</a>
+                </div>
+            </div>
+        </div>
+        
 
-           const [vendors1, vendors2] = await Promise.all([
-               fetch(`${apiRoot}/Vendors`).then(res => res.json()), fetch(`${apiRoot}/Vendors_v2`).then(res => res.json().catch(() => []))
-           ]);
-           const combinedVendors = [...vendors1, ...vendors2];
-           allVendors = combinedVendors.filter(v => {
-               const vid = v.vendor_id || v.Vendor_ID;
-               const isSuspended = suspendedVendors.has(vid);
-               const verifyStatus = String(v.verified || v.Verified || "").toLowerCase().trim();
-               return !isSuspended && verifyStatus !== "false";
-           });
+        <div id="ios-install-popup" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(2, 6, 23, 0.8); backdrop-filter:blur(5px); z-index:9999; justify-content:center; align-items:center; padding:20px;">
+            <div style="background:white; padding:30px 25px; border-radius:24px; text-align:center; position:relative; max-width: 350px; width: 100%; box-shadow: 0 20px 40px rgba(0,0,0,0.3);">
+                <div style="position:absolute; top:15px; right:20px; font-size:24px; color:#94a3b8; cursor:pointer;" onclick="document.getElementById('ios-install-popup').style.display='none'"><i class="fas fa-times"></i></div>
+                <div style="width: 60px; height: 60px; background: #eff6ff; color: var(--brand-color); border-radius: 16px; display: flex; justify-content: center; align-items: center; font-size: 30px; margin: 0 auto 15px;">
+                    <i class="fab fa-apple"></i>
+                </div>
+                <h3 style="margin:0 0 10px; color:#1e293b; font-size: 18px; font-weight: 800;">Install AFIT Market</h3>
+                <p style="color:#64748b; font-size:13px; margin-bottom:20px; line-height: 1.5;">Install this app on your iPhone for the best experience.</p>
+                
+                <div style="text-align:left; background: #f8fafc; padding: 15px; border-radius: 16px; border: 1px solid #f1f5f9; margin-bottom: 20px;">
+                    <div style="font-size: 13px; color: #475569; margin-bottom: 10px;">
+                        1. Tap the <b>Share</b> icon <i class="fas fa-external-link-alt" style="color:var(--brand-color); margin: 0 4px;"></i> below.
+                    </div>
+                    <div style="font-size: 13px; color: #475569;">
+                        2. Scroll down and tap <b>Add to Home Screen</b> <i class="fas fa-plus-square" style="color:var(--brand-color); margin: 0 4px;"></i>.
+                    </div>
+                </div>
+                
+                <button onclick="document.getElementById('ios-install-popup').style.display='none'" style="background:var(--brand-color); color:white; border:none; padding:14px; border-radius:14px; font-weight:800; width:100%; cursor:pointer;">Got it!</button>
+            </div>
+        </div>
 
-           allVendors.forEach(v => {
-               const vID = String(v.vendor_id || v.Vendor_ID).toUpperCase().trim();
-               if(vID) {
-                   globalPhoneBook[vID] = String(v.whatsapp || v.Whatsapp).replace(/[^0-9]/g, '');
-                   globalEmailBook[vID] = String(v.email || v.Email || "").toLowerCase().trim();
-               }
-           });
+    </div>
 
-           renderVendors(shuffle(allVendors).slice(0, 20));
-           
-           const productsRes = await fetch(`${apiRoot}/Products`);
-           const sheetProducts = await productsRes.json();
-           const firestoreProducts = await loadFirestoreProducts(); 
-           
-           let combined = [...sheetProducts, ...firestoreProducts];
-           allProducts = combined.filter(p => !suspendedVendors.has(String(p.vendor_id || p.Vendor_ID).toUpperCase().trim()));
-           
-           renderStories(allProducts, globalPhoneBook);
-           
-           const featured = []; const normal = [];
-           allProducts.forEach(p => { if (p.status !== "Sold") { if (String(p.is_featured).toLowerCase() === "true") featured.push(p); else normal.push(p); } });
-
-           renderItems([...featured, ...shuffle(normal)].slice(0, 20)); 
-           loadRecentItems();
-       } catch (err) { console.error("Init Error:", err); }
-   }
-
-   async function loadFirestoreProducts() {
-       let cachedProducts = getCachedData('cache_firestore_products');
-       if (cachedProducts) return cachedProducts;
-       try {
-           const docRef = doc(db, "aggregations", "master_product_list");
-           const docSnap = await getDoc(docRef);
-           if (docSnap.exists()) { const data = docSnap.data().items || []; setCachedData('cache_firestore_products', data); return data; } else return [];
-       } catch(e) { return []; }
-   }
-
-   async function loadRecentBlogs() {
-        const container = document.getElementById('home-blog-grid'); if(!container) return;
-        try { let cachedBlogs = getCachedData('cache_home_blogs'); if(cachedBlogs) { renderHomeBlogs(cachedBlogs); return; } } catch(e) { }
-        try {
-            const q = query(collection(db, "blogs"), orderBy("timestamp", "desc"), limit(2));
-            const snap = await getDocs(q);
-            if(snap.empty) { renderHomeBlogs([]); return; }
-            const blogs = snap.docs.map(doc => { const data = doc.data(); return { id: doc.id, title: data.title || "Campus Update", snippet: data.snippet || "Click to read more...", category: data.category || "News", image: data.image || "img/logo-blue.png", _timestamp: data.timestamp ? data.timestamp.seconds : null }; });
-            try { setCachedData('cache_home_blogs', blogs); } catch(e) {}
-            renderHomeBlogs(blogs);
-        } catch(e) { container.innerHTML = `<p style='text-align:center; font-size:12px; color:#ff4757;'>Error: ${e.message}</p>`; }
-    }
-
-    function renderHomeBlogs(blogs) {
-        const container = document.getElementById('home-blog-grid'); container.innerHTML = "";
-        if (!blogs || blogs.length === 0) { container.innerHTML = "<p style='text-align:center; font-size:12px; color:#777; padding: 20px 0;'>No news available right now.</p>"; return; }
-        blogs.forEach(b => {
-            const displayDate = b._timestamp ? new Date(b._timestamp * 1000).toLocaleDateString() : "Recent";
-            container.innerHTML += `<a href="blogs/index.html?post=${b.id}" class="home-blog-card"><img src="${b.image || 'img/logo-blue.png'}" class="home-blog-img" onerror="this.src='img/logo-blue.png'"><div class="home-blog-info"><div class="home-blog-cat">${b.category || "News"} <span style="color:#999; font-weight:normal; font-size:9px; margin-left:5px;">${displayDate}</span></div><h4 class="home-blog-title">${escapeHTML(b.title)}</h4><div class="home-blog-snippet">${escapeHTML(b.snippet)}</div></div></a>`;
-        });
-    }
-
-   async function loadReviews() {
-       const container = document.getElementById('reviews-slider'); if (!container) return;
-       try {
-           let reviewsData = getCachedData('cache_reviews');
-           if (!reviewsData) {
-               const q = query(collection(db, "reviews"), where("status", "==", "approved"));
-               const snapshot = await getDocs(q);
-               reviewsData = []; snapshot.forEach(doc => { reviewsData.push(doc.data()); }); setCachedData('cache_reviews', reviewsData);
-           }
-           if (reviewsData.length > 0) {
-               container.innerHTML = ""; const shuffled = shuffle(reviewsData).slice(0, 5);
-               shuffled.forEach(r => {
-                   let img = r.image || "img/person.png"; if (!img.startsWith('http') && !img.startsWith('img/')) img = `img/${img}`;
-                   let shortReview = r.review; if (shortReview.length > 65) shortReview = shortReview.substring(0, 65) + "...";
-                   container.innerHTML += `<div class="review-card"><div class="review-header"><img src="${img}" class="review-img" onerror="this.src='img/person.png'"><div><div class="review-name">${r.name || "Student"}</div><div class="stars" style="font-size:10px;">${'<i class="fas fa-star" style="color:#FFD700;"></i>'.repeat(r.rating || 5)}</div></div></div><div class="review-text">"${shortReview}"</div></div>`;
-               });
-           } else { container.innerHTML = "<p style='padding:20px; text-align:center; color:#777; font-size:12px;'>No reviews yet. Check back soon!</p>"; }
-       } catch (e) {}
-   }
-
-   window.toggleSave = async function(id, name, price, image, vendor) {
-       const user = auth.currentUser;
-       if (!user) { document.getElementById('login-modal').style.display = 'flex'; return; }
-       const userRef = doc(db, "users", user.uid, "saved_items", id);
-       if (savedItemIds.has(id)) { savedItemIds.delete(id); await deleteDoc(userRef); } 
-       else { savedItemIds.add(id); await setDoc(userRef, { product_id: id, name, price, image, vendor, saved_at: new Date() }); }
-       updateHeartIcons(); 
-   };
-
-   function updateHeartIcons() {
-       document.querySelectorAll('.save-btn').forEach(btn => {
-           const id = btn.id.replace('save-', ''); const icon = btn.querySelector('i');
-           if (savedItemIds.has(id)) { icon.classList.remove('far'); icon.classList.add('fas'); icon.style.color = '#ff4757'; } 
-           else { icon.classList.remove('fas'); icon.classList.add('far'); icon.style.color = '#777'; }
-       });
-   }
-
-   window.viewProduct = function(name, price, desc, category, vendorId, vendorEmail, phone, imageString) {
-       document.getElementById('m-title').innerText = name;
-       document.getElementById('m-price').innerText = price;
-       document.getElementById('m-desc').innerText = desc || "No description provided.";
-       document.getElementById('m-category').innerText = "Category: " + category;
-       
-       const carousel = document.getElementById('m-carousel');
-       const dotsContainer = document.getElementById('m-carousel-dots');
-       const swipeHint = document.getElementById('m-swipe-hint');
-       
-       carousel.innerHTML = ""; dotsContainer.innerHTML = "";
-       let images = [];
-       if(imageString) images = imageString.split(',').map(img => img.trim()).filter(img => img.length > 0);
-       if(images.length === 0) images = ['logo-blue.png'];
-       
-       const safeImgStringForClick = images.join(',').replace(/'/g, "\\'");
-
-       images.forEach((imgSrc, index) => {
-           const finalSrc = imgSrc.startsWith('http') ? imgSrc : `img/${imgSrc}`;
-           carousel.innerHTML += `<img src="${finalSrc}" class="carousel-img" onerror="this.src='img/logo-blue.png'" onclick="openFullscreenGallery('${safeImgStringForClick}', ${index})" style="cursor:zoom-in;">`;
-           if(images.length > 1) dotsContainer.innerHTML += `<div class="dot ${index === 0 ? 'active' : ''}" id="dot-${index}"></div>`;
-       });
-       
-       if(images.length > 1) {
-           swipeHint.style.display = 'block';
-           carousel.onscroll = function() {
-               const width = carousel.clientWidth;
-               if(width > 0) {
-                   const activeIndex = Math.round(carousel.scrollLeft / width);
-                   document.querySelectorAll('.dot').forEach((d, i) => { d.classList.toggle('active', i === activeIndex); });
-               }
-           };
-       } else {
-           swipeHint.style.display = 'none';
-           carousel.onscroll = null;
-       }
-
-       const waMsg = encodeURIComponent(`Hi, I saw "${name}" on AFIT Market (Price: ${price}). Is it available?`);
-       document.getElementById('btn-wa').href = `https://wa.me/${phone}?text=${waMsg}`;
-       document.getElementById('btn-inapp').onclick = function() { startRealChat(name, vendorId, vendorEmail); };
-       
-       const similarWrapper = document.getElementById('similar-wrapper');
-       const similarGrid = document.getElementById('m-similar-grid'); 
-       similarGrid.innerHTML = "";
-
-       if (category && allProducts.length > 0) {
-           const similarItems = allProducts.filter(p => (p.category || p.Category) === category && (p.name || p.Name) !== name);
-           const picked = similarItems.sort(() => 0.5 - Math.random()).slice(0, 3);
-
-           if (picked.length > 0) {
-               similarWrapper.style.display = 'block';
-               picked.forEach(p => {
-                   const sName = p.name || p.Name;
-                   const sPrice = p.price || p.Price;
-                   const sImageString = p.image || p.Image || "logo-blue.png";
-                   const firstImage = String(sImageString).split(',')[0].trim();
-                   const sImg = firstImage.startsWith('http') ? firstImage : `img/${firstImage}`;
-                   const sVendor = String(p.vendor_id || p.Vendor_ID).toUpperCase().trim();
-                   const sPhone = globalPhoneBook[sVendor] || ADMIN_PHONE;
-                   const sEmail = globalEmailBook[sVendor] || "afitdgm@gmail.com";
-                   const sCat = p.category || p.Category || "General";
-                   
-                   const safeNameJS = sName.replace(/'/g, "\\'").replace(/"/g, "&quot;");
-                   const safePriceJS = sPrice.replace(/'/g, "\\'").replace(/"/g, "&quot;");
-                   const safeDescJS = (p.description || "No description").replace(/'/g, "\\'").replace(/"/g, "&quot;").replace(/\n/g, " ");
-                   const safeImgStrJS = String(sImageString).replace(/'/g, "\\'").replace(/"/g, "&quot;");
-
-                   similarGrid.innerHTML += `
-                   <div class="sim-card" onclick="viewProduct('${safeNameJS}', '${safePriceJS}', '${safeDescJS}', '${sCat}', '${sVendor}', '${sEmail}', '${sPhone}', '${safeImgStrJS}')">
-                       <img src="${sImg}" class="sim-img" onerror="this.src='img/logo-blue.png'">
-                       <div class="sim-price">${sPrice}</div>
-                   </div>`;
-               });
-           } else { similarWrapper.style.display = 'none'; }
-       } else { similarWrapper.style.display = 'none'; }
-
-       document.getElementById('detail-modal').style.display = 'flex';
-   };
-
-   window.openFullscreenGallery = function(imageString, startIndex) {
-       const fsModal = document.getElementById('fs-gallery');
-       const fsCarousel = document.getElementById('fs-carousel-container');
-       const fsCounter = document.getElementById('fs-counter');
-       fsCarousel.innerHTML = "";
-       const images = imageString.split(',');
-       images.forEach((imgSrc) => {
-           const finalSrc = imgSrc.startsWith('http') ? imgSrc : `img/${imgSrc}`;
-           fsCarousel.innerHTML += `<img src="${finalSrc}" class="fs-img" onerror="this.src='img/logo-blue.png'">`;
-       });
-       fsModal.style.display = 'flex';
-       setTimeout(() => {
-           const width = fsCarousel.clientWidth;
-           fsCarousel.scrollLeft = width * startIndex;
-           fsCounter.innerText = `${startIndex + 1} / ${images.length}`;
-       }, 10);
-       fsCarousel.onscroll = function() {
-           const width = fsCarousel.clientWidth;
-           if(width > 0) {
-               const activeIndex = Math.round(fsCarousel.scrollLeft / width);
-               fsCounter.innerText = `${activeIndex + 1} / ${images.length}`;
-           }
-       };
-   };
-
-   // Redirect directly to the chat interface URL without creating a document!
-   window.startRealChat = async function(productName, vendorId, vendorEmail) {
-       const user = auth.currentUser;
-       if (!user) { document.getElementById('login-modal').style.display = 'flex'; return; }
-       
-       const safeProd = encodeURIComponent(productName);
-       const safeVenId = encodeURIComponent(vendorId);
-       const safeVenEmail = encodeURIComponent(vendorEmail || "afitdgm@gmail.com");
-
-       const isRootPage = window.location.pathname.endsWith('index.html') && !window.location.pathname.includes('/');
-       const chatPath = isRootPage ? `chat/index.html` : `../chat/index.html`;
-
-       window.location.href = `${chatPath}?vendorId=${safeVenId}&vendorEmail=${safeVenEmail}&product=${safeProd}`;
-   }
-
-   window.closeProductModal = function() { document.getElementById('detail-modal').style.display = 'none'; };
-
-   window.addToHistory = function(id, name, price, imageStr, vendor, desc) {
-       let history = JSON.parse(localStorage.getItem('adm_history')) || [];
-       history = history.filter(item => item.id !== id);
-       history.unshift({ id, name, price, image: imageStr, vendor, desc, seenAt: Date.now() });
-       if(history.length > 6) history.pop();
-       localStorage.setItem('adm_history', JSON.stringify(history));
-   };
-
-   function loadRecentItems() {
-       let history = JSON.parse(localStorage.getItem('adm_history')) || [];
-       const container = document.getElementById('recent-grid'); const section = document.getElementById('recent-section');
-       history = history.filter(item => { return (Date.now() - (item.seenAt || 0)) < (10 * 60 * 1000) && globalPhoneBook[item.vendor]; });
-       localStorage.setItem('adm_history', JSON.stringify(history));
-
-       if(history.length > 0 && container) {
-           section.style.display = 'block'; container.innerHTML = "";
-           history.forEach(p => {
-               const liveItem = allProducts.find(prod => prod.id === p.id);
-               const liveDesc = liveItem ? (liveItem.description || liveItem.Description) : p.desc;
-               const vID = String(p.vendor).toUpperCase().trim();
-               const vendorPhone = globalPhoneBook[vID] || ADMIN_PHONE;
-               const vendorEmail = globalEmailBook[vID] || "afitdgm@gmail.com";
-               
-               const pImageString = p.image || "logo-blue.png";
-               const firstImage = String(pImageString).split(',')[0].trim();
-               const img = firstImage.startsWith('http') ? firstImage : `img/${firstImage}`;
-               
-               const safeNameJS = p.name.replace(/'/g, "\\'").replace(/"/g, "&quot;");
-               const safePriceJS = p.price.replace(/'/g, "\\'").replace(/"/g, "&quot;");
-               const safeDescJS = (liveDesc || "No description.").replace(/'/g, "\\'").replace(/"/g, "&quot;").replace(/\n/g, " ");
-               const safeImgStrJS = String(pImageString).replace(/'/g, "\\'").replace(/"/g, "&quot;");
-
-               container.innerHTML += `
-               <div class="ad-card" style="min-width: 140px;"> 
-                   <img class="ad-img" src="${img}" alt="${p.name}" onerror="this.src='img/logo-blue.png'"
-                        onclick="viewProduct('${safeNameJS}', '${safePriceJS}', '${safeDescJS}', 'General', '${vID}', '${vendorEmail}', '${vendorPhone}', '${safeImgStrJS}')">
-                   <div class="ad-info">
-                       <div class="ad-price" style="font-size:12px;">${p.price}</div>
-                       <div class="ad-title" style="font-size:11px;">${p.name}</div>
-                       <div class="action-row">
-                          <button onclick="viewProduct('${safeNameJS}', '${safePriceJS}', '${safeDescJS}', 'General', '${vID}', '${vendorEmail}', '${vendorPhone}', '${safeImgStrJS}')" class="chat-btn" style="flex:1; border:none; margin-top:5px; padding:4px 10px; font-size:10px; cursor:pointer;">Get</button>
-                          <button onclick="startRealChat('${safeNameJS}', '${vID}', '${vendorEmail}')" class="quick-chat-btn" style="margin-top:5px; width:30px; height:24px; font-size:10px;" title="Quick Chat"><i class="fas fa-comment-dots"></i></button>
-                       </div>
-                   </div>
-               </div>`;
-           });
-       } else if(section) { section.style.display = 'none'; }
-   }
-
-   // 🚀 UPDATED AD LOGIC FOR DIRECT LINKS & DYNAMIC BUTTONS
-   function loadAds() { 
-       fetch(`${apiRoot}/Ads`).then(res => res.json()).then(data => {
-           const activeAds = data.filter(ad => String(ad.status || ad.Status).toLowerCase().trim() === "active");
-           if(activeAds.length > 0) {
-               const ad = activeAds[Math.floor(Math.random() * activeAds.length)];
-               const img = ad.image || ad.Image; 
-               const title = ad.title || ad.Title; 
-               const text = ad.text || ad.Text;
-               
-               // Pull direct link from whatsapp column, and button text from button_name column
-               const adLink = ad.whatsapp || ad.Whatsapp || ad.link || ad.Link || "#";
-               const btnName = ad.button_name || ad.Button_Name || ad.Button_name || "View Details";
-
-               const modalImg = document.getElementById('modal-img'); 
-               if(modalImg) modalImg.src = img.startsWith('http') ? img : `img/${img}`;
-               
-               document.getElementById('modal-title').innerText = title; 
-               document.getElementById('modal-text').innerText = text;
-               
-               const modalLink = document.getElementById('modal-link'); 
-               if(modalLink) { 
-                   modalLink.href = adLink; 
-                   modalLink.innerText = btnName; 
-               }
-
-               const notifBtn = document.getElementById('notif-btn');
-               if(notifBtn && !notifBtn.querySelector('.badge-dot')) {
-                   notifBtn.style.position = 'relative';
-                   notifBtn.innerHTML += `<span class="badge-dot" style="position:absolute; top:5px; right:5px; width:10px; height:10px; background:#ff4757; border-radius:50%; border:2px solid white;"></span>`;
-                   notifBtn.addEventListener('click', () => { document.getElementById('promo-modal').style.display = 'flex'; });
-               }
-               setTimeout(() => { const modal = document.getElementById('promo-modal'); if(modal) { modal.style.display = 'flex'; } }, 2500);
-           }
-       }).catch(err => console.log("No Ads Found"));
-   }
-   const closeAdBtn = document.querySelector('.close-modal'); if(closeAdBtn) { closeAdBtn.addEventListener('click', () => { document.getElementById('promo-modal').style.display = 'none'; }); }
-
-   function renderStories(products, phoneBook) {
-       const container = document.getElementById('stories-list'); const section = document.getElementById('stories-section');
-       const stories = products.filter(p => String(p.is_story || p.Is_Story).toLowerCase() === "true");
-       if(stories.length > 0) {
-           section.style.display = 'block'; container.innerHTML = "";
-           stories.forEach(p => {
-               const pName = p.name || p.Name; const pPrice = p.price || p.Price;
-               const pVendor = String(p.vendor_id || p.Vendor_ID).toUpperCase().trim();
-               const pDesc = p.description || p.Description || ""; const pCat = p.category || p.Category || "General";
-               
-               const pImageString = p.image || p.Image || "logo-blue.png";
-               const firstImage = String(pImageString).split(',')[0].trim();
-               const img = firstImage.startsWith('http') ? firstImage : `img/${firstImage}`;
-               
-               const vendorPhone = phoneBook[pVendor] || ADMIN_PHONE;
-               const vendorEmail = globalEmailBook[pVendor] || "afitdgm@gmail.com";
-               
-               const storyDiv = document.createElement('div'); storyDiv.className = 'story-item';
-               storyDiv.innerHTML = `<div class="story-ring"><img src="${img}" class="story-img" alt="${pName}" onerror="this.src='img/logo-blue.png'"></div><div class="story-name">${pName}</div>`;
-               
-               const safeNameJS = String(pName).replace(/'/g, "\\'").replace(/"/g, "&quot;");
-               const safePriceJS = String(pPrice).replace(/'/g, "\\'").replace(/"/g, "&quot;");
-               const safeDescJS = String(pDesc).replace(/'/g, "\\'").replace(/"/g, "&quot;").replace(/\n/g, " ");
-               const safeImgStrJS = String(pImageString).replace(/'/g, "\\'").replace(/"/g, "&quot;");
-               
-               storyDiv.addEventListener('click', () => {
-                  viewProduct(safeNameJS, safePriceJS, safeDescJS, pCat, pVendor, vendorEmail, vendorPhone, safeImgStrJS);
-                  addToHistory(p.id, safeNameJS, safePriceJS, safeImgStrJS, pVendor, safeDescJS);
-               });
-               container.appendChild(storyDiv);
-           });
-       }
-   }
-
-   function shuffle(array) { return array.sort(() => 0.5 - Math.random()); }
-   
-   function setupMainSearch() {
-       const searchInput = document.getElementById('main-search'); const searchType = document.getElementById('search-type'); let searchTimeout; 
-       if(searchInput) {
-           searchInput.addEventListener('input', (e) => { 
-               clearTimeout(searchTimeout); 
-               searchTimeout = setTimeout(async () => {
-                   const queryVal = e.target.value.toLowerCase().trim();
-                   if(queryVal === "") { initData(); return; }
-                   if (searchType.value === 'product') {
-                       try {
-                           const { hits } = await algoliaIndex.search(queryVal);
-                           const validHits = hits.filter(hit => !suspendedVendors.has(hit.vendor_id || hit.Vendor_ID));
-                           renderItems(validHits); 
-                       } catch (err) { renderItems(allProducts.filter(p => (p.name || p.Name).toLowerCase().includes(queryVal))); }
-                   } else if (searchType.value === 'vendor') {
-                       renderVendors(allVendors.filter(v => (v.business_name || v.Business_Name).toLowerCase().includes(queryVal)));
-                   }
-               }, 300); 
-           });
-           searchInput.addEventListener('keyup', function(e) {
-               if (e.key === 'Enter' || e.keyCode === 13) {
-                   e.preventDefault(); this.blur(); 
-                   if(searchType.value === 'product') document.getElementById('items-section-container').scrollIntoView({behavior: 'smooth'});
-                   else document.getElementById('vendor-section-container').scrollIntoView({behavior: 'smooth'});
-               }
-           });
-           searchInput.addEventListener('search', function(e) { this.blur(); });
-       }
-   }
-
-   function renderItems(data) {
-       const itemGrid = document.getElementById("home-items-grid"); if(!itemGrid) return;
-       itemGrid.innerHTML = ""; 
-       data.forEach(p => {
-           const pName = p.name || p.Name; const pPrice = p.price || p.Price;
-           const pVendor = String(p.vendor_id || p.Vendor_ID).toUpperCase().trim();
-           const pImageString = p.image || p.Image || "logo-blue.png";
-           const pDesc = p.description || p.Description || ""; const pCat = p.category || p.Category || "General";
-           const pStatus = p.status || p.Status || "Active"; const isFeatured = String(p.is_featured).toLowerCase() === "true"; 
-           const pID = p.id; 
-
-           const firstImage = String(pImageString).split(',')[0].trim();
-           const img = firstImage.startsWith('http') ? firstImage : `img/${firstImage}`;
-           
-           const vendorPhone = globalPhoneBook[pVendor] || ADMIN_PHONE;
-           const vendorEmail = globalEmailBook[pVendor] || "afitdgm@gmail.com";
-           const isSaved = savedItemIds.has(pID);
-           const heartClass = isSaved ? 'fas' : 'far'; const heartColor = isSaved ? '#ff4757' : '#777';
-
-           const safeNameHTML = escapeHTML(pName);
-           const safePriceHTML = escapeHTML(pPrice);
-           
-           const safeNameJS = String(pName).replace(/'/g, "\\'").replace(/"/g, "&quot;");
-           const safePriceJS = String(pPrice).replace(/'/g, "\\'").replace(/"/g, "&quot;");
-           const safeDescJS = String(pDesc).replace(/'/g, "\\'").replace(/"/g, "&quot;").replace(/[\n\r]+/g, " "); 
-           const safeImgStrJS = String(pImageString).replace(/'/g, "\\'").replace(/"/g, "&quot;");
-
-           const isSold = pStatus === "Sold"; const opacity = isSold ? 'opacity:0.6;' : '';
-           let badge = isSold ? '<span style="background:red; color:white; font-size:9px; padding:2px 5px; position:absolute; top:10px; left:10px; border-radius:4px; z-index:10;">SOLD</span>' : 
-                       isFeatured ? '<span style="background:#f1c40f; color:white; font-size:9px; padding:2px 5px; position:absolute; top:10px; left:10px; border-radius:4px; z-index:10; font-weight:bold;">⭐ Sponsored</span>' : '';
-
-           const safeCatJS = String(pCat).replace(/'/g, "\\'").replace(/"/g, "&quot;");
-           const clickAction = isSold ? "" : `onclick="viewProduct('${safeNameJS}', '${safePriceJS}', '${safeDescJS}', '${safeCatJS}', '${pVendor}', '${vendorEmail}', '${vendorPhone}', '${safeImgStrJS}'); addToHistory('${pID}', '${safeNameJS}', '${safePriceJS}', '${safeImgStrJS}', '${pVendor}', '${safeDescJS}')"`;
-           const btnText = isSold ? "Sold" : "Get"; const btnStyle = isSold ? "background:#777; pointer-events:none;" : "";
-
-           itemGrid.innerHTML += `
-           <div class="ad-card" style="position:relative; ${opacity}">
-               ${badge}
-               <button onclick="toggleSave('${pID}', '${safeNameJS}', '${safePriceJS}', '${firstImage}', '${pVendor}')" 
-                       class="save-btn" id="save-${pID}"
-                       style="position:absolute; top:10px; right:10px; background:white; border:none; border-radius:50%; width:30px; height:30px; display:flex; align-items:center; justify-content:center; cursor:pointer; box-shadow:0 2px 5px rgba(0,0,0,0.2); z-index:10;">
-                   <i class="${heartClass} fa-heart" style="color:${heartColor}; font-size:16px;"></i>
-               </button>
-               <img class="ad-img" src="${img}" alt="${safeNameHTML}" onerror="this.src='img/logo-blue.png'" ${clickAction}>
-               <div class="ad-info">
-                   <div class="ad-price">${safePriceHTML}</div>
-                   <div class="ad-title">${safeNameHTML}</div>
-                   <div class="ad-desc-preview">${escapeHTML(pDesc)}</div>
-                   <div class="ad-location">Vendor: ${pVendor}</div>
-                   
-                   <div class="action-row">
-                       <button ${clickAction} class="chat-btn" style="flex:1; border:none; margin-top:5px; cursor:pointer; padding: 10px; ${btnStyle}">${btnText}</button>
-                       ${isSold ? '' : `<button onclick="startRealChat('${safeNameJS}', '${pVendor}', '${vendorEmail}')" class="quick-chat-btn" style="margin-top:5px;" title="Quick Chat"><i class="fas fa-comment-dots"></i></button>`}
-                   </div>
-               </div>
-           </div>`;
-       });
-   }
-
-   function renderVendors(data) {
-       const vendorGrid = document.getElementById("vendor-grid"); if(!vendorGrid) return;
-       vendorGrid.innerHTML = "";
-       data.forEach(v => {
-           const vName = v.business_name || v.Business_Name; const vDesc = v.description || v.Description;
-           const vID = v.vendor_id || v.Vendor_ID; const vVerified = String(v.verified || v.Verified || "").toLowerCase().trim();
-           const vImg = (v.image || v.Image).startsWith('http') ? (v.image || v.Image) : `img/${v.image || v.Image}`;
-           let badgeHtml = "";
-           if (vVerified === "gold") badgeHtml = '<i class="fas fa-check-circle tick-gold"></i>';
-           else if (vVerified === "blue") badgeHtml = '<i class="fas fa-check-circle tick-blue"></i>';
-           
-           vendorGrid.innerHTML += `
-           <div class="vendor-card">
-               <img src="${vImg}" class="vendor-logo" onerror="this.src='img/person.png'">
-               <span class="vendor-id">${vID}</span>
-               <div class="vendor-name">${vName} ${badgeHtml}</div>
-               <div class="vendor-cat">${vDesc.substring(0, 20)}...</div>
-               <button class="view-vendor-btn" onclick="window.location.href='profile.html?vendor=${vID}'">View Vendor</button>
-           </div>`;
-       });
-   }
-</script>
-</body> 
+    <script src="asset/script.js"></script>
+</body>
 </html>

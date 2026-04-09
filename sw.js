@@ -1,52 +1,49 @@
-const CACHE_NAME = "afit-dgm-offline-v1";
-const OFFLINE_URL = "offline.html";
+const CACHE_NAME = 'afit-market-offline-v1';
+// Make sure this path matches exactly where you saved your offline page!
+const OFFLINE_URL = '/offline.html';
 
-
-self.addEventListener("install", (event) => {
-  console.log('[Service Worker] Installing & Caching Offline Page');
-  event.waitUntil(
-    (async () => {
-      const cache = await caches.open(CACHE_NAME);
-      await cache.add(new Request(OFFLINE_URL, { cache: "reload" }));
-    })()
-  );
-  self.skipWaiting();
-});
-
-
-self.addEventListener("activate", (event) => {
-  event.waitUntil(
-    (async () => {
-      if ("navigationPreload" in self.registration) {
-        await self.registration.navigationPreload.enable();
-      }
-    })()
-  );
-  self.clients.claim();
-});
-
-
-self.addEventListener("fetch", (event) => {
-  
-  if (event.request.mode === "navigate") {
-    event.respondWith(
-      (async () => {
-        try {
-         
-          const preloadResponse = await event.preloadResponse;
-          if (preloadResponse) {
-            return preloadResponse;
-          }
-          const networkResponse = await fetch(event.request);
-          return networkResponse;
-        } catch (error) {
-  
-          console.log('[Service Worker] Network failed. Serving offline page.');
-          const cache = await caches.open(CACHE_NAME);
-          const cachedResponse = await cache.match(OFFLINE_URL);
-          return cachedResponse;
-        }
-      })()
+// 1. INSTALL EVENT: Cache the offline page immediately
+self.addEventListener('install', (event) => {
+    event.waitUntil(
+        caches.open(CACHE_NAME).then((cache) => {
+            // We cache the offline page so it's ready when the network dies
+            return cache.add(new Request(OFFLINE_URL, { cache: 'reload' }));
+        })
     );
-  }
+    self.skipWaiting();
+});
+
+// 2. ACTIVATE EVENT: Clean up old caches and take control
+self.addEventListener('activate', (event) => {
+    event.waitUntil(
+        caches.keys().then((cacheNames) => {
+            return Promise.all(
+                cacheNames.map((cacheName) => {
+                    if (cacheName !== CACHE_NAME) {
+                        return caches.delete(cacheName);
+                    }
+                })
+            );
+        })
+    );
+    event.waitUntil(clients.claim());
+});
+
+// 3. SMART FETCH EVENT: The magic that protects Supabase
+self.addEventListener('fetch', (event) => {
+    
+    // Check if the request is a "navigate" request (meaning the user is trying to load an HTML page)
+    if (event.request.mode === 'navigate') {
+        event.respondWith(
+            fetch(event.request).catch(() => {
+                // If the network fetch fails (because they are offline), serve the cached offline.html
+                return caches.match(OFFLINE_URL);
+            })
+        );
+        return; // Stop here. Do not process this request any further.
+    }
+
+    // FOR EVERYTHING ELSE (Supabase APIs, Images, CSS, JS):
+    // Do absolutely nothing. Let the request pass through to the internet normally.
+    // This completely prevents the Service Worker from breaking your database!
 });
