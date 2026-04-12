@@ -1,6 +1,6 @@
 const CACHE_NAME = 'afit-market-offline-v1';
 // Make sure this path matches exactly where you saved your offline page!
-const OFFLINE_URL = '/offline.html';
+const OFFLINE_URL = 'offline.html';
 
 // 1. INSTALL EVENT: Cache the offline page immediately
 self.addEventListener('install', (event) => {
