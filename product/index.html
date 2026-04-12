@@ -196,6 +196,25 @@
         let currentProduct = null;
         let slideInterval;
 
+        // 🛡️ XSS Sanitizers
+        function escapeHTML(str) {
+            if (!str) return '';
+            return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;');
+        }
+        function escapeJS(str) {
+            if (!str) return '';
+            return String(str).replace(/'/g, "\\'").replace(/"/g, '&quot;').replace(/\n/g, '\\n');
+        }
+
+        // 🎲 Randomizer Function
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+
         function createSlug(title) {
             return title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
         }
@@ -205,13 +224,9 @@
             const referrer = document.referrer;
             const currentDomain = window.location.origin;
 
-            // If there is no referrer (opened directly via link), 
-            // OR they came from a different website entirely (like WhatsApp, Twitter),
-            // send them to the main items index to keep them in the app.
             if (!referrer || !referrer.startsWith(currentDomain) || referrer.includes('wa.me')) {
                 window.location.href = "../index.html"; 
             } else {
-                // Safe to go back, they have history within the app
                 window.history.back();
             }
         }
@@ -253,7 +268,6 @@
                 document.getElementById('content-state').style.display = 'block';
                 document.getElementById('action-bar').style.display = 'flex';
 
-                // innerText is naturally immune to XSS!
                 document.getElementById('display-title').innerText = product.name;
                 document.getElementById('display-price').innerText = new Intl.NumberFormat('en-NG', { style: 'currency', currency: 'NGN', maximumFractionDigits: 0 }).format(product.price);
                 document.getElementById('display-category').innerText = product.category;
@@ -267,8 +281,8 @@
                 const images = (product.image_urls && product.image_urls.length > 0) ? product.image_urls : ['https://via.placeholder.com/600x600?text=No+Image'];
                 
                 images.forEach((img, index) => {
-                    gallery.innerHTML += `<img src="${img}" class="slide-img">`;
-                    dots.innerHTML += `<div class="dot ${index === 0 ? 'active' : ''}"></div>`;
+                    gallery.insertAdjacentHTML('beforeend', `<img src="${escapeHTML(img)}" class="slide-img">`);
+                    dots.insertAdjacentHTML('beforeend', `<div class="dot ${index === 0 ? 'active' : ''}"></div>`);
                 });
 
                 if (images.length > 1) startAutoSlide(); 
@@ -279,15 +293,14 @@
                     if (vendor.subscription_plan === "Influencer") badgeColor = "#fbbf24"; 
                     if (vendor.subscription_plan === "Icon") badgeColor = "#1e293b"; 
 
-                    // 🚀 XSS FIX: Wrap vendor business name
                     document.getElementById('v-name').innerHTML = `${escapeHTML(vendor.business_name)} <i class="fas fa-check-circle" style="color: ${badgeColor};"></i>`;
                     
                     const descTxt = vendor.description ? vendor.description.substring(0, 30) + '...' : "Verified Seller";
-                    document.getElementById('v-cat').innerText = descTxt;
+                    document.getElementById('v-cat').innerText = escapeHTML(descTxt);
                     
-                    document.getElementById('v-logo').src = vendor.logo_url || "https://via.placeholder.com/150";
+                    document.getElementById('v-logo').src = escapeHTML(vendor.logo_url) || "https://via.placeholder.com/150";
                     
-                    document.getElementById('vendor-btn').onclick = () => window.location.href = `../vendors/profile/index.html?id=${vendor.id}`;
+                    document.getElementById('vendor-btn').onclick = () => window.location.href = `../vendors/profile/index.html?id=${escapeJS(vendor.id)}`;
 
                     const waBtn = document.getElementById('whatsapp-btn');
                     
@@ -295,7 +308,7 @@
                     if(phone.startsWith('0')) phone = "234" + phone.substring(1);
                     
                     const fPrice = new Intl.NumberFormat('en-NG', { style: 'currency', currency: 'NGN', maximumFractionDigits: 0 }).format(product.price);
-                    const msg = encodeURIComponent(`Hi, I saw your ${product.name} on AFIT Digital Market for ${fPrice}. Is it still available?`);
+                    const msg = encodeURIComponent(`Hi, I saw your ${product.name} on UNICAL Digital Market for ${fPrice}. Is it still available?`);
                     
                     waBtn.onclick = () => {
                         if(phone) {
@@ -339,33 +352,42 @@
             }, 3000); 
         }
 
+        // 🚀 FIX: Randomized and increased to 10 items!
         async function loadRelatedItems(category, currentId) {
             const grid = document.getElementById('related-grid');
             try {
+                // Fetch up to 50 active items in the same category
                 const { data } = await supabaseClient.from('products')
                     .select('id, name, price, image_urls')
                     .eq('category', category)
                     .eq('status', 'Active')
                     .neq('id', currentId) 
-                    .limit(4); 
+                    .limit(50); 
                 
                 if(!data || data.length === 0) {
                     grid.innerHTML = "<p style='grid-column: span 2; text-align: center; color: #94a3b8; font-size: 13px; padding: 20px 0;'>No similar items right now.</p>";
                     return;
                 }
 
-                data.forEach(p => {
-                    const imgUrl = (p.image_urls && p.image_urls.length > 0) ? p.image_urls[0] : 'https://via.placeholder.com/300';
+                // Shuffle the pool and take the first 10
+                const randomizedData = shuffleArray(data).slice(0, 10);
+
+                grid.innerHTML = ""; 
+
+                randomizedData.forEach(p => {
+                    const imgUrl = escapeHTML((p.image_urls && p.image_urls.length > 0) ? p.image_urls[0] : 'https://via.placeholder.com/300');
                     const fPrice = new Intl.NumberFormat('en-NG', { style: 'currency', currency: 'NGN', maximumFractionDigits: 0 }).format(p.price);
                     
-                    // 🚀 XSS FIX: Wrap related product name
-                    grid.innerHTML += `
-                        <div class="related-card" onclick="window.location.href='index.html?id=${p.id}'">
+                    const safeName = escapeHTML(p.name);
+                    const safeIdJS = escapeJS(p.id);
+
+                    grid.insertAdjacentHTML('beforeend', `
+                        <div class="related-card" onclick="window.location.href='index.html?id=${safeIdJS}'">
                             <img src="${imgUrl}" class="rel-img">
                             <div class="rel-price">${fPrice}</div>
-                            <div class="rel-title">${escapeHTML(p.name)}</div>
+                            <div class="rel-title">${safeName}</div>
                         </div>
-                    `;
+                    `);
                 });
             } catch(e) { console.error(e); }
         }
@@ -374,7 +396,7 @@
             if (!currentProduct) return;
             const url = window.location.href;
             const fPrice = new Intl.NumberFormat('en-NG', { style: 'currency', currency: 'NGN', maximumFractionDigits: 0 }).format(currentProduct.price);
-            const text = `Check out this ${currentProduct.name} for ${fPrice} on AFIT Digital Market!\n\n`;
+            const text = `Check out this ${currentProduct.name} for ${fPrice} on UNICAL Digital Market!\n\n`;
 
             if (navigator.share) {
                 navigator.share({ title: currentProduct.name, text: text, url: url }).catch(err => console.log(err));
@@ -395,16 +417,16 @@
 
             const { data: vendorData } = await supabaseClient
                 .from('vendors')
-                .select('user_id')
+                .select('profile_id') // Correct column for the chat logic
                 .eq('id', currentProduct.vendor_id)
                 .single();
 
-            if (!vendorData || !vendorData.user_id) {
+            if (!vendorData || !vendorData.profile_id) {
                 alert("Could not load vendor details.");
                 return;
             }
 
-            const actualVendorUserId = vendorData.user_id;
+            const actualVendorUserId = vendorData.profile_id;
 
             if (session.user.id === actualVendorUserId) {
                 alert("You cannot chat with yourself about your own product.");
@@ -466,6 +488,6 @@
                 console.error("Error toggling save status:", err);
             }
         }
-</script>
+    </script>
 </body>
 </html>
