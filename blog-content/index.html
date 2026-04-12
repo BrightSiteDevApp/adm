@@ -246,17 +246,23 @@
                 if (error) throw error;
                 blogData = data;
 
+                const niceSlug = createSlug(data.title);
+                window.history.replaceState(null, '', `?id=${data.id}&post=${niceSlug}`);
+
                 document.title = `${data.title} | UNICAL Digital Market`;
+                
+                // 🚀 FIX: MATCHING EXACT HTML IDs
                 document.getElementById('article-img').src = data.image_url || 'https://via.placeholder.com/600x300';
                 document.getElementById('article-cat').innerText = escapeHTML(data.category || 'News');
                 document.getElementById('article-title').innerText = escapeHTML(data.title);
-                document.getElementById('article-date').innerHTML = `<i class="far fa-calendar-alt"></i> ${new Date(data.created_at).toLocaleDateString()}`;
+                document.getElementById('article-date').innerText = new Date(data.created_at).toLocaleDateString([], { year: 'numeric', month: 'long', day: 'numeric' });
                 
                 // Safely render content and make links clickable
                 const safeContent = escapeHTML(data.content);
-                document.getElementById('article-content').innerHTML = linkifyText(safeContent).replace(/\n/g, '<br><br>');
+                const textWithLinks = linkifyText(safeContent);
+                document.getElementById('article-content').innerHTML = textWithLinks.replace(/\n/g, '<br><br>');
 
-                // 🚀 VIEW COUNT LOGIC: Uses sessionStorage so every fresh browser session adds a view
+                // 🚀 VIEW COUNT LOGIC
                 const sessionViews = JSON.parse(sessionStorage.getItem('session_viewed_blogs') || '[]');
                 
                 if (!sessionViews.includes(currentBlogId)) {
@@ -274,6 +280,7 @@
 
                 updateLikeUI();
 
+                // 🚀 HIDE SKELETON, SHOW CONTENT
                 document.getElementById('loader').style.display = 'none';
                 document.getElementById('content-view').style.display = 'block';
                 document.getElementById('input-bar').style.display = 'flex';
