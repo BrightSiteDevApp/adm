@@ -9,8 +9,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="../asset/style.css">
     <link rel="icon" href="../asset/img/app-logo.png" type="image/png" sizes="192x192">
-  <link rel="icon" href="../favicon.ico" type="image/x-icon">
-
+    <link rel="icon" href="../favicon.ico" type="image/x-icon">
 
     <style>
         :root {
@@ -26,6 +25,7 @@
         .article-meta { display: flex; gap: 15px; color: var(--text-muted); font-size: 12px; font-weight: 600; margin-bottom: 25px; border-bottom: 1px solid #f1f5f9; padding-bottom: 20px;}
         
         .article-content { font-size: 16px; color: #334155; line-height: 1.8; white-space: pre-wrap; margin-bottom: 40px;}
+        .article-content a { word-break: break-all; } /* Ensures long links wrap nicely */
         
         /* Comments Section */
         .comments-section { border-top: 5px solid #f8fafc; padding-top: 30px; }
@@ -35,35 +35,18 @@
         .comment-name { font-size: 13px; font-weight: 800; color: var(--text-main); margin-bottom: 5px; }
         .comment-text { font-size: 14px; color: var(--text-muted); line-height: 1.5; }
 
-        /* 🚀 FIX: Responsive Input Layout */
         .add-comment-box { display: flex; gap: 10px; margin-top: 20px; margin-bottom: 40px; width: 100%; box-sizing: border-box; }
         .comment-input { 
-            flex: 1; 
-            min-width: 0; /* 🚀 Stops the input from shoving the button off-screen */
-            box-sizing: border-box; /* 🚀 Ensures padding stays inside the box */
-            padding: 14px 15px; 
-            border-radius: 14px; 
-            border: 2px solid #e2e8f0; 
-            background: #f8fafc; 
-            outline: none; 
-            font-size: 14px; 
-            transition: 0.2s;
+            flex: 1; min-width: 0; box-sizing: border-box; padding: 14px 15px; 
+            border-radius: 14px; border: 2px solid #e2e8f0; background: #f8fafc; 
+            outline: none; font-size: 14px; transition: 0.2s;
         }
         .comment-input:focus { border-color: var(--brand-color); background: white; }
         .send-btn { 
-            background: var(--brand-color); 
-            color: white; 
-            border: none; 
-            width: 48px; 
-            height: 48px; 
-            border-radius: 14px; 
-            display: flex; 
-            justify-content: center; 
-            align-items: center; 
-            cursor: pointer; 
-            font-size: 16px; 
-            box-shadow: 0 4px 10px rgba(45, 142, 255, 0.3);
-            flex-shrink: 0; /* Protects button shape */
+            background: var(--brand-color); color: white; border: none; width: 48px; 
+            height: 48px; border-radius: 14px; display: flex; justify-content: center; 
+            align-items: center; cursor: pointer; font-size: 16px; 
+            box-shadow: 0 4px 10px rgba(45, 142, 255, 0.3); flex-shrink: 0; 
         }
 
         /* More Blogs Section */
@@ -144,7 +127,7 @@
         </div>
 
         <div id="real-content" style="display: none;">
-            <img src="" id="articleImg" class="article-hero" onerror="this.src='https://via.placeholder.com/600x300'">
+            <img src="" id="articleImg" class="article-hero" onerror="this.src='https://placehold.co/600x300?text=No+Image'">
 
             <div class="article-body">
                 <span class="cat-badge" id="articleCat">News</span>
@@ -228,9 +211,9 @@
             const postParam = urlParams.get('post') || urlParams.get('id'); 
             
             if (!postParam) {
-                document.getElementById('loader').style.display = 'none';
-                document.getElementById('content-view').style.display = 'block';
-                document.getElementById('article-title').innerText = "Article Not Found";
+                document.getElementById('skeleton-content').style.display = 'none';
+                document.getElementById('real-content').style.display = 'block';
+                document.getElementById('articleTitle').innerText = "Article Not Found";
                 return;
             }
 
@@ -247,94 +230,55 @@
                 blogData = data;
 
                 const niceSlug = createSlug(data.title);
-                window.history.replaceState(null, '', `?id=${data.id}&post=${niceSlug}`);
+                window.history.replaceState(null, '', `?post=${niceSlug}--${data.id}`);
 
-                document.title = `${data.title} | UNICAL Digital Market`;
+                document.title = `${data.title} | AFIT Digital Market`;
                 
-                // 🚀 FIX: MATCHING EXACT HTML IDs
-                document.getElementById('article-img').src = data.image_url || 'https://via.placeholder.com/600x300';
-                document.getElementById('article-cat').innerText = escapeHTML(data.category || 'News');
-                document.getElementById('article-title').innerText = escapeHTML(data.title);
-                document.getElementById('article-date').innerText = new Date(data.created_at).toLocaleDateString([], { year: 'numeric', month: 'long', day: 'numeric' });
+                // 🚀 FIX: PERFECTLY MATCHED DOM IDs + Placehold.co update
+                document.getElementById('articleImg').src = data.image_url || 'https://placehold.co/600x300?text=No+Image';
+                document.getElementById('articleCat').innerText = escapeHTML(data.category || 'News');
+                document.getElementById('articleTitle').innerText = escapeHTML(data.title);
+                document.getElementById('articleDate').innerHTML = `<i class="far fa-calendar-alt"></i> ${new Date(data.created_at).toLocaleDateString()}`;
                 
-                // Safely render content and make links clickable
+                // Sanitized and Linkified
                 const safeContent = escapeHTML(data.content);
                 const textWithLinks = linkifyText(safeContent);
-                document.getElementById('article-content').innerHTML = textWithLinks.replace(/\n/g, '<br><br>');
+                document.getElementById('articleContent').innerHTML = textWithLinks.replace(/\n/g, '<br>');
+
+                // Setup Share Button
+                const shareBtn = document.getElementById('shareTopBtn');
+                shareBtn.style.display = 'block';
+                shareBtn.onclick = () => shareBlog(data.id, data.title, data.snippet);
 
                 // 🚀 VIEW COUNT LOGIC
                 const sessionViews = JSON.parse(sessionStorage.getItem('session_viewed_blogs') || '[]');
-                
                 if (!sessionViews.includes(currentBlogId)) {
                     sessionViews.push(currentBlogId);
                     sessionStorage.setItem('session_viewed_blogs', JSON.stringify(sessionViews));
                     
                     const newViewCount = (data.views || 0) + 1;
-                    document.getElementById('view-count').innerText = newViewCount;
-                    
-                    // Increment in DB
+                    document.getElementById('articleViews').innerHTML = `<i class="far fa-eye"></i> ${newViewCount} Views`;
                     await supabaseClient.from('blogs').update({ views: newViewCount }).eq('id', currentBlogId);
                 } else {
-                    document.getElementById('view-count').innerText = data.views || 0;
+                    document.getElementById('articleViews').innerHTML = `<i class="far fa-eye"></i> ${data.views || 0} Views`;
                 }
 
-                updateLikeUI();
-
-                // 🚀 HIDE SKELETON, SHOW CONTENT
-                document.getElementById('loader').style.display = 'none';
-                document.getElementById('content-view').style.display = 'block';
-                document.getElementById('input-bar').style.display = 'flex';
+                document.getElementById('skeleton-content').style.display = 'none';
+                document.getElementById('real-content').style.display = 'block';
 
                 loadComments();
+                loadMoreBlogs();
 
             } catch (err) {
                 console.error(err);
-                document.getElementById('loader').style.display = 'none';
-                document.getElementById('content-view').style.display = 'block';
-                document.getElementById('article-title').innerText = "Error loading article.";
+                document.getElementById('skeleton-content').style.display = 'none';
+                document.getElementById('real-content').style.display = 'block';
+                document.getElementById('articleTitle').innerText = "Error loading article.";
             }
-        }
-
-        function updateLikeUI() {
-            const likes = blogData.likes || [];
-            const count = likes.length;
-            const isLiked = currentUser && likes.includes(currentUser.id);
-
-            document.getElementById('like-count').innerText = count;
-            const icon = document.getElementById('like-icon');
-            
-            if (isLiked) {
-                icon.className = 'fas fa-heart liked';
-            } else {
-                icon.className = 'far fa-heart';
-            }
-        }
-
-        window.toggleLike = async function() {
-            if (!currentUser) {
-                alert("Please log in to like this post.");
-                window.location.href = "../login/index.html?redirect=" + encodeURIComponent(window.location.href);
-                return;
-            }
-
-            let likes = blogData.likes || [];
-            
-            if (likes.includes(currentUser.id)) {
-                likes = likes.filter(id => id !== currentUser.id); 
-            } else {
-                likes.push(currentUser.id); 
-            }
-
-            blogData.likes = likes;
-            updateLikeUI();
-
-            try {
-                await supabaseClient.from('blogs').update({ likes: likes }).eq('id', currentBlogId);
-            } catch (e) { console.error("Sync failed"); }
         }
 
         async function loadComments() {
-            const list = document.getElementById('comments-list');
+            const list = document.getElementById('commentsList');
             try {
                 const { data, error } = await supabaseClient
                     .from('blog_comments')
@@ -344,8 +288,6 @@
 
                 if (error) throw error;
                 list.innerHTML = "";
-
-                document.getElementById('comment-count-title').innerText = data.length;
 
                 if (data.length === 0) {
                     list.innerHTML = '<p style="font-size:13px; color:#94a3b8; text-align: center; padding: 20px;">No comments yet. Be the first to share your thoughts!</p>';
@@ -366,9 +308,8 @@
                         </div>
                     `);
                 });
-
             } catch (err) {
-                list.innerHTML = '<p style="color:red; font-size:13px; text-align:center;">Failed to load comments.</p>';
+                list.innerHTML = '<p style="color:red; font-size:13px;">Failed to load comments.</p>';
             }
         }
 
@@ -379,7 +320,7 @@
                 return;
             }
             
-            const input = document.getElementById('comment-input');
+            const input = document.getElementById('commentInput');
             const text = input.value.trim();
             if (!text || !currentBlogId) return;
 
@@ -390,31 +331,70 @@
                 await supabaseClient.from('blog_comments').insert([{ blog_id: currentBlogId, user_id: currentUser.id, comment_text: text }]);
                 input.value = ""; 
                 loadComments(); 
-                window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
             } catch (error) {
                 alert("Failed to post comment."); 
                 input.value = text; 
             } finally { 
                 input.disabled = false; 
-                input.focus();
             }
         }
 
-        window.shareArticle = function() {
-            if (!blogData) return;
-            const slug = createSlug(blogData.title);
+        async function loadMoreBlogs() {
+            const list = document.getElementById('more-blogs-list');
+            try {
+                const { data, error } = await supabaseClient
+                    .from('blogs')
+                    .select('id, title, category, image_url, created_at')
+                    .neq('id', currentBlogId)
+                    .order('created_at', { ascending: false })
+                    .limit(20); // Fetch a larger pool
+
+                if (error) throw error;
+                list.innerHTML = "";
+
+                if (!data || data.length === 0) {
+                    list.innerHTML = '<p style="font-size:13px; color:#94a3b8;">No other articles found.</p>';
+                    return;
+                }
+
+                // 🎲 Randomly shuffle and pick 3 to display
+                const shuffled = data.sort(() => 0.5 - Math.random()).slice(0, 3);
+
+                shuffled.forEach(b => {
+                    const slug = createSlug(b.title);
+                    const img = escapeHTML(b.image_url || 'https://placehold.co/100x100?text=No+Image');
+                    const date = new Date(b.created_at).toLocaleDateString();
+
+                    list.insertAdjacentHTML('beforeend', `
+                        <div class="small-blog-card" onclick="window.location.href='index.html?post=${escapeJS(slug)}--${escapeJS(b.id)}'">
+                            <img src="${img}" onerror="this.src='https://placehold.co/100x100?text=No+Image'">
+                            <div>
+                                <div class="sbc-title">${escapeHTML(b.title)}</div>
+                                <div class="sbc-meta">${escapeHTML(b.category)} • ${date}</div>
+                            </div>
+                        </div>
+                    `);
+                });
+
+            } catch (err) {
+                list.innerHTML = '';
+            }
+        }
+
+        window.shareBlog = function(blogId, title, snippet) {
+            const slug = createSlug(title);
             const baseUrl = window.location.href.split('?')[0]; 
-            const shareUrl = `${baseUrl}?post=${slug}--${currentBlogId}`;
-            const safeSnippet = blogData.snippet ? blogData.snippet : 'Read the latest update on UNICAL Digital Market.';
+            const shareUrl = `${baseUrl}?post=${slug}--${blogId}`;
+            const safeSnippet = snippet ? snippet : 'Read the latest update on AFIT Digital Market.';
             
-            const shareText = `*${blogData.title}*\n\n${safeSnippet}\n\nRead the full article:\n${shareUrl}`;
+            const shareText = `*${title}*\n\n${safeSnippet}\n\nRead the full article:\n${shareUrl}`;
 
             if (navigator.share) {
                 navigator.share({
-                    title: "UNICAL Market News",
-                    text: `*${blogData.title}*\n${safeSnippet}\n\nRead the full article on UNICAL Digital Market:`,
+                    title: "AFIT Campus News",
+                    text: `*${title}*\n${safeSnippet}\n\nRead the full article on AFIT Digital Market:`,
                     url: shareUrl
-                }).catch(err => console.log('Share cancelled'));
+                }).catch(err => console.log('Share cancelled', err));
             } else {
                 const waUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(shareText)}`;
                 window.open(waUrl, '_blank');
