@@ -308,7 +308,7 @@
                     if(phone.startsWith('0')) phone = "234" + phone.substring(1);
                     
                     const fPrice = new Intl.NumberFormat('en-NG', { style: 'currency', currency: 'NGN', maximumFractionDigits: 0 }).format(product.price);
-                    const msg = encodeURIComponent(`Hi, I saw your ${product.name} on UNICAL Digital Market for ${fPrice}. Is it still available?`);
+                    const msg = encodeURIComponent(`Hi, I saw your ${product.name} on AFIT Digital Market for ${fPrice}. Is it still available?`);
                     
                     waBtn.onclick = () => {
                         if(phone) {
@@ -396,7 +396,7 @@
             if (!currentProduct) return;
             const url = window.location.href;
             const fPrice = new Intl.NumberFormat('en-NG', { style: 'currency', currency: 'NGN', maximumFractionDigits: 0 }).format(currentProduct.price);
-            const text = `Check out this ${currentProduct.name} for ${fPrice} on UNICAL Digital Market!\n\n`;
+            const text = `Check out this ${currentProduct.name} for ${fPrice} on AFIT Digital Market!\n\n`;
 
             if (navigator.share) {
                 navigator.share({ title: currentProduct.name, text: text, url: url }).catch(err => console.log(err));
