@@ -373,14 +373,14 @@
         window.shareBlog = function(blogId, title, snippet) {
             const slug = createSlug(title);
             const url = `${window.location.origin}/blog-content/index.html?post=${slug}--${blogId}`;
-            const safeSnippet = snippet ? snippet : 'Read the latest update on UNICAL Digital Market.';
+            const safeSnippet = snippet ? snippet : 'Read the latest update on AFIT Digital Market.';
             
-            const shareText = `*${title}*\n\n${safeSnippet}\n\nRead the full article on UNICAL Digital Market:\n${url}`;
+            const shareText = `*${title}*\n\n${safeSnippet}\n\nRead the full article on AFIT Digital Market:\n${url}`;
 
             if (navigator.share) {
                 navigator.share({
-                    title: "UNICAL Market News",
-                    text: `*${title}*\n${safeSnippet}\n\nRead the full article on UNICAL Digital Market:`,
+                    title: "AFIT DIGITAL Market News",
+                    text: `*${title}*\n${safeSnippet}\n\nRead the full article on AFIT Digital Market:`,
                     url: url
                 }).catch(err => console.log('Share cancelled', err));
             } else {
