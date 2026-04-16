@@ -10,31 +10,33 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="../asset/style.css">
     <link rel="icon" href="../asset/img/app-logo.png" type="image/png" sizes="192x192">
-  <link rel="icon" href="../favicon.ico" type="image/x-icon">
+    <link rel="icon" href="../favicon.ico" type="image/x-icon">
 
     <style>
-        /* 🚀 FULL-WIDTH DESKTOP & MOBILE SCROLL FIX */
+        /* 🚀 BULLETPROOF MOBILE SCROLLING FIX */
         body, html { 
             height: 100%; 
             height: 100dvh; 
             margin: 0; padding: 0; 
             background: #f1f5f9; 
-            /* REMOVED overflow: hidden to allow native scrolling */
+            overflow: hidden; /* Prevents the whole page from bouncing on iOS */
         }
         
         .chat-container { 
             display: flex; 
             flex-direction: column; 
             height: 100%; 
+            height: 100dvh;
             width: 100%;
             margin: 0 auto; 
             background: white; 
             box-shadow: 0 0 20px rgba(0,0,0,0.05); 
         }
         
-        /* Header */
+        /* Header - Flexbox instead of Fixed */
         .chat-header { 
-            flex-shrink: 0; /* Prevents header from shrinking */
+            flex: 0 0 auto; /* Do not shrink or grow */
+            width: 100%; 
             background: white; padding: 15px 20px; display: flex; align-items: center; 
             border-bottom: 1px solid #e2e8f0; z-index: 100; box-shadow: 0 2px 10px rgba(0,0,0,0.02); 
             box-sizing: border-box;
@@ -43,15 +45,15 @@
         .chat-title { font-size: 16px; font-weight: 800; color: var(--text-main); margin: 0 0 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .chat-subtitle { font-size: 12px; color: var(--brand-color); font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
-        /* Messages Area */
+        /* Messages Area - Naturally fills the space */
         .chat-area { 
-            flex: 1; 
+            flex: 1 1 auto; /* Grow and fill remaining space */
             overflow-y: auto; 
             padding: 20px;
             display: flex; 
             flex-direction: column; 
             gap: 15px; 
-            -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
+            -webkit-overflow-scrolling: touch; /* Smooth iOS scrolling */
         }
         
         .disclaimer-box { background: #fffbeb; border: 1px solid #fde68a; color: #b45309; padding: 10px 15px; border-radius: 12px; font-size: 11px; text-align: center; margin-bottom: 10px; line-height: 1.5; flex-shrink: 0;}
@@ -83,9 +85,10 @@
         .msg-time { font-size: 10px; color: var(--text-muted); margin-top: 4px; }
         .me .msg-time { color: #cbd5e1; text-align: right; }
 
-        /* Input Wrapper - Changed to flex-shrink so it sticks natively to the bottom */
+        /* Input Wrapper - Flexbox instead of Fixed */
         .bottom-wrapper {
-            flex-shrink: 0;
+            flex: 0 0 auto; /* Stick to bottom, don't shrink */
+            width: 100%; 
             background: white;
             z-index: 100;
             display: flex;
@@ -316,8 +319,10 @@
         async function fetchMessages() {
             const { data: msgs } = await supabaseClient.from('messages').select('*').eq('chat_id', activeChatId).order('created_at', { ascending: true });
             const box = document.getElementById('chat-box');
-            // Do not wipe out the disclaimer if it is present, just remove old messages
+            
+            // Clear old messages but keep the disclaimer intact
             document.querySelectorAll('.msg-row').forEach(e => e.remove());
+            
             msgs.forEach(msg => renderMessage(msg));
             setTimeout(scrollToBottom, 100);
         }
@@ -458,10 +463,12 @@
                     const autoText = `System Auto-Contact Details:\nName: ${userProfile.full_name}\nPhone: ${userProfile.phone_number}`;
                     await insertMessage(autoText, null, true);
 
+                    // 🚀 FIX: Awaiting EmailJS to prevent Network Close Errors
                     const { data: vendorData } = await supabaseClient.from('vendors').select('email').eq('user_id', urlVendorId).single();
-                    
                     if(vendorData && vendorData.email) {
-                        emailjs.send(EMAILJS_SERVICE, EMAILJS_VENDOR_TEMPLATE, { to_email: vendorData.email }).catch(err => console.error("Vendor Email failed:", err));
+                        try {
+                            await emailjs.send(EMAILJS_SERVICE, EMAILJS_VENDOR_TEMPLATE, { to_email: vendorData.email });
+                        } catch (err) { console.error("Vendor Email failed:", err); }
                     }
                 } 
                 else {
@@ -477,22 +484,26 @@
                         unread_by_vendor: !amIVendor ? true : false   
                     }).eq('id', activeChatId);
 
-                    // 🚀 FIX: IF I AM THE CUSTOMER, SEND EMAIL TO VENDOR
+                    // 🚀 FIX: If I am the CUSTOMER, fetch vendor email and AWAIT send
                     if (!amIVendor) {
                         const { data: vendorData } = await supabaseClient.from('vendors').select('email').eq('user_id', currentChat.vendor_id).single();
                         if (vendorData && vendorData.email) {
-                            emailjs.send(EMAILJS_SERVICE, EMAILJS_VENDOR_TEMPLATE, { to_email: vendorData.email }).catch(err => console.error("Vendor Reply Email failed:", err));
+                            try {
+                                await emailjs.send(EMAILJS_SERVICE, EMAILJS_VENDOR_TEMPLATE, { to_email: vendorData.email });
+                            } catch (err) { console.error("Vendor Reply Email failed:", err); }
                         }
                     }
 
-                    // 🚀 FIX: IF I AM THE VENDOR, SEND EMAIL TO CUSTOMER (Only once per chat)
+                    // 🚀 FIX: If I am the VENDOR, fetch customer email and AWAIT send
                     if (amIVendor && currentChat.vendor_has_replied === false) {
                         await supabaseClient.from('chats').update({ vendor_has_replied: true }).eq('id', activeChatId);
-                        currentChat.vendor_has_replied = true; // Update local state
+                        currentChat.vendor_has_replied = true; 
                         
-                        const { data: custEmail, error: rpcErr } = await supabaseClient.rpc('get_customer_email', { uid: currentChat.customer_id });
+                        const { data: custEmail } = await supabaseClient.rpc('get_customer_email', { uid: currentChat.customer_id });
                         if(custEmail) {
-                            emailjs.send(EMAILJS_SERVICE, EMAILJS_CUSTOMER_TEMPLATE, { to_email: custEmail }).catch(err => console.error("Customer Email failed:", err));
+                            try {
+                                await emailjs.send(EMAILJS_SERVICE, EMAILJS_CUSTOMER_TEMPLATE, { to_email: custEmail });
+                            } catch (err) { console.error("Customer Email failed:", err); }
                         }
                     }
                 }
