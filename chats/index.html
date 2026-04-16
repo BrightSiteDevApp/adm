@@ -16,26 +16,23 @@
         /* 🚀 BULLETPROOF MOBILE LAYOUT & SCROLLING FIX */
         body, html { 
             height: 100%; 
-            height: 100dvh; 
+            height: 100dvh; /* Dynamic Viewport Height prevents address bar bugs */
             margin: 0; padding: 0; 
             background: #f1f5f9; 
-            overflow: hidden; /* Lock the body to prevent bouncy scrolling */
-            position: fixed; /* iOS hack to lock viewport */
-            width: 100%;
+            overflow: hidden; /* Prevent the body from bouncing */
         }
         
         .chat-container { 
-            position: absolute;
-            top: 0; left: 0; right: 0; bottom: 0;
             display: flex; 
             flex-direction: column; 
+            height: 100%; 
+            width: 100%;
             background: white; 
-            box-shadow: 0 0 20px rgba(0,0,0,0.05); 
         }
         
-        /* Header */
+        /* Header - Strictly fixed height */
         .chat-header { 
-            flex: 0 0 auto; /* Strictly prevent growing or shrinking */
+            flex: 0 0 auto; /* Never shrink or grow */
             width: 100%; 
             background: white; padding: 15px 20px; display: flex; align-items: center; 
             border-bottom: 1px solid #e2e8f0; z-index: 100; box-shadow: 0 2px 10px rgba(0,0,0,0.02); 
@@ -45,10 +42,10 @@
         .chat-title { font-size: 16px; font-weight: 800; color: var(--text-main); margin: 0 0 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .chat-subtitle { font-size: 12px; color: var(--brand-color); font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
-        /* Messages Area */
+        /* Messages Area - Perfectly fills remaining space */
         .chat-area { 
             flex: 1 1 auto; 
-            min-height: 0; /* 🚀 CRITICAL FIX: Stops the flex container from blowing out past the screen */
+            min-height: 0; /* 🚀 CRITICAL FIX: Forces flex container to stay inside screen bounds */
             overflow-y: auto; 
             padding: 20px;
             display: flex; 
@@ -86,15 +83,16 @@
         .msg-time { font-size: 10px; color: var(--text-muted); margin-top: 4px; }
         .me .msg-time { color: #cbd5e1; text-align: right; }
 
-        /* Input Wrapper */
+        /* Input Wrapper - Always stays at bottom */
         .bottom-wrapper {
-            flex: 0 0 auto; /* Strictly prevent growing or shrinking */
+            flex: 0 0 auto; /* Never shrink or grow */
             width: 100%; 
             background: white;
             z-index: 100;
             display: flex;
             flex-direction: column;
             border-top: 1px solid #e2e8f0;
+            padding-bottom: env(safe-area-inset-bottom, 0px); /* iPhone Home Bar fix */
         }
 
         .img-preview-bar { display: none; padding: 10px 20px; background: #eff6ff; border-bottom: 1px solid #bfdbfe; align-items: center; justify-content: space-between; box-sizing: border-box; }
@@ -102,7 +100,6 @@
 
         .input-area { 
             padding: 12px 15px; 
-            padding-bottom: max(12px, env(safe-area-inset-bottom)); 
             display: flex; 
             align-items: flex-end; 
             gap: 10px; 
