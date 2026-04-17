@@ -347,7 +347,7 @@
                     .eq('category', category)
                     .eq('status', 'Active')
                     .neq('id', currentId) 
-                    .limit(15); 
+                    .limit(16); 
                 
                 if(!data || data.length === 0) {
                     grid.innerHTML = "<p style='grid-column: span 2; text-align: center; color: #94a3b8; font-size: 13px; padding: 20px 0;'>No similar items right now.</p>";
