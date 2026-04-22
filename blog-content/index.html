@@ -98,6 +98,11 @@
     </style>
 </head>
 <body>
+    <script>
+        if (localStorage.getItem('theme') === 'dark') {
+            document.body.classList.add('dark-mode');
+        }
+    </script>
 
     <div class="app-container">
         
@@ -234,31 +239,34 @@
 
                 document.title = `${data.title} | AFIT Digital Market`;
                 
-                // 🚀 FIX: PERFECTLY MATCHED DOM IDs + Placehold.co update
                 document.getElementById('articleImg').src = data.image_url || 'https://placehold.co/600x300?text=No+Image';
                 document.getElementById('articleCat').innerText = escapeHTML(data.category || 'News');
                 document.getElementById('articleTitle').innerText = escapeHTML(data.title);
                 document.getElementById('articleDate').innerHTML = `<i class="far fa-calendar-alt"></i> ${new Date(data.created_at).toLocaleDateString()}`;
                 
-                // Sanitized and Linkified
                 const safeContent = escapeHTML(data.content);
                 const textWithLinks = linkifyText(safeContent);
                 document.getElementById('articleContent').innerHTML = textWithLinks.replace(/\n/g, '<br>');
 
-                // Setup Share Button
                 const shareBtn = document.getElementById('shareTopBtn');
                 shareBtn.style.display = 'block';
                 shareBtn.onclick = () => shareBlog(data.id, data.title, data.snippet);
 
-                // 🚀 VIEW COUNT LOGIC
+                // 🚀 FIXED VIEW COUNT LOGIC: Prevents views from ever dropping!
                 const sessionViews = JSON.parse(sessionStorage.getItem('session_viewed_blogs') || '[]');
                 if (!sessionViews.includes(currentBlogId)) {
                     sessionViews.push(currentBlogId);
                     sessionStorage.setItem('session_viewed_blogs', JSON.stringify(sessionViews));
                     
-                    const newViewCount = (data.views || 0) + 1;
-                    document.getElementById('articleViews').innerHTML = `<i class="far fa-eye"></i> ${newViewCount} Views`;
-                    await supabaseClient.from('blogs').update({ views: newViewCount }).eq('id', currentBlogId);
+                    // Display an instant +1 so it feels fast
+                    document.getElementById('articleViews').innerHTML = `<i class="far fa-eye"></i> ${(data.views || 0) + 1} Views`;
+                    
+                    // Fetch the absolute latest view count directly before saving to prevent race conditions overwriting older data
+                    const { data: latestDb } = await supabaseClient.from('blogs').select('views').eq('id', currentBlogId).single();
+                    if (latestDb) {
+                        const safeNewCount = Math.max((data.views || 0) + 1, (latestDb.views || 0) + 1);
+                        await supabaseClient.from('blogs').update({ views: safeNewCount }).eq('id', currentBlogId);
+                    }
                 } else {
                     document.getElementById('articleViews').innerHTML = `<i class="far fa-eye"></i> ${data.views || 0} Views`;
                 }
@@ -347,7 +355,7 @@
                     .select('id, title, category, image_url, created_at')
                     .neq('id', currentBlogId)
                     .order('created_at', { ascending: false })
-                    .limit(20); // Fetch a larger pool
+                    .limit(20);
 
                 if (error) throw error;
                 list.innerHTML = "";
@@ -357,7 +365,6 @@
                     return;
                 }
 
-                // 🎲 Randomly shuffle and pick 3 to display
                 const shuffled = data.sort(() => 0.5 - Math.random()).slice(0, 3);
 
                 shuffled.forEach(b => {

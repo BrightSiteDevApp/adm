@@ -63,6 +63,18 @@
         :root {
             --brand-color: #2d8eff; /* AFIT Blue */
         }
+        
+        /* 🚀 FIX: Sticky Header Background */
+        .blog-header-wrapper {
+            position: sticky;
+            top: 0;
+            background: #f8fafc;
+            z-index: 100;
+            padding: 15px 20px 5px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.03);
+            border-bottom: 1px solid #e2e8f0;
+        }
+
         .header-top-flex { display: flex; align-items: center; gap: 15px; margin-bottom: 15px; }
         .page-title { font-size: 20px; font-weight: 800; color: var(--text-main); margin: 0; }
         
@@ -120,6 +132,10 @@
         body.dark-mode { background-color: #020617 !important; }
         body.dark-mode .app-container { background: #0f172a !important; }
         body.dark-mode .page-title, body.dark-mode .back-btn { color: #f1f5f9 !important; }
+        
+        /* 🚀 FIX: Dark Mode Sticky Header */
+        body.dark-mode .blog-header-wrapper { background: #0f172a !important; border-bottom-color: #334155 !important; }
+        
         body.dark-mode .search-container { background: #1e293b !important; border: 1px solid #334155 !important; box-shadow: none !important; }
         body.dark-mode .search-container input { color: #f1f5f9 !important; }
         body.dark-mode .chip { background: #1e293b !important; border-color: #334155 !important; color: #94a3b8 !important; }
@@ -140,7 +156,7 @@
 
     <div class="app-container">
         
-        <div class="header" style="background: transparent; border: none; padding-bottom: 5px;">
+        <div class="blog-header-wrapper">
             <div class="header-top-flex">
                 <a href="../index.html" class="back-btn" style="color: var(--text-main); font-size: 20px;"><i class="fas fa-arrow-left"></i></a>
                 <h1 class="page-title">Campus News</h1>
@@ -153,7 +169,7 @@
 
         <div class="content-area" style="padding: 0 20px 90px;">
             
-            <div class="chip-scroll">
+            <div class="chip-scroll" style="margin-top: 15px;">
                 <div class="chip active" onclick="setCategory('All', this)">All News</div>
                 <div class="chip" onclick="setCategory('News', this)">News</div>
                 <div class="chip" onclick="setCategory('Academics', this)">Academics</div>
