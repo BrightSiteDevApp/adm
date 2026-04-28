@@ -636,7 +636,7 @@
             } 
         }
 
-        window.loadAdminBlogs = async function() {
+       window.loadAdminBlogs = async function() {
             const list = document.getElementById('modal-blogs-list'); 
             list.innerHTML = '<p style="text-align:center; padding: 20px;">Loading posts...</p>';
             try {
@@ -645,9 +645,10 @@
                 
                 list.innerHTML = "";
                 data.forEach(b => {
-                    const sT = b.title.replace(/'/g, "\\'").replace(/"/g, '&quot;'); 
-                    const sS = b.snippet ? b.snippet.replace(/'/g, "\\'").replace(/"/g, '&quot;') : ''; 
-                    const sC = b.content ? b.content.replace(/'/g, "\\'").replace(/"/g, '&quot;') : '';
+                    // 🚀 THE FIX: Added regex to properly escape line breaks so the Edit button doesn't break
+                    const sT = b.title ? b.title.replace(/'/g, "\\'").replace(/"/g, '&quot;').replace(/\n/g, '\\n').replace(/\r/g, '') : ''; 
+                    const sS = b.snippet ? b.snippet.replace(/'/g, "\\'").replace(/"/g, '&quot;').replace(/\n/g, '\\n').replace(/\r/g, '') : ''; 
+                    const sC = b.content ? b.content.replace(/'/g, "\\'").replace(/"/g, '&quot;').replace(/\n/g, '\\n').replace(/\r/g, '') : '';
                     
                     list.innerHTML += `
                         <div class="list-item">
@@ -665,8 +666,7 @@
                         </div>`;
                 });
             } catch (e) { console.error(e); }
-        }
-        
+        }        
         async function uploadImage(file) {
             const formData = new FormData(); 
             formData.append('file', file); 
