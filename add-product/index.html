@@ -260,7 +260,7 @@
 
     <script src="../asset/script.js"></script>
 
-    <script>
+   <script>
     // ⚠️ PUT YOUR CLOUDINARY CLOUD NAME HERE
     const CLOUD_NAME = "dgsblxgni"; 
     // ⚠️ PUT YOUR NEW SINGLE PRESET NAME HERE
@@ -290,7 +290,7 @@
             else {
                 myVendorData = data;
                 document.getElementById('dashboard-state').style.display = 'block';
-                // innerText is naturally safe from XSS, no escapeHTML needed here
+                // innerText is naturally safe from XSS
                 document.getElementById('dash-business-name').innerText = data.business_name;
                 
                 const maxAllowed = data.max_items || 5; 
@@ -342,10 +342,13 @@
                     ? `<button class="inv-btn btn-active" onclick="toggleStatus('${p.id}', 'Active')"><i class="fas fa-check" style="margin-right: 5px;"></i> Mark Active</button>`
                     : `<button class="inv-btn btn-sold" onclick="toggleStatus('${p.id}', 'Sold')"><i class="fas fa-times-circle" style="margin-right: 5px;"></i> Mark Sold</button>`;
 
-                const safeName = p.name.replace(/'/g, "\\'").replace(/"/g, '&quot;');
-                const safeDesc = p.description.replace(/'/g, "\\'").replace(/"/g, '&quot;');
+                // 🚀 BUG FIX: Use escapeJS to safely handle line-breaks and quotes!
+                // We also remove \r just in case Windows carriage returns try to break it
+                const safeName = escapeJS(p.name).replace(/\r/g, '');
+                const safeDesc = escapeJS(p.description).replace(/\r/g, '');
+                const safeCat = escapeJS(p.category).replace(/\r/g, '');
+                const safeId = escapeJS(p.id);
 
-                // 🚀 XSS FIX: Wrapped p.name in escapeHTML
                 grid.innerHTML += `
                     <div class="inv-card" style="opacity: ${isSold ? '0.6' : '1'}; transition: 0.3s;">
                         ${badge}
@@ -354,8 +357,8 @@
                         <div class="inv-title">${escapeHTML(p.name)}</div>
                         
                         <div class="inv-actions">
-                            <button class="inv-btn btn-edit" onclick="openEditModal('${p.id}', '${safeName}', ${p.price}, '${escapeHTML(p.category)}', '${safeDesc}')"><i class="fas fa-pen"></i></button>
-                            <button class="inv-btn btn-delete" onclick="deleteItem('${p.id}')"><i class="fas fa-trash"></i></button>
+                            <button class="inv-btn btn-edit" onclick="openEditModal('${safeId}', '${safeName}', ${p.price}, '${safeCat}', '${safeDesc}')"><i class="fas fa-pen"></i></button>
+                            <button class="inv-btn btn-delete" onclick="deleteItem('${safeId}')"><i class="fas fa-trash"></i></button>
                         </div>
                         ${toggleBtn}
                     </div>
@@ -525,6 +528,6 @@
         } catch(e) { alert("Failed to update the item."); } 
         finally { btn.innerText = "Save Changes"; btn.disabled = false; }
     }
-</script>
+    </script>
 </body>
 </html>
