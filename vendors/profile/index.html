@@ -441,21 +441,21 @@
             });
         }
 
-        // 🚀 FIX: Randomized "Explore More Items"
+       // 🚀 FIX: Randomized "Explore More Items" (Displays 50)
         async function loadExploreItems() {
             const grid = document.getElementById('explore-items');
             
-            // Fetch a larger pool of active items not belonging to this vendor
+            // 1. Fetch a massive pool of active items not belonging to this vendor
             const { data: products } = await supabaseClient.from('products')
                 .select('*')
                 .neq('vendor_id', vendorId)
                 .eq('status', 'Active')
-                .limit(50); 
+                .limit(1000); // Increased from 50 to 1000 to capture the whole catalog
             
             if (!products || products.length === 0) return;
             
-            // Shuffle them and grab 16
-            const randomizedItems = shuffleArray(products).slice(0, 16);
+            // 2. Shuffle the entire pool and grab exactly 50 items
+            const randomizedItems = shuffleArray(products).slice(0, 50);
 
             grid.innerHTML = "";
             randomizedItems.forEach(p => {
@@ -465,21 +465,21 @@
             });
         }
 
-        // 🚀 FIX: Randomized "Other Vendors"
+        // 🚀 FIX: Randomized "Other Vendors" (Displays 30)
         async function loadOtherVendors() {
             const grid = document.getElementById('other-vendors');
             
-            // Fetch a larger pool of active vendors
+            // 1. Fetch a massive pool of active vendors
             const { data: vendors } = await supabaseClient.from('vendors')
                 .select('*')
                 .neq('id', vendorId)
                 .eq('is_active', true)
-                .limit(30);
+                .limit(1000); // Increased from 30 to 1000 to capture all vendors
             
             if (!vendors || vendors.length === 0) return;
             
-            // Shuffle them and grab 8
-            const randomizedVendors = shuffleArray(vendors).slice(0, 8);
+            // 2. Shuffle the entire pool and grab exactly 30 vendors
+            const randomizedVendors = shuffleArray(vendors).slice(0, 30);
 
             grid.innerHTML = "";
             randomizedVendors.forEach(v => {
