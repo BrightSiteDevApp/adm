@@ -1,6 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-70VSGR5WBW"></script>
+    
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Article | AFIT Digital Market</title>
@@ -12,60 +14,117 @@
     <link rel="icon" href="../favicon.ico" type="image/x-icon">
 
     <style>
+        /* 🚀 EXACT AFIT BLUE VARIABLES */
         :root {
-            --brand-color: #2d8eff;
+            --brand-color: #2d8eff; /* AFIT Blue */
+            --brand-hover: #1a73e8;
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+            --bg-body: #f8fafc;
+        }
+
+        body, html { background: var(--bg-body); margin: 0; padding: 0; font-family: 'Poppins', sans-serif; overflow-x: hidden;}
+        .app-container { min-height: 100vh; position: relative; }
+        
+        /* 🚀 TOP NAVIGATION */
+        .glass-header {
+            position: fixed; top: 0; left: 50%; transform: translateX(-50%); width: 100%; max-width: 480px; 
+            background: linear-gradient(to bottom, rgba(0,0,0,0.7) 0%, transparent 100%);
+            border: none; padding: 20px; z-index: 100; pointer-events: none;
+            display: flex; justify-content: space-between; align-items: center; box-sizing: border-box;
+        }
+        .header-btn {
+            background: rgba(255,255,255,0.25); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+            border: 1px solid rgba(255,255,255,0.1); width: 42px; height: 42px; border-radius: 50%; 
+            color: white; font-size: 18px; cursor: pointer; display: flex; justify-content: center; align-items: center;
+            pointer-events: auto; transition: 0.2s; box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        .header-btn:active { transform: scale(0.9); background: rgba(255,255,255,0.4); }
+
+        /* 🚀 HERO IMAGE */
+        .article-hero { width: 100%; height: 320px; object-fit: cover; background: #e2e8f0; display: block;}
+        
+        /* 🚀 PREMIUM BLOG BODY */
+        .article-body { 
+            padding: 35px 20px; background: white; margin-top: -30px; position: relative; 
+            border-radius: 30px 30px 0 0; z-index: 10; box-shadow: 0 -5px 25px rgba(0,0,0,0.06);
         }
         
-        .article-hero { width: 100%; height: 280px; object-fit: cover; background: #f8fafc; }
+        .cat-badge { 
+            display: inline-block; color: var(--brand-color); background: rgba(45, 142, 255, 0.1); 
+            padding: 6px 14px; border-radius: 20px; font-size: 11px; font-weight: 800; 
+            text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px;
+        }
         
-        .article-body { padding: 25px 20px; background: white; margin-top: -20px; position: relative; border-radius: 24px 24px 0 0; z-index: 10; }
+        .article-title { font-size: 26px; font-weight: 900; color: var(--text-main); margin: 0 0 20px; line-height: 1.3; letter-spacing: -0.5px;}
         
-        .cat-badge { color: var(--brand-color); background: #eff6ff; padding: 4px 10px; border-radius: 8px; font-size: 11px; font-weight: 800; text-transform: uppercase; }
-        .article-title { font-size: 24px; font-weight: 900; color: var(--text-main); margin: 15px 0; line-height: 1.3; }
-        .article-meta { display: flex; gap: 15px; color: var(--text-muted); font-size: 12px; font-weight: 600; margin-bottom: 25px; border-bottom: 1px solid #f1f5f9; padding-bottom: 20px;}
+        /* Professional Author Meta Row */
+        .article-meta { 
+            display: flex; justify-content: space-between; align-items: center; 
+            margin-bottom: 30px; border-bottom: 1px solid #f1f5f9; padding-bottom: 20px;
+        }
+        .meta-left { display: flex; align-items: center; gap: 12px; }
+        .meta-avatar { 
+            width: 40px; height: 40px; border-radius: 50%; background: var(--brand-color); 
+            color: white; display: flex; justify-content: center; align-items: center; font-size: 18px; 
+            box-shadow: 0 4px 10px rgba(45, 142, 255, 0.3);
+        }
+        .meta-info { display: flex; flex-direction: column; }
+        .meta-author { font-size: 14px; font-weight: 800; color: var(--text-main); }
+        .meta-date { font-size: 12px; color: var(--text-muted); font-weight: 500; }
+        .meta-views { font-size: 12px; font-weight: 700; color: var(--text-muted); background: #f8fafc; padding: 6px 12px; border-radius: 12px;}
         
-        .article-content { font-size: 16px; color: #334155; line-height: 1.8; white-space: pre-wrap; margin-bottom: 40px;}
-        .article-content a { word-break: break-all; } /* Ensures long links wrap nicely */
+        /* Formatted Article Content */
+        .article-content { font-size: 16px; color: #334155; line-height: 1.8; white-space: pre-wrap; margin-bottom: 40px; font-family: 'Georgia', serif;}
+        .article-content a { word-break: break-word; color: var(--brand-color); text-decoration: underline; font-weight: bold;} 
         
-        /* Comments Section */
-        .comments-section { border-top: 5px solid #f8fafc; padding-top: 30px; }
+        /* 🚀 COMMENTS SECTION */
+        .comments-section { border-top: 6px solid #f8fafc; padding-top: 30px; }
+        .comments-title { font-size: 18px; font-weight: 900; margin-bottom: 20px; color: var(--text-main); }
         .comment-card { display: flex; gap: 12px; margin-bottom: 20px; }
-        .comment-avatar { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; background: #eee; border: 2px solid #f8fafc;}
-        .comment-bubble { background: #f8fafc; padding: 15px; border-radius: 0 16px 16px 16px; flex: 1; border: 1px solid #f1f5f9; }
-        .comment-name { font-size: 13px; font-weight: 800; color: var(--text-main); margin-bottom: 5px; }
-        .comment-text { font-size: 14px; color: var(--text-muted); line-height: 1.5; }
+        .comment-avatar { width: 45px; height: 45px; border-radius: 50%; object-fit: cover; background: #eee; border: 2px solid #f8fafc;}
+        .comment-bubble { background: #f8fafc; padding: 16px; border-radius: 0 16px 16px 16px; flex: 1; border: 1px solid #f1f5f9; }
+        .comment-name { font-size: 14px; font-weight: 800; color: var(--text-main); margin-bottom: 5px; }
+        .comment-text { font-size: 14px; color: var(--text-muted); line-height: 1.5; font-family: 'Poppins', sans-serif;}
 
-        .add-comment-box { display: flex; gap: 10px; margin-top: 20px; margin-bottom: 40px; width: 100%; box-sizing: border-box; }
+        .add-comment-box { display: flex; gap: 10px; margin-top: 20px; margin-bottom: 10px; width: 100%; box-sizing: border-box; }
         .comment-input { 
-            flex: 1; min-width: 0; box-sizing: border-box; padding: 14px 15px; 
-            border-radius: 14px; border: 2px solid #e2e8f0; background: #f8fafc; 
-            outline: none; font-size: 14px; transition: 0.2s;
+            flex: 1; min-width: 0; box-sizing: border-box; padding: 15px; 
+            border-radius: 16px; border: 2px solid #e2e8f0; background: #f8fafc; 
+            outline: none; font-size: 14px; transition: 0.2s; font-family: 'Poppins', sans-serif;
         }
-        .comment-input:focus { border-color: var(--brand-color); background: white; }
+        .comment-input:focus { border-color: var(--brand-color); background: white; box-shadow: 0 4px 15px rgba(45, 142, 255, 0.1);}
         .send-btn { 
-            background: var(--brand-color); color: white; border: none; width: 48px; 
-            height: 48px; border-radius: 14px; display: flex; justify-content: center; 
-            align-items: center; cursor: pointer; font-size: 16px; 
-            box-shadow: 0 4px 10px rgba(45, 142, 255, 0.3); flex-shrink: 0; 
+            background: var(--brand-color); color: white; border: none; width: 50px; 
+            height: 50px; border-radius: 16px; display: flex; justify-content: center; 
+            align-items: center; cursor: pointer; font-size: 18px; 
+            box-shadow: 0 4px 15px rgba(45, 142, 255, 0.3); flex-shrink: 0; transition: 0.2s;
         }
+        .send-btn:active { transform: scale(0.9); }
 
-        /* More Blogs Section */
-        .more-blogs-section { background: #f8fafc; padding: 30px 20px; }
-        .section-title { font-size: 18px; font-weight: 900; color: var(--text-main); margin-bottom: 20px; }
+        /* 🚀 MORE BLOGS SECTION */
+        .more-blogs-section { background: #f8fafc; padding: 35px 20px 40px; }
+        .section-title { font-size: 18px; font-weight: 900; color: var(--text-main); margin-bottom: 20px; display: flex; align-items: center; gap: 8px;}
         
-        .small-blog-card { background: white; border-radius: 16px; padding: 12px; display: flex; gap: 15px; margin-bottom: 15px; border: 1px solid #f1f5f9; box-shadow: 0 4px 10px rgba(0,0,0,0.02); cursor: pointer; }
-        .small-blog-card img { width: 80px; height: 80px; border-radius: 10px; object-fit: cover; }
-        .sbc-title { font-size: 14px; font-weight: 800; color: var(--text-main); margin-bottom: 5px; line-height: 1.3; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-        .sbc-meta { font-size: 11px; color: var(--text-muted); font-weight: 600; }
+        .small-blog-card { 
+            background: white; border-radius: 16px; padding: 12px; display: flex; gap: 15px; 
+            margin-bottom: 15px; border: 1px solid #f1f5f9; box-shadow: 0 4px 15px rgba(0,0,0,0.02); 
+            cursor: pointer; transition: 0.2s; align-items: center;
+        }
+        .small-blog-card:active { transform: scale(0.98); box-shadow: 0 2px 8px rgba(0,0,0,0.02);}
+        .small-blog-card img { width: 85px; height: 85px; border-radius: 12px; object-fit: cover; background: #f1f5f9;}
+        .sbc-info { flex: 1; min-width: 0; }
+        .sbc-title { font-size: 14px; font-weight: 800; color: var(--text-main); margin-bottom: 6px; line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+        .sbc-meta { font-size: 11px; color: var(--text-muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; display: flex; gap: 8px; align-items: center;}
 
-        /* SKELETON LOADER STYLES */
+        /* 🚀 SKELETON LOADER STYLES */
         .sk-shimmer { background: linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%); background-size: 200% 100%; animation: shimmer 1.5s infinite; }
         @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
-        .sk-hero { width: 100%; height: 280px; }
-        .sk-badge { width: 60px; height: 22px; border-radius: 8px; margin-bottom: 15px; }
+        .sk-hero { width: 100%; height: 320px; }
+        .sk-badge { width: 60px; height: 22px; border-radius: 12px; margin-bottom: 15px; }
         .sk-title { width: 90%; height: 30px; border-radius: 8px; margin-bottom: 10px; }
         .sk-title-2 { width: 70%; height: 30px; border-radius: 8px; margin-bottom: 25px; }
-        .sk-meta { width: 150px; height: 15px; border-radius: 4px; margin-bottom: 30px; }
+        .sk-meta { width: 100%; height: 40px; border-radius: 12px; margin-bottom: 30px; }
         .sk-text { width: 100%; height: 16px; border-radius: 4px; margin-bottom: 12px; }
         .sk-text-short { width: 80%; height: 16px; border-radius: 4px; margin-bottom: 12px; }
 
@@ -74,26 +133,29 @@
         /* ========================================= */
         body.dark-mode { background-color: #020617 !important; }
         body.dark-mode .app-container { background: #0f172a !important; }
-        body.dark-mode .header { background: rgba(15,23,42,0.8) !important; border-bottom-color: #334155 !important; }
+        
         body.dark-mode .article-body { background: #0f172a !important; }
         body.dark-mode .article-title { color: #f1f5f9 !important; }
+        body.dark-mode .meta-author { color: #f1f5f9 !important; }
+        body.dark-mode .meta-views { background: #1e293b !important; color: #cbd5e1 !important; }
         body.dark-mode .article-meta { border-bottom-color: #334155 !important; }
         body.dark-mode .article-content { color: #cbd5e1 !important; }
         
         body.dark-mode .comments-section { border-top-color: #1e293b !important; }
+        body.dark-mode .comments-title { color: #f1f5f9 !important; }
         body.dark-mode .comment-bubble { background: #1e293b !important; border-color: #334155 !important; }
         body.dark-mode .comment-name { color: #f1f5f9 !important; }
-        body.dark-mode .comment-text { color: #cbd5e1 !important; }
+        body.dark-mode .comment-text { color: #94a3b8 !important; }
         
         body.dark-mode .comment-input { background: #1e293b !important; border-color: #334155 !important; color: white; }
         body.dark-mode .comment-input:focus { border-color: var(--brand-color) !important; }
         
         body.dark-mode .more-blogs-section { background: #020617 !important; }
         body.dark-mode .section-title { color: #f1f5f9 !important; }
-        body.dark-mode .small-blog-card { background: #1e293b !important; border-color: #334155 !important; }
+        body.dark-mode .small-blog-card { background: #1e293b !important; border-color: #334155 !important; box-shadow: none !important;}
         body.dark-mode .sbc-title { color: #f1f5f9 !important; }
         
-        body.dark-mode .cat-badge { background: rgba(45, 142, 255, 0.1) !important; }
+        body.dark-mode .cat-badge { background: rgba(45, 142, 255, 0.15) !important; }
         body.dark-mode .sk-shimmer { background: linear-gradient(90deg, #1e293b 25%, #334155 50%, #1e293b 75%) !important; background-size: 200% 100% !important; }
     </style>
 </head>
@@ -106,11 +168,10 @@
 
     <div class="app-container">
         
-        <div class="header" style="position: absolute; top: 0; left: 0; width: 100%; background: linear-gradient(to bottom, rgba(0,0,0,0.6), transparent); border: none; padding: 20px; z-index: 20;">
-            <div style="display: flex; justify-content: space-between; align-items: center;">
-                <button onclick="smartBack()" style="background: rgba(255,255,255,0.2); backdrop-filter: blur(4px); border: none; width: 40px; height: 40px; border-radius: 50%; color: white; font-size: 18px; cursor: pointer;"><i class="fas fa-arrow-left"></i></button>
-                <button id="shareTopBtn" style="background: rgba(255,255,255,0.2); backdrop-filter: blur(4px); border: none; width: 40px; height: 40px; border-radius: 50%; color: white; font-size: 16px; cursor: pointer; display: none;"><i class="fas fa-share-alt"></i></button>
-            </div>
+        <!-- Transparent Floating Header -->
+        <div class="glass-header">
+            <button onclick="smartBack()" class="header-btn"><i class="fas fa-arrow-left"></i></button>
+            <button id="shareTopBtn" class="header-btn" style="display: none;"><i class="fas fa-share-alt"></i></button>
         </div>
 
         <div id="skeleton-content">
@@ -137,18 +198,26 @@
             <div class="article-body">
                 <span class="cat-badge" id="articleCat">News</span>
                 <h1 class="article-title" id="articleTitle">Loading Article...</h1>
+                
+                <!-- Premium Author Meta Block -->
                 <div class="article-meta">
-                    <span id="articleDate"><i class="far fa-calendar-alt"></i> --</span>
-                    <span id="articleViews"><i class="far fa-eye"></i> -- Views</span>
+                    <div class="meta-left">
+                        <div class="meta-avatar"><i class="fas fa-newspaper"></i></div>
+                        <div class="meta-info">
+                            <span class="meta-author">AFIT News Desk</span>
+                            <span class="meta-date" id="articleDate">--</span>
+                        </div>
+                    </div>
+                    <div class="meta-views" id="articleViews"><i class="far fa-eye"></i> --</div>
                 </div>
 
                 <div class="article-content" id="articleContent"></div>
 
                 <div class="comments-section">
-                    <h3 style="font-size: 18px; font-weight: 800; margin-bottom: 20px;">Comments</h3>
+                    <h3 class="comments-title">Comments</h3>
                     
                     <div id="commentsList">
-                        <p style="color: #94a3b8; font-size: 13px;"><i class="fas fa-spinner fa-spin"></i> Loading comments...</p>
+                        <p style="color: #94a3b8; font-size: 13px; text-align: center;"><i class="fas fa-spinner fa-spin"></i> Loading comments...</p>
                     </div>
 
                     <div class="add-comment-box">
@@ -157,12 +226,12 @@
                     </div>
                 </div>
             </div>
-        </div>
-
-        <div class="more-blogs-section">
-            <h3 class="section-title">See More News</h3>
-            <div id="more-blogs-list">
-                <p style="color: #94a3b8; font-size: 13px;">Loading more posts...</p>
+            
+            <div class="more-blogs-section">
+                <h3 class="section-title"><i class="fas fa-fire" style="color: #ea580c;"></i> Recommended Reads</h3>
+                <div id="more-blogs-list">
+                    <p style="color: #94a3b8; font-size: 13px;">Loading more posts...</p>
+                </div>
             </div>
         </div>
 
@@ -204,10 +273,11 @@
             return title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
         }
 
+        // 🚀 REFACTORED: Linkify without nested backticks
         function linkifyText(text) {
             const urlRegex = /(https?:\/\/[^\s]+)/g;
             return text.replace(urlRegex, function(url) {
-                return `<a href="${url}" target="_blank" style="color: var(--brand-color); text-decoration: underline; font-weight: bold;">${url}</a>`;
+                return '<a href="' + escapeHTML(url) + '" target="_blank">' + escapeHTML(url) + '</a>';
             });
         }
 
@@ -235,40 +305,40 @@
                 blogData = data;
 
                 const niceSlug = createSlug(data.title);
-                window.history.replaceState(null, '', `?post=${niceSlug}--${data.id}`);
+                window.history.replaceState(null, '', '?post=' + niceSlug + '--' + data.id);
 
-                document.title = `${data.title} | AFIT Digital Market`;
+                document.title = data.title + ' | AFIT Digital Market';
                 
                 document.getElementById('articleImg').src = data.image_url || 'https://placehold.co/600x300?text=No+Image';
                 document.getElementById('articleCat').innerText = escapeHTML(data.category || 'News');
                 document.getElementById('articleTitle').innerText = escapeHTML(data.title);
-                document.getElementById('articleDate').innerHTML = `<i class="far fa-calendar-alt"></i> ${new Date(data.created_at).toLocaleDateString()}`;
+                
+                const dateObj = new Date(data.created_at);
+                document.getElementById('articleDate').innerText = dateObj.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
                 
                 const safeContent = escapeHTML(data.content);
                 const textWithLinks = linkifyText(safeContent);
                 document.getElementById('articleContent').innerHTML = textWithLinks.replace(/\n/g, '<br>');
 
                 const shareBtn = document.getElementById('shareTopBtn');
-                shareBtn.style.display = 'block';
+                shareBtn.style.display = 'flex';
                 shareBtn.onclick = () => shareBlog(data.id, data.title, data.snippet);
 
-                // 🚀 FIXED VIEW COUNT LOGIC: Prevents views from ever dropping!
+                // FIXED VIEW COUNT LOGIC: Prevents views from ever dropping!
                 const sessionViews = JSON.parse(sessionStorage.getItem('session_viewed_blogs') || '[]');
                 if (!sessionViews.includes(currentBlogId)) {
                     sessionViews.push(currentBlogId);
                     sessionStorage.setItem('session_viewed_blogs', JSON.stringify(sessionViews));
                     
-                    // Display an instant +1 so it feels fast
-                    document.getElementById('articleViews').innerHTML = `<i class="far fa-eye"></i> ${(data.views || 0) + 1} Views`;
+                    document.getElementById('articleViews').innerHTML = '<i class="far fa-eye"></i> ' + ((data.views || 0) + 1);
                     
-                    // Fetch the absolute latest view count directly before saving to prevent race conditions overwriting older data
                     const { data: latestDb } = await supabaseClient.from('blogs').select('views').eq('id', currentBlogId).single();
                     if (latestDb) {
                         const safeNewCount = Math.max((data.views || 0) + 1, (latestDb.views || 0) + 1);
                         await supabaseClient.from('blogs').update({ views: safeNewCount }).eq('id', currentBlogId);
                     }
                 } else {
-                    document.getElementById('articleViews').innerHTML = `<i class="far fa-eye"></i> ${data.views || 0} Views`;
+                    document.getElementById('articleViews').innerHTML = '<i class="far fa-eye"></i> ' + (data.views || 0);
                 }
 
                 document.getElementById('skeleton-content').style.display = 'none';
@@ -302,20 +372,22 @@
                     return;
                 }
 
-                data.forEach(c => {
+                // 🚀 REFACTORED TO PREVENT NESTED BACKTICKS
+                const htmlStrings = data.map(c => {
                     const name = escapeHTML(c.profiles?.full_name || "Student");
                     const avatar = escapeHTML(c.profiles?.avatar_url || "../img/person.png");
+                    const text = escapeHTML(c.comment_text);
                     
-                    list.insertAdjacentHTML('beforeend', `
-                        <div class="comment-card">
-                            <img src="${avatar}" class="comment-avatar" onerror="this.src='../img/person.png'">
-                            <div class="comment-bubble">
-                                <div class="comment-name">${name}</div>
-                                <div class="comment-text">${escapeHTML(c.comment_text)}</div>
-                            </div>
-                        </div>
-                    `);
+                    return '<div class="comment-card">' +
+                                '<img src="' + avatar + '" class="comment-avatar" onerror="this.src=\'../img/person.png\'">' +
+                                '<div class="comment-bubble">' +
+                                    '<div class="comment-name">' + name + '</div>' +
+                                    '<div class="comment-text">' + text + '</div>' +
+                                '</div>' +
+                           '</div>';
                 });
+
+                list.innerHTML = htmlStrings.join('');
             } catch (err) {
                 list.innerHTML = '<p style="color:red; font-size:13px;">Failed to load comments.</p>';
             }
@@ -347,6 +419,7 @@
             }
         }
 
+        // 🚀 UPDATED: Shows up to 10 Related Blogs instead of 3
         async function loadMoreBlogs() {
             const list = document.getElementById('more-blogs-list');
             try {
@@ -355,7 +428,7 @@
                     .select('id, title, category, image_url, created_at')
                     .neq('id', currentBlogId)
                     .order('created_at', { ascending: false })
-                    .limit(20);
+                    .limit(50); // Fetch a good pool to shuffle
 
                 if (error) throw error;
                 list.innerHTML = "";
@@ -365,45 +438,52 @@
                     return;
                 }
 
-                const shuffled = data.sort(() => 0.5 - Math.random()).slice(0, 3);
+                // Shuffle the pool and grab exactly 10 items
+                for (let i = data.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [data[i], data[j]] = [data[j], data[i]];
+                }
+                const shuffled = data.slice(0, 10);
 
-                shuffled.forEach(b => {
+                // 🚀 REFACTORED TO PREVENT NESTED BACKTICKS
+                const htmlStrings = shuffled.map(b => {
                     const slug = createSlug(b.title);
                     const img = escapeHTML(b.image_url || 'https://placehold.co/100x100?text=No+Image');
-                    const date = new Date(b.created_at).toLocaleDateString();
+                    const date = new Date(b.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 
-                    list.insertAdjacentHTML('beforeend', `
-                        <div class="small-blog-card" onclick="window.location.href='index.html?post=${escapeJS(slug)}--${escapeJS(b.id)}'">
-                            <img src="${img}" onerror="this.src='https://placehold.co/100x100?text=No+Image'">
-                            <div>
-                                <div class="sbc-title">${escapeHTML(b.title)}</div>
-                                <div class="sbc-meta">${escapeHTML(b.category)} • ${date}</div>
-                            </div>
-                        </div>
-                    `);
+                    return '<div class="small-blog-card" onclick="window.location.href=\'index.html?post=' + escapeJS(slug) + '--' + escapeJS(b.id) + '\'">' +
+                                '<img src="' + img + '" onerror="this.src=\'https://placehold.co/100x100?text=No+Image\'">' +
+                                '<div class="sbc-info">' +
+                                    '<div class="sbc-title">' + escapeHTML(b.title) + '</div>' +
+                                    '<div class="sbc-meta"><span style="color: var(--brand-color);">' + escapeHTML(b.category) + '</span> &bull; ' + date + '</div>' +
+                                '</div>' +
+                           '</div>';
                 });
+
+                list.innerHTML = htmlStrings.join('');
 
             } catch (err) {
                 list.innerHTML = '';
             }
         }
 
+        // 🚀 REFACTORED SHARE TO AVOID VS CODE ERRORS
         window.shareBlog = function(blogId, title, snippet) {
             const slug = createSlug(title);
             const baseUrl = window.location.href.split('?')[0]; 
-            const shareUrl = `${baseUrl}?post=${slug}--${blogId}`;
+            const shareUrl = baseUrl + '?post=' + slug + '--' + blogId;
             const safeSnippet = snippet ? snippet : 'Read the latest update on AFIT Digital Market.';
             
-            const shareText = `*${title}*\n\n${safeSnippet}\n\nRead the full article:\n${shareUrl}`;
+            const shareText = '*' + title + '*\n\n' + safeSnippet + '\n\nRead the full article:\n' + shareUrl;
 
             if (navigator.share) {
                 navigator.share({
                     title: "AFIT Campus News",
-                    text: `*${title}*\n${safeSnippet}\n\nRead the full article on AFIT Digital Market:`,
+                    text: '*' + title + '*\n' + safeSnippet + '\n\nRead the full article on AFIT Digital Market:',
                     url: shareUrl
                 }).catch(err => console.log('Share cancelled', err));
             } else {
-                const waUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(shareText)}`;
+                const waUrl = 'https://api.whatsapp.com/send?text=' + encodeURIComponent(shareText);
                 window.open(waUrl, '_blank');
             }
         }
