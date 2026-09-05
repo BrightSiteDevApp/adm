@@ -169,7 +169,8 @@
                 <form onsubmit="saveItem(event)">
                     <div class="form-group">
                         <label class="form-label">Product ID (Unique Identifier)</label>
-                        <input type="text" id="p-id" class="form-input" placeholder="e.g. JUMIA-8829" required>
+                        <!-- 🚀 Changed Placeholder here -->
+                        <input type="text" id="p-id" class="form-input" placeholder="e.g. PD000" required>
                     </div>
 
                     <div class="form-group">
@@ -244,8 +245,9 @@
         async function saveItem(e) {
             e.preventDefault();
             const btn = document.getElementById('save-btn');
+            const idInput = document.getElementById('p-id');
             
-            const productId = document.getElementById('p-id').value.trim();
+            const productId = idInput.value.trim();
             const productName = document.getElementById('p-name').value.trim();
             const actualPrice = document.getElementById('p-actual').value;
             const sellingPrice = document.getElementById('p-selling').value;
@@ -255,10 +257,15 @@
             btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
 
             try {
-                // Check if ID already exists to prevent duplicates
+                // 🚀 Duplicate Product ID Warning logic
                 const { data: existing } = await supabaseClient.from('item_tracker').select('id').eq('product_id', productId).maybeSingle();
                 if (existing) {
-                    throw new Error("This Product ID is already saved in the database!");
+                    alert("There is already an item with that ID! Please pick a different one.");
+                    idInput.value = ''; // Clear the input
+                    idInput.focus();    // Focus the cursor back on it
+                    btn.disabled = false;
+                    btn.innerHTML = '<i class="fas fa-save"></i> Save to Database';
+                    return; // Stop the save process here
                 }
 
                 const { error } = await supabaseClient.from('item_tracker').insert([{
@@ -273,7 +280,7 @@
 
                 alert("Item saved successfully!");
                 
-                // Clear form
+                // Clear form completely
                 document.getElementById('p-id').value = '';
                 document.getElementById('p-name').value = '';
                 document.getElementById('p-actual').value = '';
