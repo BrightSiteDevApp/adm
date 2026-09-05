@@ -9,49 +9,7 @@
 
     <title>All Items & Services | AFIT Digital Market</title>
     <meta name="description" content="Browse hundreds of products and services on AFIT Digital Market. Shop for gadgets, fashion, food, and more directly from verified AFIT student vendors.">
-    <meta name="keywords" content="AFIT market items, buy products AFIT, student market Kaduna, campus marketplace products, AFIT gadgets, AFIT fashion, student services ADM">
-    <meta name="author" content="BrightSiteDev">
-    <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large">
     <link rel="canonical" href="https://afitdgm.store/items/">
-
-    <meta name="geo.region" content="NG-KD"> 
-    <meta name="geo.placename" content="Kaduna">
-    <meta name="geo.position" content="10.5105;7.4165"> 
-    <meta name="ICBM" content="10.5105, 7.4165">
-
-    <meta property="og:type" content="website">
-    <meta property="og:site_name" content="AFIT Digital Market">
-    <meta property="og:locale" content="en_NG">
-    <meta property="og:url" content="https://afitdgm.store/items/">
-    <meta property="og:title" content="Shop All Items | AFIT Digital Market">
-    <meta property="og:description" content="Find exactly what you need on campus. Browse gadgets, food, fashion, and services securely on ADM.">
-    <meta property="og:image" content="https://afitdgm.store/asset/img/app-logo.png">
-    <meta property="og:image:width" content="1200">
-    <meta property="og:image:height" content="630">
-
-    <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:site" content="@brightsitedev"> 
-    <meta name="twitter:title" content="Shop Campus Items | AFIT Digital Market">
-    <meta name="twitter:description" content="Explore everything for sale on the AFIT campus marketplace.">
-    <meta name="twitter:image" content="https://afitdgm.store/asset/img/app-logo.png">
-
-    <script type="application/ld+json">
-    {
-      "@context": "https://schema.org",
-      "@type": "CollectionPage",
-      "name": "All Items & Services - AFIT Digital Market",
-      "url": "https://afitdgm.store/items/",
-      "description": "The main catalog of all products, gadgets, fashion, and services listed by verified student vendors on the AFIT campus.",
-      "publisher": {
-        "@type": "Organization",
-        "name": "AFIT Digital Market",
-        "logo": {
-          "@type": "ImageObject",
-          "url": "https://afitdgm.store/asset/img/app-logo.png"
-        }
-      }
-    }
-    </script>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -60,86 +18,144 @@
     <link rel="icon" href="../favicon.ico" type="image/x-icon">
 
     <style>
-        .header-top-flex { display: flex; align-items: center; gap: 15px; margin-bottom: 15px; }
-        .page-title { font-size: 20px; font-weight: 800; color: var(--text-main); margin: 0; }
+        /* 🚀 PRECISE AFIT BLUE SYSTEM */
+        :root {
+            --brand-color: #2d8eff; /* AFIT Blue */
+            --brand-hover: #1a73e8;
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+        }
+
+        body, html { background: #f8fafc; margin: 0; padding: 0; font-family: 'Poppins', sans-serif; }
+        .app-container { padding-bottom: 90px; min-height: 100vh; }
         
-        .search-container { background: #f8fafc; border-radius: 14px; display: flex; align-items: center; padding: 12px 15px; margin: 0; border: 2px solid #e2e8f0; transition: 0.2s;}
-        .search-container:focus-within { border-color: var(--brand-color); background: white; }
-        .search-container input[type="search"] { border: none; background: transparent; outline: none; width: 100%; font-size: 14px; color: var(--text-main); -webkit-appearance: none; }
+        /* 🚀 NEW HERO HEADER */
+        .hero-header {
+            background: linear-gradient(135deg, var(--brand-color), #1e3a8a);
+            padding: 20px 20px 45px 20px;
+            border-radius: 0 0 30px 30px;
+            color: white;
+            position: relative;
+        }
+        .header-top-flex { display: flex; align-items: center; gap: 15px; margin-bottom: 5px; }
+        .back-btn { color: white; font-size: 20px; cursor: pointer; background: rgba(255,255,255,0.2); width: 40px; height: 40px; border-radius: 50%; display: flex; justify-content: center; align-items: center; border: none; backdrop-filter: blur(5px); transition: 0.2s;}
+        .back-btn:active { transform: scale(0.9); }
+        .page-title { font-size: 22px; font-weight: 900; margin: 0; }
+        .page-subtitle { font-size: 13px; color: #bae6fd; margin-top: 5px; margin-left: 55px; font-weight: 500; }
+
+        /* 🚀 FLOATING SEARCH BAR */
+        .search-container { 
+            background: white; border-radius: 16px; display: flex; align-items: center; 
+            padding: 14px 18px; margin: -25px 20px 15px; 
+            box-shadow: 0 10px 25px rgba(0,0,0,0.08); border: 2px solid white; 
+            transition: 0.2s; position: relative; z-index: 10;
+        }
+        .search-container:focus-within { border-color: var(--brand-color); box-shadow: 0 10px 25px rgba(45, 142, 255, 0.2); }
+        .search-container input[type="search"] { border: none; background: transparent; outline: none; width: 100%; font-size: 14px; color: var(--text-main); font-weight: 500;}
+        .search-icon { color: var(--brand-color); font-size: 18px; margin-right: 12px; }
         
-        .cat-filter-scroll { display: flex; gap: 10px; overflow-x: auto; padding: 15px 20px; scrollbar-width: none; background: white; border-bottom: 1px solid #f1f5f9; }
+        /* 🚀 MODERN CATEGORY PILLS */
+        .cat-filter-scroll { display: flex; gap: 10px; overflow-x: auto; padding: 5px 20px 20px; scrollbar-width: none; }
         .cat-filter-scroll::-webkit-scrollbar { display: none; }
         
         .filter-pill { 
-            background: white; border: 2px solid #e2e8f0; padding: 8px 18px; border-radius: 20px; 
-            font-size: 13px; font-weight: 700; color: var(--text-muted); cursor: pointer; white-space: nowrap; transition: 0.2s;
+            background: white; border: 1px solid #e2e8f0; padding: 10px 18px; border-radius: 14px; 
+            font-size: 13px; font-weight: 700; color: var(--text-muted); cursor: pointer; 
+            white-space: nowrap; transition: 0.2s; box-shadow: 0 2px 8px rgba(0,0,0,0.02);
         }
-        .filter-pill.active { background: #eff6ff; color: var(--brand-color); border-color: var(--brand-color); }
+        .filter-pill.active { 
+            background: var(--brand-color); color: white; border-color: var(--brand-color); 
+            box-shadow: 0 6px 15px rgba(45, 142, 255, 0.3); transform: translateY(-2px);
+        }
 
-        .items-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; padding: 20px 20px 0; }
+        /* 🚀 PREMIUM EDGE-TO-EDGE PRODUCT CARDS */
+        .items-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; padding: 0 20px; }
 
-        .product-card { background: white; border-radius: 20px; padding: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.02); cursor: pointer; border: 1px solid #f1f5f9; position: relative; transition: 0.2s; width: 100%; min-width: 0; box-sizing: border-box; overflow: hidden;}
-        .product-card:active { transform: scale(0.96); }
-        .product-img { width: 100%; height: 160px; object-fit: cover; border-radius: 12px; background: #f8fafc; margin-bottom: 12px; }
-        .product-price { font-size: 18px; font-weight: 900; color: var(--brand-color); margin-bottom: 4px; }
-        .product-title { font-size: 13px; font-weight: 700; color: var(--text-main); line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-        .product-location { font-size: 11px; color: var(--text-muted); margin-top: 6px; display: flex; align-items: center; gap: 4px; font-weight: 600; }
-        .multi-img-badge { position: absolute; top: 20px; right: 20px; background: rgba(0,0,0,0.6); color: white; font-size: 10px; padding: 4px 8px; border-radius: 8px; backdrop-filter: blur(4px); font-weight: bold; }
+        .product-card { 
+            background: white; border-radius: 20px; padding: 0; box-shadow: 0 6px 20px rgba(0,0,0,0.04); 
+            cursor: pointer; border: 1px solid #f1f5f9; position: relative; transition: 0.2s; 
+            width: 100%; box-sizing: border-box; overflow: hidden; display: flex; flex-direction: column;
+        }
+        .product-card:active { transform: scale(0.96); box-shadow: 0 2px 10px rgba(0,0,0,0.02); }
+        
+        .product-img-wrap { position: relative; width: 100%; height: 160px; background: #f8fafc; }
+        .product-img { width: 100%; height: 100%; object-fit: cover; }
+        
+        /* Floating Price Badge */
+        .product-price-badge { 
+            position: absolute; bottom: 10px; right: 10px; background: rgba(255,255,255,0.95); 
+            color: var(--brand-color); font-size: 14px; font-weight: 900; padding: 6px 12px; 
+            border-radius: 12px; backdrop-filter: blur(5px); box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+        
+        .multi-img-badge { position: absolute; top: 12px; right: 12px; background: rgba(0,0,0,0.6); color: white; font-size: 10px; padding: 5px 8px; border-radius: 8px; font-weight: bold; backdrop-filter: blur(4px); }
+        .pin-badge { position: absolute; top: 12px; left: 12px; background: #facc15; color: #854d0e; font-size: 10px; padding: 4px 10px; border-radius: 8px; font-weight: 900; z-index: 5; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
 
+        .product-info { padding: 15px 12px; flex-grow: 1; display: flex; flex-direction: column; justify-content: space-between;}
+        .product-title { font-size: 13px; font-weight: 800; color: var(--text-main); line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; margin-bottom: 8px;}
+        .product-location { font-size: 11px; color: var(--text-muted); display: flex; align-items: center; gap: 5px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;}
+
+        /* Skeletons updated for new card shape */
         .sk-shimmer { background: linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%); background-size: 200% 100%; animation: shimmer 1.5s infinite; border-radius: 6px;}
         @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
         
-        .sk-card { background: white; border-radius: 20px; padding: 12px; border: 1px solid #f1f5f9; width: 100%; min-width: 0; box-sizing: border-box; overflow: hidden;}
-        .sk-img { width: 100%; height: 160px; border-radius: 12px; margin-bottom: 12px; }
-        .sk-line-1 { width: 50%; height: 16px; margin-bottom: 10px; }
-        .sk-line-2 { width: 90%; height: 12px; margin-bottom: 8px; }
-        .sk-line-3 { width: 70%; height: 12px; }
+        .sk-card { background: white; border-radius: 20px; border: 1px solid #f1f5f9; overflow: hidden; }
+        .sk-img { width: 100%; height: 160px; border-radius: 0; }
+        .sk-info { padding: 15px 12px; }
+        .sk-line-1 { width: 80%; height: 14px; margin-bottom: 10px; }
+        .sk-line-2 { width: 50%; height: 12px; }
 
         .end-message { text-align: center; padding: 40px 20px 50px; color: #94a3b8; font-size: 14px; font-weight: 700; display: none; }
-        .end-message i { font-size: 30px; color: #e2e8f0; margin-bottom: 10px; display: block; }
+        .end-message i { font-size: 30px; color: #cbd5e1; margin-bottom: 10px; display: block; }
 
         /* ========================================= */
-        /* 🌙 DARK MODE FIXES FOR ITEMS PAGE         */
+        /* 🌙 DARK MODE FIXES                        */
         /* ========================================= */
         body.dark-mode { background-color: #020617 !important; }
         body.dark-mode .app-container { background: #0f172a !important; }
-        body.dark-mode .header { background: #1e293b !important; box-shadow: 0 2px 10px rgba(0,0,0,0.5) !important; }
-        body.dark-mode .page-title, body.dark-mode .fa-arrow-left { color: #f1f5f9 !important; }
         
-        body.dark-mode .search-container { background: #0f172a !important; border-color: #334155 !important; }
+        body.dark-mode .hero-header { background: linear-gradient(135deg, #1e3a8a, #0f172a) !important; }
+        body.dark-mode .back-btn { background: rgba(255,255,255,0.1) !important; }
+        
+        body.dark-mode .search-container { background: #1e293b !important; border-color: #334155 !important; box-shadow: 0 10px 25px rgba(0,0,0,0.5) !important; }
         body.dark-mode .search-container input { color: #f1f5f9 !important; }
+        body.dark-mode .search-icon { color: var(--brand-color) !important; }
         
-        body.dark-mode .cat-filter-scroll { background: #1e293b !important; border-bottom-color: #334155 !important; }
-        body.dark-mode .filter-pill { background: #0f172a !important; border-color: #334155 !important; color: #94a3b8 !important; }
-        body.dark-mode .filter-pill.active { background: rgba(45, 142, 255, 0.1) !important; color: var(--brand-color) !important; border-color: var(--brand-color) !important; }
+        body.dark-mode .filter-pill { background: #1e293b !important; border-color: #334155 !important; color: #94a3b8 !important; }
+        body.dark-mode .filter-pill.active { background: var(--brand-color) !important; color: white !important; border-color: var(--brand-color) !important; }
         
-        body.dark-mode .product-card { background: #1e293b !important; border-color: #334155 !important; }
+        body.dark-mode .product-card { background: #1e293b !important; border-color: #334155 !important; box-shadow: none !important;}
         body.dark-mode .product-title { color: #f1f5f9 !important; }
-        body.dark-mode .product-img { background: #0f172a !important; }
+        body.dark-mode .product-img-wrap { background: #0f172a !important; }
+        body.dark-mode .product-price-badge { background: rgba(15, 23, 42, 0.95) !important; color: #60a5fa !important; border: 1px solid #334155; }
         body.dark-mode .product-location { color: #94a3b8 !important; }
         
         body.dark-mode .end-message { color: #94a3b8 !important; }
         body.dark-mode .end-message i { color: #334155 !important; }
         body.dark-mode .sk-card { background: #1e293b !important; border-color: #334155 !important; }
-        body.dark-mode .sk-shimmer { background: linear-gradient(90deg, #1e293b 25%, #334155 50%, #1e293b 75%) !important; background-size: 200% 100% !important; }
+        body.dark-mode .sk-shimmer { background: linear-gradient(90deg, #1e293b 25%, #334155 50%, #1e293b 75%) !important; }
     </style>
 </head>
 <body>
 
     <div class="app-container">
         
-        <div class="header">
+        <!-- 🚀 NEW HERO HEADER -->
+        <div class="hero-header">
             <div class="header-top-flex">
-                <button onclick="window.history.back()" style="background:none; border:none; font-size:20px; color:var(--text-main); cursor:pointer;"><i class="fas fa-arrow-left"></i></button>
+                <button onclick="window.history.back()" class="back-btn"><i class="fas fa-arrow-left"></i></button>
                 <h1 class="page-title">Explore Items</h1>
             </div>
-            
-            <form class="search-container" action="#" onsubmit="return triggerSearch(event)">
-                <i class="fas fa-search" style="color: #94a3b8; margin-right: 10px;" onclick="triggerSearch(event)"></i>
-                <input type="search" id="item-search" placeholder="Search phones, food, services...">
-            </form>
+            <div class="page-subtitle">Discover everything campus has to offer</div>
         </div>
+        
+        <!-- 🚀 FLOATING SEARCH -->
+        <form class="search-container" action="#" onsubmit="return triggerSearch(event)">
+            <i class="fas fa-search search-icon" onclick="triggerSearch(event)"></i>
+            <input type="search" id="item-search" placeholder="Search phones, food, services...">
+        </form>
 
+        <!-- 🚀 UPGRADED PILLS -->
         <div class="cat-filter-scroll" id="category-filters">
             <div class="filter-pill active" onclick="filterByCategory('All', this)">All Items</div>
             <div class="filter-pill" onclick="filterByCategory('Gadgets', this)">Gadgets</div>
@@ -156,23 +172,21 @@
             <div class="filter-pill" onclick="filterByCategory('Electronics', this)">Electronics</div>
         </div>
 
-        <div class="content-area" style="padding: 0 0 90px 0;">
+        <div class="content-area">
             
             <div class="items-grid" id="main-items-grid"></div>
 
             <div class="items-grid" id="skeleton-loader" style="padding-top: 12px; display: none;">
-                <div class="sk-card"><div class="sk-shimmer sk-img"></div><div class="sk-shimmer sk-line-1"></div><div class="sk-shimmer sk-line-2"></div><div class="sk-shimmer sk-line-3"></div></div>
-                <div class="sk-card"><div class="sk-shimmer sk-img"></div><div class="sk-shimmer sk-line-1"></div><div class="sk-shimmer sk-line-2"></div><div class="sk-shimmer sk-line-3"></div></div>
-                <div class="sk-card"><div class="sk-shimmer sk-img"></div><div class="sk-shimmer sk-line-1"></div><div class="sk-shimmer sk-line-2"></div><div class="sk-shimmer sk-line-3"></div></div>
-                <div class="sk-card"><div class="sk-shimmer sk-img"></div><div class="sk-shimmer sk-line-1"></div><div class="sk-shimmer sk-line-2"></div><div class="sk-shimmer sk-line-3"></div></div>
-                <div class="sk-card"><div class="sk-shimmer sk-img"></div><div class="sk-shimmer sk-line-1"></div><div class="sk-shimmer sk-line-2"></div><div class="sk-shimmer sk-line-3"></div></div>
-                <div class="sk-card"><div class="sk-shimmer sk-img"></div><div class="sk-shimmer sk-line-1"></div><div class="sk-shimmer sk-line-2"></div><div class="sk-shimmer sk-line-3"></div></div>
+                <div class="sk-card"><div class="sk-shimmer sk-img"></div><div class="sk-info"><div class="sk-shimmer sk-line-1"></div><div class="sk-shimmer sk-line-2"></div></div></div>
+                <div class="sk-card"><div class="sk-shimmer sk-img"></div><div class="sk-info"><div class="sk-shimmer sk-line-1"></div><div class="sk-shimmer sk-line-2"></div></div></div>
+                <div class="sk-card"><div class="sk-shimmer sk-img"></div><div class="sk-info"><div class="sk-shimmer sk-line-1"></div><div class="sk-shimmer sk-line-2"></div></div></div>
+                <div class="sk-card"><div class="sk-shimmer sk-img"></div><div class="sk-info"><div class="sk-shimmer sk-line-1"></div><div class="sk-shimmer sk-line-2"></div></div></div>
             </div>
 
             <div id="scroll-sentinel" style="height: 1px; width: 100%;"></div>
 
             <div class="end-message" id="end-message">
-                <i class="fas fa-check-circle"></i>
+                <i class="fas fa-box-open"></i>
                 You've seen all items in this category.
             </div>
 
@@ -241,29 +255,25 @@
             const urlParams = new URLSearchParams(window.location.search);
             const passedCat = urlParams.get('cat');
 
-            // 🧠 1. CACHE CHECK: Did they click "Back" to get here?
+            // 🧠 1. CACHE CHECK
             const cachedProducts = sessionStorage.getItem('items_page_data');
             
             if (cachedProducts && !passedCat) {
-                // Restore from memory
                 allProducts = JSON.parse(cachedProducts);
                 currentDisplayList = [...allProducts];
                 
-                // Get the number of items they scrolled through last time
                 const savedCount = parseInt(sessionStorage.getItem('items_loaded_count') || ITEMS_PER_PAGE);
                 
                 document.getElementById('skeleton-loader').style.display = 'none';
                 
-                // Render everything instantly
                 renderHTMLBatch(0, savedCount);
                 itemsLoaded = savedCount;
                 
-                // The universal script.js will handle the scroll positioning!
                 observer.observe(document.getElementById('scroll-sentinel'));
                 return;
             }
 
-            // 🧠 2. NO CACHE (Or category forced): Fetch Fresh
+            // 🧠 2. FETCH FRESH
             try {
                 const { data, error } = await supabaseClient
                     .from('products')
@@ -279,7 +289,6 @@
                 allProducts = [...pinnedItems, ...unpinnedItems];
                 currentDisplayList = [...allProducts]; 
                 
-                // Save the newly sorted array to memory for next time!
                 sessionStorage.setItem('items_page_data', JSON.stringify(allProducts));
                 
                 if (passedCat) {
@@ -297,28 +306,33 @@
             }
         }
 
-        // Helper function to render items cleanly
+        // 🚀 REFACTORED TO FIX VS CODE RED ERRORS AND APPLY NEW UI
         function renderHTMLBatch(startIndex, endIndex) {
             const grid = document.getElementById('main-items-grid');
             const batch = currentDisplayList.slice(startIndex, endIndex);
 
-            batch.forEach(p => {
-                const imgUrl = escapeHTML((p.image_urls && p.image_urls.length > 0) ? p.image_urls[0] : 'https://via.placeholder.com/300x300?text=No+Image');
-                const multiImageBadge = (p.image_urls && p.image_urls.length > 1) ? `<div class="multi-img-badge"><i class="far fa-images"></i> ${p.image_urls.length}</div>` : '';
+            const htmlStrings = batch.map(p => {
+                const imgUrl = (p.image_urls && p.image_urls.length > 0) ? p.image_urls[0] : 'https://via.placeholder.com/300x300?text=No+Image';
+                const multiImageBadge = (p.image_urls && p.image_urls.length > 1) ? '<div class="multi-img-badge"><i class="far fa-images"></i> ' + p.image_urls.length + '</div>' : '';
                 const fPrice = new Intl.NumberFormat('en-NG', { style: 'currency', currency: 'NGN', maximumFractionDigits: 0 }).format(p.price);
-                const pinBadge = p.is_pinned ? `<div style="position: absolute; top: 12px; left: 12px; background: rgba(0,0,0,0.7); color: white; padding: 4px 10px; border-radius: 8px; font-size: 10px; font-weight: 800; backdrop-filter: blur(4px); z-index: 10;">Featured</div>` : '';
+                const pinBadge = p.is_pinned ? '<div class="pin-badge"><i class="fas fa-star"></i> Featured</div>' : '';
 
-                grid.insertAdjacentHTML('beforeend', `
-                    <div class="product-card" onclick="window.location.href='../product/index.html?id=${escapeJS(p.id)}'" style="position: relative;">
-                        ${pinBadge}
-                        <img src="${imgUrl}" class="product-img" onerror="this.src='https://via.placeholder.com/300x300?text=No+Image'">
-                        ${multiImageBadge}
-                        <div class="product-price">${fPrice}</div>
-                        <div class="product-title">${escapeHTML(p.name)}</div>
-                        <div class="product-location"><i class="fas fa-tag" style="color: var(--brand-color);"></i> ${escapeHTML(p.category)}</div>
-                    </div>
-                `);
+                // Using standard concatenation to prevent any VS Code template literal glitches
+                return '<div class="product-card" onclick="window.location.href=\'../product/index.html?id=' + escapeJS(p.id) + '\'">' +
+                            '<div class="product-img-wrap">' +
+                                pinBadge +
+                                '<img src="' + escapeHTML(imgUrl) + '" class="product-img" onerror="this.src=\'https://via.placeholder.com/300x300?text=No+Image\'">' +
+                                multiImageBadge +
+                                '<div class="product-price-badge">' + fPrice + '</div>' +
+                            '</div>' +
+                            '<div class="product-info">' +
+                                '<div class="product-title">' + escapeHTML(p.name) + '</div>' +
+                                '<div class="product-location"><i class="fas fa-layer-group" style="color: var(--brand-color);"></i> ' + escapeHTML(p.category) + '</div>' +
+                            '</div>' +
+                       '</div>';
             });
+
+            grid.innerHTML += htmlStrings.join('');
         }
 
         function loadNextBatch() {
@@ -352,7 +366,6 @@
 
                 itemsLoaded += ITEMS_PER_PAGE;
                 
-                // Save how many items the user has revealed so we can restore them later
                 sessionStorage.setItem('items_loaded_count', itemsLoaded); 
                 
                 isFetchingBatch = false;

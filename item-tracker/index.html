@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Item Tracker | AFIT Admin</title>
+    
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="../asset/style.css">
+    <link rel="icon" href="../asset/img/app-logo.png" type="image/png" sizes="192x192">
+
+    <style>
+        /* 🚀 EXACT AFIT BLUE VARIABLES */
+        :root {
+            --brand-color: #2d8eff;
+            --brand-hover: #1a73e8;
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+            --bg-card: #ffffff;
+            --border-color: #e2e8f0;
+            --shadow-sm: 0 4px 15px rgba(0,0,0,0.03);
+        }
+
+        body, html { background: #f8fafc; margin: 0; padding: 0; font-family: 'Poppins', sans-serif;}
+        .app-container { padding-bottom: 40px; min-height: 100vh; position: relative; }
+
+        /* 🚀 STICKY HEADER */
+        .sticky-top-bar { 
+            position: sticky; top: 0; width: 100%; 
+            display: flex; justify-content: space-between; align-items: center; padding: 15px 20px; 
+            z-index: 1000; background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); 
+            box-shadow: 0 2px 10px rgba(0,0,0,0.03); box-sizing: border-box;
+        }
+        .icon-btn-overlay { 
+            background: #f1f5f9; color: var(--text-main); width: 40px; height: 40px; border-radius: 50%; 
+            display: flex; justify-content: center; align-items: center; border: none; 
+            font-size: 16px; cursor: pointer; transition: 0.2s; 
+        }
+        .icon-btn-overlay:active { transform: scale(0.9); background: #e2e8f0; }
+
+        /* 🚀 ADMIN SECURE LOADER */
+        #admin-loader {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: #f8fafc; z-index: 5000; display: flex; flex-direction: column;
+            justify-content: center; align-items: center; color: var(--brand-color);
+        }
+        .spinner { width: 45px; height: 45px; border: 4px solid #e2e8f0; border-top-color: var(--brand-color); border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 15px;}
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* 🚀 CARDS & FORMS */
+        .content-area { padding: 20px; }
+        
+        .tracker-card {
+            background: white; border-radius: 20px; padding: 25px 20px; 
+            box-shadow: 0 10px 30px rgba(0,0,0,0.04); border: 1px solid #f1f5f9;
+            margin-bottom: 25px;
+        }
+
+        .section-title { font-size: 18px; font-weight: 900; color: var(--text-main); margin: 0 0 20px; display: flex; align-items: center; gap: 8px;}
+        
+        .form-group { margin-bottom: 15px; }
+        .form-label { display: block; font-size: 12px; font-weight: 800; color: var(--text-muted); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px;}
+        .form-input { 
+            width: 100%; padding: 14px 16px; border: 2px solid #e2e8f0; border-radius: 12px; 
+            font-size: 14px; background: #f8fafc; outline: none; transition: 0.2s; box-sizing: border-box; font-family: inherit;
+        }
+        .form-input:focus { border-color: var(--brand-color); background: white; }
+
+        .submit-btn { 
+            background: var(--brand-color); color: white; width: 100%; padding: 15px; 
+            border: none; border-radius: 12px; font-weight: 800; font-size: 15px; 
+            cursor: pointer; box-shadow: 0 4px 15px rgba(45, 142, 255, 0.3); transition: 0.2s; margin-top: 10px;
+        }
+        .submit-btn:active { transform: scale(0.98); }
+
+        /* 🚀 SEARCH BAR & RESULT AREA */
+        .search-row { display: flex; gap: 10px; margin-bottom: 20px; }
+        .search-btn { 
+            background: var(--text-main); color: white; border: none; border-radius: 12px; 
+            padding: 0 20px; font-weight: 800; cursor: pointer; transition: 0.2s;
+        }
+        .search-btn:active { transform: scale(0.95); }
+
+        .result-box {
+            background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 16px; 
+            padding: 20px; display: none; margin-top: 10px;
+        }
+        .r-title { font-size: 16px; font-weight: 800; color: var(--text-main); margin: 0 0 15px; line-height: 1.4;}
+        .r-flex { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; padding-bottom: 10px; border-bottom: 1px solid #e2e8f0;}
+        .r-label { font-size: 12px; color: var(--text-muted); font-weight: 600;}
+        .r-val-strike { font-size: 14px; color: #ef4444; font-weight: 700; text-decoration: line-through; }
+        .r-val-green { font-size: 18px; color: #10b981; font-weight: 900; }
+        
+        .copy-btn { 
+            background: #eff6ff; color: var(--brand-color); width: 100%; padding: 12px; 
+            border: 2px solid #bfdbfe; border-radius: 10px; font-weight: 800; font-size: 14px; 
+            cursor: pointer; transition: 0.2s; display: flex; justify-content: center; align-items: center; gap: 8px;
+            margin-top: 15px;
+        }
+        .copy-btn:active { transform: scale(0.96); background: var(--brand-color); color: white; border-color: var(--brand-color); }
+
+        /* 🌙 DARK MODE FIXES */
+        body.dark-mode { background-color: #020617 !important; }
+        body.dark-mode .app-container { background: #020617 !important; }
+        body.dark-mode #admin-loader { background: #020617 !important; }
+        body.dark-mode .sticky-top-bar { background: rgba(15, 23, 42, 0.95) !important; border-bottom: 1px solid #334155; box-shadow: none; }
+        body.dark-mode .icon-btn-overlay { background: #1e293b !important; color: #f1f5f9 !important; }
+        body.dark-mode .tracker-card { background: #0f172a !important; border-color: #334155 !important; box-shadow: none;}
+        body.dark-mode .section-title, body.dark-mode .r-title { color: #f1f5f9 !important; }
+        body.dark-mode .form-input { background: #1e293b !important; border-color: #334155 !important; color: white;}
+        body.dark-mode .result-box { background: #1e293b !important; border-color: #334155 !important; }
+        body.dark-mode .r-flex { border-bottom-color: #334155 !important; }
+        body.dark-mode .copy-btn { background: #0f172a !important; border-color: #334155 !important; color: var(--brand-color); }
+        body.dark-mode .search-btn { background: var(--brand-color) !important; }
+    </style>
+</head>
+<body>
+    <script>
+        if (localStorage.getItem('theme') === 'dark') document.body.classList.add('dark-mode');
+    </script>
+
+    <!-- 🚀 ADMIN SECURITY LOADER -->
+    <div id="admin-loader">
+        <div class="spinner"></div>
+        <p style="font-weight: 700; font-size: 14px;">Verifying Admin Access...</p>
+    </div>
+
+    <div class="app-container">
+        
+        <div class="sticky-top-bar">
+            <button class="icon-btn-overlay" onclick="window.history.back()"><i class="fas fa-arrow-left"></i></button>
+            <div style="font-weight: 800; font-size: 16px; color: var(--text-main);">Item Tracker</div>
+            <div style="width: 40px;"></div> <!-- Spacer for center alignment -->
+        </div>
+
+        <div class="content-area">
+
+            <!-- 🚀 SEARCH SECTION -->
+            <div class="tracker-card">
+                <h2 class="section-title"><i class="fas fa-search" style="color: var(--brand-color);"></i> Find Saved Item</h2>
+                <form class="search-row" onsubmit="searchItem(event)">
+                    <input type="text" id="search-id" class="form-input" style="margin-bottom: 0;" placeholder="Enter Product ID..." required>
+                    <button type="submit" class="search-btn" id="search-btn"><i class="fas fa-arrow-right"></i></button>
+                </form>
+
+                <!-- RESULT DISPLAY -->
+                <div class="result-box" id="result-box">
+                    <div class="r-title" id="res-name">...</div>
+                    
+                    <div class="r-flex">
+                        <span class="r-label">Actual Price</span>
+                        <span class="r-val-strike" id="res-actual">...</span>
+                    </div>
+                    <div class="r-flex" style="border-bottom: none; padding-bottom: 0;">
+                        <span class="r-label">Your Selling Price</span>
+                        <span class="r-val-green" id="res-selling">...</span>
+                    </div>
+
+                    <button class="copy-btn" id="copy-btn" onclick="copyProductLink()"><i class="far fa-copy"></i> Copy Original Link</button>
+                    <input type="hidden" id="hidden-link" value="">
+                </div>
+            </div>
+
+            <!-- 🚀 ADD NEW ITEM SECTION -->
+            <div class="tracker-card">
+                <h2 class="section-title"><i class="fas fa-plus-circle" style="color: #10b981;"></i> Save New Item</h2>
+                
+                <form onsubmit="saveItem(event)">
+                    <div class="form-group">
+                        <label class="form-label">Product ID (Unique Identifier)</label>
+                        <input type="text" id="p-id" class="form-input" placeholder="e.g. JUMIA-8829" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Product Name</label>
+                        <input type="text" id="p-name" class="form-input" placeholder="e.g. Oraimo Smart Watch" required>
+                    </div>
+
+                    <div style="display: flex; gap: 15px;">
+                        <div class="form-group" style="flex: 1;">
+                            <label class="form-label">Actual Price (₦)</label>
+                            <input type="number" id="p-actual" class="form-input" placeholder="e.g. 15000" required>
+                        </div>
+                        <div class="form-group" style="flex: 1;">
+                            <label class="form-label">Selling Price (₦)</label>
+                            <input type="number" id="p-selling" class="form-input" placeholder="e.g. 20000" required>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Original Product Link</label>
+                        <input type="url" id="p-link" class="form-input" placeholder="https://www.jumia.com.ng/..." required>
+                    </div>
+
+                    <button type="submit" id="save-btn" class="submit-btn"><i class="fas fa-save"></i> Save to Database</button>
+                </form>
+            </div>
+
+        </div>
+    </div>
+
+    <script src="../asset/script.js"></script>
+
+    <script>
+        let currentUser = null;
+
+        // 🛡️ XSS Sanitizer
+        function escapeHTML(str) {
+            return str ? String(str).replace(/[&<>'"]/g, tag => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;'}[tag])) : '';
+        }
+
+        // 🚀 1. STRICT ADMIN AUTHENTICATION
+        document.addEventListener("DOMContentLoaded", async () => {
+            if (typeof supabaseClient === 'undefined') {
+                window.location.href = "../login/index.html"; return;
+            }
+
+            const { data: { session } } = await supabaseClient.auth.getSession();
+            if (!session) {
+                window.location.href = "../login/index.html"; return;
+            }
+
+            currentUser = session.user;
+
+            // Check if user email is in the `admins` table
+            const { data: adminData, error } = await supabaseClient
+                .from('admins')
+                .select('email')
+                .eq('email', currentUser.email)
+                .maybeSingle();
+
+            if (!adminData || error) {
+                alert("ACCESS DENIED: You are not authorized to view the Tracker page.");
+                window.location.href = "../account/index.html";
+                return;
+            }
+
+            // Authentication Passed!
+            document.getElementById('admin-loader').style.display = 'none';
+        });
+
+        // 🚀 2. SAVE NEW ITEM LOGIC
+        async function saveItem(e) {
+            e.preventDefault();
+            const btn = document.getElementById('save-btn');
+            
+            const productId = document.getElementById('p-id').value.trim();
+            const productName = document.getElementById('p-name').value.trim();
+            const actualPrice = document.getElementById('p-actual').value;
+            const sellingPrice = document.getElementById('p-selling').value;
+            const productLink = document.getElementById('p-link').value.trim();
+
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+
+            try {
+                // Check if ID already exists to prevent duplicates
+                const { data: existing } = await supabaseClient.from('item_tracker').select('id').eq('product_id', productId).maybeSingle();
+                if (existing) {
+                    throw new Error("This Product ID is already saved in the database!");
+                }
+
+                const { error } = await supabaseClient.from('item_tracker').insert([{
+                    product_id: productId,
+                    product_name: productName,
+                    actual_price: parseFloat(actualPrice),
+                    selling_price: parseFloat(sellingPrice),
+                    product_link: productLink
+                }]);
+
+                if (error) throw error;
+
+                alert("Item saved successfully!");
+                
+                // Clear form
+                document.getElementById('p-id').value = '';
+                document.getElementById('p-name').value = '';
+                document.getElementById('p-actual').value = '';
+                document.getElementById('p-selling').value = '';
+                document.getElementById('p-link').value = '';
+
+            } catch (err) {
+                alert(err.message || "Failed to save item.");
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-save"></i> Save to Database';
+            }
+        }
+
+        // 🚀 3. SEARCH ITEM LOGIC
+        async function searchItem(e) {
+            e.preventDefault();
+            const btn = document.getElementById('search-btn');
+            const searchVal = document.getElementById('search-id').value.trim();
+            const resultBox = document.getElementById('result-box');
+
+            if(!searchVal) return;
+
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+            resultBox.style.display = 'none';
+
+            try {
+                const { data: item, error } = await supabaseClient
+                    .from('item_tracker')
+                    .select('*')
+                    .eq('product_id', searchVal)
+                    .maybeSingle();
+
+                if (error) throw error;
+
+                if (!item) {
+                    alert("No item found with that Product ID.");
+                    btn.disabled = false;
+                    btn.innerHTML = '<i class="fas fa-arrow-right"></i>';
+                    return;
+                }
+
+                // Format Prices
+                const formatActual = new Intl.NumberFormat('en-NG', { style: 'currency', currency: 'NGN', maximumFractionDigits: 0 }).format(item.actual_price);
+                const formatSelling = new Intl.NumberFormat('en-NG', { style: 'currency', currency: 'NGN', maximumFractionDigits: 0 }).format(item.selling_price);
+
+                // Populate UI (no nested backticks for VS Code)
+                document.getElementById('res-name').innerText = item.product_name;
+                document.getElementById('res-actual').innerText = formatActual;
+                document.getElementById('res-selling').innerText = formatSelling;
+                document.getElementById('hidden-link').value = item.product_link;
+
+                // Reset copy button
+                document.getElementById('copy-btn').innerHTML = '<i class="far fa-copy"></i> Copy Original Link';
+
+                resultBox.style.display = 'block';
+
+            } catch (err) {
+                alert("Error searching for item.");
+                console.error(err);
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-arrow-right"></i>';
+            }
+        }
+
+        // 🚀 4. COPY LINK FUNCTION
+        function copyProductLink() {
+            const link = document.getElementById('hidden-link').value;
+            if (!link) return;
+
+            // Use the Clipboard API
+            navigator.clipboard.writeText(link).then(() => {
+                const copyBtn = document.getElementById('copy-btn');
+                copyBtn.innerHTML = '<i class="fas fa-check"></i> Copied!';
+                setTimeout(() => {
+                    copyBtn.innerHTML = '<i class="far fa-copy"></i> Copy Original Link';
+                }, 2000);
+            }).catch(err => {
+                alert("Failed to copy link. Please select and copy manually.");
+                console.error("Copy failed", err);
+            });
+        }
+    </script>
+</body>
+</html>

@@ -35,24 +35,6 @@
     <meta name="twitter:description" content="Explore the official registry of verified sellers and student businesses on ADM.">
     <meta name="twitter:image" content="https://afitdgm.store/asset/img/app-logo.png">
 
-    <script type="application/ld+json">
-    {
-      "@context": "https://schema.org",
-      "@type": "CollectionPage",
-      "name": "AFIT Digital Market Vendor Directory",
-      "url": "https://afitdgm.store/vendors/",
-      "description": "A complete directory of verified student vendors and campus businesses operating on the AFIT Digital Market.",
-      "publisher": {
-        "@type": "Organization",
-        "name": "AFIT Digital Market",
-        "logo": {
-          "@type": "ImageObject",
-          "url": "https://afitdgm.store/asset/img/app-logo.png"
-        }
-      }
-    }
-    </script>
-
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="../asset/style.css">
@@ -60,74 +42,99 @@
     <link rel="icon" href="../favicon.ico" type="image/x-icon">
 
     <style>
-        /* 🚀 FIX: ADDED MISSING ROOT VARIABLES */
+        /* 🚀 EXACT AFIT BLUE VARIABLES */
         :root {
             --brand-color: #2d8eff; /* AFIT Blue */
-            --text-main: #1e293b;
+            --brand-hover: #1a73e8;
+            --text-main: #0f172a; /* Black/Dark Slate */
             --text-muted: #64748b;
+            --bg-card: #ffffff;
+            --border-color: #e2e8f0;
+            --shadow-sm: 0 4px 15px rgba(0,0,0,0.03);
         }
 
-        .header-top-flex { display: flex; align-items: center; gap: 15px; margin-bottom: 15px; }
-        .page-title { font-size: 20px; font-weight: 800; color: var(--text-main); margin: 0; }
-        
-        .search-container { background: #f8fafc; border-radius: 14px; display: flex; align-items: center; padding: 12px 15px; margin-bottom: 20px; border: 2px solid #e2e8f0; transition: 0.2s; }
-        .search-container:focus-within { border-color: var(--brand-color); background: white; }
-        .search-container input[type="search"] { border: none; background: transparent; outline: none; width: 100%; font-size: 14px; color: var(--text-main); -webkit-appearance: none; }
+        body, html { background: #f8fafc; margin: 0; padding: 0; font-family: 'Poppins', sans-serif; }
+        .app-container { padding-bottom: 90px; min-height: 100vh; }
+
+        /* 🚀 NEW HERO HEADER */
+        .hero-header {
+            background: linear-gradient(135deg, var(--brand-color), #1e3a8a);
+            padding: 20px 20px 45px 20px;
+            border-radius: 0 0 30px 30px;
+            color: white;
+            position: relative;
+        }
+        .header-top-flex { display: flex; align-items: center; gap: 15px; margin-bottom: 5px; }
+        .back-btn { color: white; font-size: 20px; cursor: pointer; background: rgba(255,255,255,0.2); width: 40px; height: 40px; border-radius: 50%; display: flex; justify-content: center; align-items: center; border: none; backdrop-filter: blur(5px); transition: 0.2s;}
+        .back-btn:active { transform: scale(0.9); }
+        .page-title { font-size: 22px; font-weight: 900; margin: 0; }
+        .page-subtitle { font-size: 13px; color: #bae6fd; margin-top: 5px; margin-left: 55px; font-weight: 500; }
+
+        /* 🚀 FLOATING SEARCH BAR */
+        .search-container { 
+            background: white; border-radius: 16px; display: flex; align-items: center; 
+            padding: 14px 18px; margin: -25px 20px 20px; 
+            box-shadow: 0 10px 25px rgba(0,0,0,0.08); border: 2px solid white; 
+            transition: 0.2s; position: relative; z-index: 10;
+        }
+        .search-container:focus-within { border-color: var(--brand-color); box-shadow: 0 10px 25px rgba(45, 142, 255, 0.2); }
+        .search-container input[type="search"] { border: none; background: transparent; outline: none; width: 100%; font-size: 14px; color: var(--text-main); font-weight: 500; -webkit-appearance: none;}
+        .search-icon { color: var(--brand-color); font-size: 18px; margin-right: 12px; }
         
         /* 🚀 2x2 Grid Layout for Vendors */
         .vendor-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; padding: 0 20px; }
         
-        /* 🚀 FIX: Added min-width and overflow constraints */
+        /* 🚀 PREMIUM VENDOR CARDS */
         .vendor-card {
-            background: white; border-radius: 16px; padding: 20px 10px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.03); border: 1px solid #e2e8f0;
+            background: white; border-radius: 20px; padding: 20px 10px;
+            box-shadow: 0 6px 20px rgba(0,0,0,0.03); border: 1px solid #f1f5f9;
             display: flex; flex-direction: column; align-items: center; text-align: center;
             cursor: pointer; transition: 0.2s; height: 100%; justify-content: center;
-            width: 100%; min-width: 0; box-sizing: border-box; overflow: hidden; 
+            width: 100%; min-width: 0; box-sizing: border-box; overflow: hidden; position: relative;
         }
-        .vendor-card:active { transform: scale(0.98); }
+        .vendor-card:active { transform: scale(0.96); box-shadow: 0 2px 10px rgba(0,0,0,0.02); }
         
         .vendor-logo {
-            width: 60px; height: 60px; border-radius: 50%; object-fit: cover;
-            border: 2px solid #f1f5f9; flex-shrink: 0; margin-bottom: 10px;
+            width: 70px; height: 70px; border-radius: 50%; object-fit: cover;
+            border: 3px solid #f8fafc; flex-shrink: 0; margin-bottom: 12px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05); background: #eee;
         }
         
         .vendor-info-wrapper { width: 100%; min-width: 0; }
         
-        /* 🚀 FIX: Changed color to var(--brand-color) to make it blue! */
+        /* Black Name styling */
         .vendor-name { 
-            font-size: 13px; font-weight: 900; color: var(--brand-color); margin-bottom: 4px; 
-            display: flex; align-items: center; justify-content: center; gap: 4px;
-            width: 100%; text-transform: uppercase;
+            font-size: 13px; font-weight: 900; color: var(--text-main); margin-bottom: 4px; 
+            display: flex; align-items: center; justify-content: center;
+            width: 100%; text-transform: uppercase; line-height: 1.2;
         }
         
-        /* 🚀 FIX: Text truncation wrapper */
-        .vendor-name-text {
-            white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block;
-        }
+        .vendor-name-text { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block; }
         
         .vendor-desc { 
             font-size: 11px; color: var(--text-muted); line-height: 1.4; 
             white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 100%; text-transform: uppercase;
-            display: block;
+            display: block; font-weight: 600;
         }
 
+        .pin-badge { position: absolute; top: 10px; right: 10px; background: rgba(0,0,0,0.7); color: #facc15; padding: 4px 8px; border-radius: 8px; font-size: 10px; font-weight: 800; backdrop-filter: blur(4px); z-index: 10; }
+
         /* Skeleton Loaders */
-        .sk-shimmer { background: linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%); background-size: 200% 100%; animation: shimmer 1.5s infinite; border-radius: 4px; }
+        .sk-shimmer { background: linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%); background-size: 200% 100%; animation: shimmer 1.5s infinite; border-radius: 6px; }
         @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
         
         .sk-card { 
-            background: white; border-radius: 16px; padding: 20px 10px; border: 1px solid #f1f5f9; 
+            background: white; border-radius: 20px; padding: 20px 10px; border: 1px solid #f1f5f9; 
             display: flex; flex-direction: column; align-items: center; justify-content: center; 
             width: 100%; min-width: 0; box-sizing: border-box; overflow: hidden; 
         }
-        .sk-v-avatar { width: 60px; height: 60px; border-radius: 50%; flex-shrink: 0; margin-bottom: 10px; }
+        .sk-v-avatar { width: 70px; height: 70px; border-radius: 50%; flex-shrink: 0; margin-bottom: 12px; }
         .sk-line { height: 12px; }
-        .sk-line.medium { width: 70%; margin-bottom: 6px;}
-        .sk-line.short { width: 40%; }
+        .sk-line.medium { width: 80%; margin-bottom: 8px;}
+        .sk-line.short { width: 50%; }
 
-        .end-message { text-align: center; padding: 30px 20px 40px; color: #94a3b8; font-size: 13px; font-weight: 600; display: none; }
-        .end-message i { font-size: 24px; color: #e2e8f0; margin-bottom: 8px; display: block; }
+        .end-message { text-align: center; padding: 30px 20px 40px; color: #94a3b8; font-size: 13px; font-weight: 700; display: none; }
+        .end-message i { font-size: 30px; color: #cbd5e1; margin-bottom: 10px; display: block; }
 
         /* ========================================= */
         /* 🌙 DARK MODE FIXES FOR VENDORS PAGE       */
@@ -135,18 +142,18 @@
         body.dark-mode { background-color: #020617 !important; }
         body.dark-mode .app-container { background: #0f172a !important; }
         
-        body.dark-mode .header { background: #1e293b !important; box-shadow: 0 2px 10px rgba(0,0,0,0.5) !important; border-bottom: 1px solid #334155; }
-        body.dark-mode .page-title, body.dark-mode .fa-arrow-left { color: #f1f5f9 !important; }
-        body.dark-mode .search-container { background: #0f172a !important; border-color: #334155 !important; }
+        body.dark-mode .hero-header { background: linear-gradient(135deg, #1e3a8a, #0f172a) !important; box-shadow: 0 4px 15px rgba(0,0,0,0.5) !important;}
+        body.dark-mode .back-btn { background: rgba(255,255,255,0.1) !important; }
+        body.dark-mode .page-title { color: #f1f5f9 !important; }
+        
+        body.dark-mode .search-container { background: #1e293b !important; border-color: #334155 !important; box-shadow: 0 10px 25px rgba(0,0,0,0.5) !important; }
         body.dark-mode .search-container input { color: #f1f5f9 !important; }
+        body.dark-mode .search-icon { color: var(--brand-color) !important; }
 
-        body.dark-mode .vendor-card { background: #1e293b !important; border-color: #334155 !important; }
-        body.dark-mode .vendor-logo { border-color: #334155 !important; background: #0f172a !important; }
-        
-        /* 🚀 FIX: Made vendor name a bright light-blue in dark mode */
-        body.dark-mode .vendor-name { color: #60a5fa !important; }
-        
-        body.dark-mode .vendor-desc { color: #cbd5e1 !important; }
+        body.dark-mode .vendor-card { background: #1e293b !important; border-color: #334155 !important; box-shadow: none !important;}
+        body.dark-mode .vendor-logo { border-color: #0f172a !important; background: #0f172a !important; }
+        body.dark-mode .vendor-name { color: #f1f5f9 !important; }
+        body.dark-mode .vendor-desc { color: #94a3b8 !important; }
 
         body.dark-mode .sk-card { background: #1e293b !important; border-color: #334155 !important; }
         body.dark-mode .end-message { color: #94a3b8 !important; }
@@ -157,24 +164,32 @@
     </style>
 </head>
 <body>
+    <script>
+        if (localStorage.getItem('theme') === 'dark') {
+            document.body.classList.add('dark-mode');
+        }
+    </script>
 
     <div class="app-container">
         
-        <div class="header">
+        <!-- 🚀 NEW HERO HEADER -->
+        <div class="hero-header">
             <div class="header-top-flex">
-                <button onclick="window.history.back()" style="background:none; border:none; font-size:20px; color:var(--text-main); cursor:pointer;"><i class="fas fa-arrow-left"></i></button>
+                <button onclick="window.history.back()" class="back-btn"><i class="fas fa-arrow-left"></i></button>
                 <h1 class="page-title">Verified Sellers</h1>
             </div>
-            
-            <form class="search-container" action="#" onsubmit="return triggerSearch(event)">
-                <i class="fas fa-search" style="color: #94a3b8; margin-right: 10px;" onclick="triggerSearch(event)"></i>
-                <input type="search" id="vendor-search" placeholder="Search brands, categories...">
-            </form>
+            <div class="page-subtitle">Shop safely from trusted campus entrepreneurs</div>
         </div>
+        
+        <!-- 🚀 FLOATING SEARCH -->
+        <form class="search-container" action="#" onsubmit="return triggerSearch(event)">
+            <i class="fas fa-search search-icon" onclick="triggerSearch(event)"></i>
+            <input type="search" id="vendor-search" placeholder="Search brands, categories...">
+        </form>
 
         <div class="content-area" style="padding: 0 0 90px 0;">
             
-            <div class="vendor-grid" id="main-vendor-grid" style="padding-top: 15px;"></div>
+            <div class="vendor-grid" id="main-vendor-grid"></div>
 
             <div class="vendor-grid" id="skeleton-loader" style="padding-top: 15px; display: none;">
                 <div class="sk-card"><div class="sk-shimmer sk-v-avatar"></div><div class="sk-shimmer sk-line medium"></div><div class="sk-shimmer sk-line short"></div></div>
@@ -261,11 +276,11 @@
 
             } catch (error) {
                 document.getElementById('skeleton-loader').style.display = 'none';
-                document.getElementById('main-vendor-grid').innerHTML = `<p style="grid-column:span 2; text-align:center; color:red; padding: 40px;">Failed to load vendors.</p>`;
+                document.getElementById('main-vendor-grid').innerHTML = '<p style="grid-column:span 2; text-align:center; color:#ef4444; padding: 40px; font-weight:600;">Failed to load vendors.</p>';
             }
         }
 
-
+        // 🚀 REFACTORED TO REMOVE NESTED BACKTICKS FOR VS CODE
         function loadNextBatch() {
             if (isFetchingBatch) return;
 
@@ -274,12 +289,12 @@
             const endMsg = document.getElementById('end-message');
             
             if (currentDisplayList.length === 0) {
-                grid.innerHTML = `
-                    <div style="grid-column: span 2; text-align: center; padding: 60px 20px; color: #94a3b8;">
-                        <i class="fas fa-store-slash" style="font-size: 50px; margin-bottom: 15px; color: #cbd5e1;"></i>
-                        <h3 style="font-size: 16px; color: #1e293b; margin: 0 0 5px;">No vendor found</h3>
-                        <p style="font-size: 13px;">Try adjusting your search terms.</p>
-                    </div>`;
+                grid.innerHTML = 
+                    '<div style="grid-column: span 2; text-align: center; padding: 60px 20px; color: #94a3b8;">' +
+                        '<i class="fas fa-store-slash" style="font-size: 50px; margin-bottom: 15px; color: #cbd5e1;"></i>' +
+                        '<h3 style="font-size: 16px; color: #1e293b; margin: 0 0 5px;">No vendor found</h3>' +
+                        '<p style="font-size: 13px;">Try adjusting your search terms.</p>' +
+                    '</div>';
                 endMsg.style.display = 'none';
                 skeleton.style.display = 'none';
                 return;
@@ -296,7 +311,7 @@
                 const batchSize = vendorsLoaded === 0 ? 30 : 20;
                 const nextBatch = currentDisplayList.slice(vendorsLoaded, vendorsLoaded + batchSize);
 
-               nextBatch.forEach(v => {
+                const htmlStrings = nextBatch.map(v => {
                     const logoUrl = v.logo_url || 'https://via.placeholder.com/100x100?text=Logo';
                     const safeName = v.business_name ? v.business_name : 'Verified Vendor';
                     const safeDesc = v.description || "Vendor";
@@ -306,22 +321,22 @@
                     if (v.subscription_plan === "Icon") badgeColor = "#1e293b"; 
 
                     // The Pin Badge
-                    const pinBadge = v.is_pinned ? `<div style="position: absolute; top: 10px; right: 10px; background: rgba(0,0,0,0.7); color: #fbbf24; padding: 3px 8px; border-radius: 8px; font-size: 10px; font-weight: 800; backdrop-filter: blur(4px); z-index: 10;"><i class="fas fa-thumbtack"></i> Featured</div>` : '';
+                    const pinBadge = v.is_pinned ? '<div class="pin-badge"><i class="fas fa-thumbtack"></i> Featured</div>' : '';
 
-                    grid.insertAdjacentHTML('beforeend', `
-                        <div class="vendor-card" style="position: relative;" onclick="window.location.href='profile/index.html?id=${v.id}'">
-                            ${pinBadge}
-                            <img src="${logoUrl}" class="vendor-logo" onerror="this.src='https://via.placeholder.com/100x100?text=Logo'">
-                            <div class="vendor-info-wrapper">
-                                <div class="vendor-name">
-                                    <span class="vendor-name-text">${escapeHTML(safeName)}</span> 
-                                    <i class="fas fa-check-circle" style="color: ${badgeColor}; font-size: 11px; flex-shrink: 0;"></i>
-                                </div>
-                                <div class="vendor-desc">${escapeHTML(safeDesc)}</div>
-                            </div>
-                        </div>
-                    `);
+                    return '<div class="vendor-card" onclick="window.location.href=\'profile/index.html?id=' + escapeJS(v.id) + '\'">' +
+                                pinBadge +
+                                '<img src="' + escapeHTML(logoUrl) + '" class="vendor-logo" onerror="this.src=\'https://via.placeholder.com/100x100?text=Logo\'">' +
+                                '<div class="vendor-info-wrapper">' +
+                                    '<div class="vendor-name">' +
+                                        '<span class="vendor-name-text">' + escapeHTML(safeName) + '</span>' +
+                                        '<i class="fas fa-check-circle" style="color: ' + badgeColor + '; font-size: 12px; flex-shrink: 0; margin-left: 4px;"></i>' +
+                                    '</div>' +
+                                    '<div class="vendor-desc">' + escapeHTML(safeDesc) + '</div>' +
+                                '</div>' +
+                            '</div>';
                 });
+
+                grid.innerHTML += htmlStrings.join('');
                 
                 vendorsLoaded += nextBatch.length;
                 isFetchingBatch = false;
@@ -363,6 +378,9 @@
 
         function escapeHTML(str) {
             return str ? String(str).replace(/[&<>'"]/g, tag => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;'}[tag])) : '';
+        }
+        function escapeJS(str) {
+            return str ? String(str).replace(/'/g, "\\'").replace(/"/g, '&quot;').replace(/\n/g, '\\n') : '';
         }
     </script>
 </body>
