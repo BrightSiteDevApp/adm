@@ -12,6 +12,14 @@
     <link rel="icon" href="../favicon.ico" type="image/x-icon">
 
     <style>
+        /* 🚀 FIX: EXACT AFIT BLUE VARIABLES */
+        :root {
+            --brand-color: #2d8eff; /* AFIT Blue */
+            --brand-hover: #1a73e8;
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+        }
+
         /* --- PRODUCT PAGE STYLES (AFIT REDESIGN) --- */
         body { background: #e0e0e0; }
         .app-container { padding-bottom: 80px; } 
@@ -43,7 +51,9 @@
         /* Product Details - Reordered layout */
         .product-info-box { background: white; padding: 25px 20px; border-radius: 0 0 24px 24px; box-shadow: 0 4px 15px rgba(0,0,0,0.02); }
         .p-category { display: inline-block; background: #f0f7ff; color: var(--brand-color); font-size: 11px; font-weight: 800; padding: 6px 12px; border-radius: 8px; text-transform: uppercase; margin-bottom: 12px; }
-        .p-title { font-size: 20px; font-weight: 800; color: var(--text-main); margin-bottom: 8px; line-height: 1.3; }
+        
+        .p-title { font-size: 20px; font-weight: 900; color: var(--text-main); margin-bottom: 8px; line-height: 1.3; }
+        
         .p-price { font-size: 26px; font-weight: 800; color: var(--brand-color); margin-bottom: 5px; }
         
         .section-title { font-size: 16px; font-weight: 800; color: var(--text-main); margin: 25px 0 12px; display: flex; align-items: center; gap: 8px; }
@@ -54,7 +64,9 @@
         .vendor-strip:active { transform: scale(0.98); }
         .v-logo { width: 55px; height: 55px; border-radius: 12px; object-fit: cover; border: 2px solid white; box-shadow: 0 4px 10px rgba(45, 142, 255, 0.15); background: #eee; }
         .v-info { flex: 1; margin: 0 15px; min-width: 0; }
-        .v-name { font-size: 15px; font-weight: 800; color: var(--text-main); margin-bottom: 3px; display: flex; align-items: center; gap: 5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;}
+        
+        .v-name { font-size: 15px; font-weight: 900; color: var(--text-main); margin-bottom: 3px; display: flex; align-items: center; gap: 5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;}
+        
         .v-cat { font-size: 12px; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;}
         .v-btn { font-size: 12px; font-weight: 800; color: white; background: var(--brand-color); padding: 8px 14px; border-radius: 10px; flex-shrink: 0;}
 
@@ -72,7 +84,8 @@
         .related-card:active { transform: translateY(2px); }
         .rel-img { width: 100%; height: 130px; object-fit: cover; border-radius: 10px; background: #eee; margin-bottom: 10px; }
         .rel-price { font-size: 15px; font-weight: 800; color: var(--brand-color); margin-bottom: 4px; }
-        .rel-title { font-size: 12px; font-weight: 600; color: var(--text-main); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block;}
+        
+        .rel-title { font-size: 12px; font-weight: 700; color: var(--text-main); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block;}
 
         .view-all-btn { display: block; text-align: center; background: white; color: var(--brand-color); border: 2px solid #e2e8f0; font-weight: 800; font-size: 14px; padding: 15px; border-radius: 16px; text-decoration: none; margin: 20px; transition: 0.2s; }
         .view-all-btn:active { background: #f8fafc; border-color: var(--brand-color); }
@@ -82,7 +95,7 @@
         .action-btn { flex: 1; padding: 15px; border: none; border-radius: 14px; font-weight: 800; font-size: 15px; cursor: pointer; display: flex; justify-content: center; align-items: center; gap: 8px; transition: 0.2s; }
         .action-btn:active { transform: scale(0.96); }
         .btn-whatsapp { background: #25D366; color: white; box-shadow: 0 4px 15px rgba(37, 211, 102, 0.3); }
-        .btn-chat { background: var(--brand-color); color: white; box-shadow: 0 4px 15px rgba(45, 142, 255, 0.3); }
+        .btn-chat { background: var(--brand-color); color: white; box-shadow: 0 4px 15px var(--brand-light, rgba(45, 142, 255, 0.3)); }
 
         /* Skeletons */
         .sk-shimmer { background: linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%); background-size: 200% 100%; animation: shimmer 1.5s infinite; }
@@ -101,18 +114,20 @@
         body.dark-mode .carousel-container { background: #0f172a !important; border-bottom: 1px solid #334155 !important; }
         
         body.dark-mode .product-info-box { background: #1e293b !important; }
-        body.dark-mode .p-title { color: #f1f5f9 !important; }
+        
+        body.dark-mode .p-title { color: #60a5fa !important; }
+        body.dark-mode .v-name { color: #60a5fa !important; }
+        body.dark-mode .rel-title { color: #60a5fa !important; }
+
         body.dark-mode .p-category { background: #0f172a !important; color: var(--brand-color) !important; border: 1px solid #334155; }
         body.dark-mode .section-title { color: #f1f5f9 !important; }
         body.dark-mode .p-desc { background: #0f172a !important; color: #cbd5e1 !important; border: 1px solid #334155; }
         
         body.dark-mode .vendor-strip { background: #0f172a !important; border-color: #334155 !important; }
-        body.dark-mode .v-name { color: #f1f5f9 !important; }
         body.dark-mode .v-logo { border-color: #1e293b !important; }
         body.dark-mode .v-btn { background: var(--brand-color) !important; color: white !important;}
         
         body.dark-mode .related-card { background: #1e293b !important; border-color: #334155 !important; }
-        body.dark-mode .rel-title { color: #f1f5f9 !important; }
         
         body.dark-mode .view-all-btn { background: #1e293b !important; color: #f1f5f9 !important; border-color: #334155 !important; }
         body.dark-mode .view-all-btn:active { background: #334155 !important; }
@@ -266,7 +281,7 @@
                 const images = (product.image_urls && product.image_urls.length > 0) ? product.image_urls : ['https://via.placeholder.com/600x600?text=No+Image'];
                 
                 images.forEach((img, index) => {
-                    gallery.innerHTML += `<img src="${img}" class="slide-img">`;
+                    gallery.innerHTML += `<img src="${escapeHTML(img)}" class="slide-img">`;
                     dots.innerHTML += `<div class="dot ${index === 0 ? 'active' : ''}"></div>`;
                 });
 
@@ -339,55 +354,48 @@
             }, 3000); 
         }
 
-       async function loadRelatedItems(category, currentId) {
-    const grid = document.getElementById('related-grid');
-    try {
-        // 1. Fetch a large pool of items (up to 1000) so we have everything to shuffle.
-        // I removed `.eq('category', category)` so it fetches from the whole table as requested.
-        // If you ever want to restrict it back to the same category, just add it back.
-        const { data, error } = await supabaseClient.from('products')
-            .select('id, name, price, image_urls')
-            .eq('status', 'Active')
-            .neq('id', currentId) 
-            .limit(1000); 
-        
-        if (error) throw error;
-        
-        if(!data || data.length === 0) {
-            grid.innerHTML = "<p style='grid-column: span 2; text-align: center; color: #94a3b8; font-size: 13px; padding: 20px 0;'>No similar items right now.</p>";
-            return;
+        async function loadRelatedItems(category, currentId) {
+            const grid = document.getElementById('related-grid');
+            try {
+                // Fetch pool of items to shuffle
+                const { data, error } = await supabaseClient.from('products')
+                    .select('id, name, price, image_urls')
+                    .eq('status', 'Active')
+                    .neq('id', currentId) 
+                    .limit(1000); 
+                
+                if (error) throw error;
+                
+                if(!data || data.length === 0) {
+                    grid.innerHTML = "<p style='grid-column: span 2; text-align: center; color: #94a3b8; font-size: 13px; padding: 20px 0;'>No similar items right now.</p>";
+                    return;
+                }
+
+                for (let i = data.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [data[i], data[j]] = [data[j], data[i]];
+                }
+
+                const selectedItems = data.slice(0, 50);
+                grid.innerHTML = "";
+
+                selectedItems.forEach(p => {
+                    const imgUrl = (p.image_urls && p.image_urls.length > 0) ? p.image_urls[0] : 'https://via.placeholder.com/300';
+                    const fPrice = new Intl.NumberFormat('en-NG', { style: 'currency', currency: 'NGN', maximumFractionDigits: 0 }).format(p.price);
+                    
+                    grid.innerHTML += `
+                        <div class="related-card" onclick="window.location.href='index.html?id=${p.id}'">
+                            <img src="${escapeHTML(imgUrl)}" class="rel-img">
+                            <div class="rel-price">${fPrice}</div>
+                            <div class="rel-title">${escapeHTML(p.name)}</div>
+                        </div>
+                    `;
+                });
+            } catch(e) { 
+                console.error("Error loading related items:", e); 
+            }
         }
 
-        // 2. Randomly shuffle the entire fetched array using the Fisher-Yates algorithm.
-        // This provides much better and truer randomness than `0.5 - Math.random()`.
-        for (let i = data.length - 1; i > 0; i--) {
-            const j = Math.floor(Math.random() * (i + 1));
-            [data[i], data[j]] = [data[j], data[i]];
-        }
-
-        // 3. Pick the top 50 items from the newly randomized pool
-        const selectedItems = data.slice(0, 50);
-
-        // Clear the loading text/skeletons if any
-        grid.innerHTML = "";
-
-        // 4. Render the 50 items
-        selectedItems.forEach(p => {
-            const imgUrl = (p.image_urls && p.image_urls.length > 0) ? p.image_urls[0] : 'https://via.placeholder.com/300';
-            const fPrice = new Intl.NumberFormat('en-NG', { style: 'currency', currency: 'NGN', maximumFractionDigits: 0 }).format(p.price);
-            
-            grid.innerHTML += `
-                <div class="related-card" onclick="window.location.href='index.html?id=${p.id}'">
-                    <img src="${imgUrl}" class="rel-img">
-                    <div class="rel-price">${fPrice}</div>
-                    <div class="rel-title">${escapeHTML(p.name)}</div>
-                </div>
-            `;
-        });
-    } catch(e) { 
-        console.error("Error loading related items:", e); 
-    }
-}
         window.shareItem = function() {
             if (!currentProduct) return;
             const url = window.location.href;
@@ -422,7 +430,6 @@
             window.location.href = `../chats/index.html?product_id=${currentProduct.id}&vendor_id=${currentVendorUserId}`;
         }
 
-        // --- SAVED ITEMS LOGIC ---
         async function checkSavedStatus(productId) {
             const { data: { session } } = await supabaseClient.auth.getSession();
             if (!session) return; 
@@ -474,6 +481,10 @@
                 console.error("Error toggling save status:", err);
             }
         }
-</script>
+        
+        function escapeHTML(str) {
+            return str ? String(str).replace(/[&<>'"]/g, tag => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;'}[tag])) : '';
+        }
+    </script>
 </body>
 </html>
