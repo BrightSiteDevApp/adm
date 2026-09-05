@@ -60,6 +60,13 @@
     <link rel="icon" href="../favicon.ico" type="image/x-icon">
 
     <style>
+        /* 🚀 FIX: ADDED MISSING ROOT VARIABLES */
+        :root {
+            --brand-color: #2d8eff; /* AFIT Blue */
+            --text-main: #1e293b;
+            --text-muted: #64748b;
+        }
+
         .header-top-flex { display: flex; align-items: center; gap: 15px; margin-bottom: 15px; }
         .page-title { font-size: 20px; font-weight: 800; color: var(--text-main); margin: 0; }
         
@@ -87,8 +94,9 @@
         
         .vendor-info-wrapper { width: 100%; min-width: 0; }
         
+        /* 🚀 FIX: Changed color to var(--brand-color) to make it blue! */
         .vendor-name { 
-            font-size: 13px; font-weight: 800; color: var(--text-main); margin-bottom: 4px; 
+            font-size: 13px; font-weight: 900; color: var(--brand-color); margin-bottom: 4px; 
             display: flex; align-items: center; justify-content: center; gap: 4px;
             width: 100%; text-transform: uppercase;
         }
@@ -134,7 +142,10 @@
 
         body.dark-mode .vendor-card { background: #1e293b !important; border-color: #334155 !important; }
         body.dark-mode .vendor-logo { border-color: #334155 !important; background: #0f172a !important; }
-        body.dark-mode .vendor-name { color: #f1f5f9 !important; }
+        
+        /* 🚀 FIX: Made vendor name a bright light-blue in dark mode */
+        body.dark-mode .vendor-name { color: #60a5fa !important; }
+        
         body.dark-mode .vendor-desc { color: #cbd5e1 !important; }
 
         body.dark-mode .sk-card { background: #1e293b !important; border-color: #334155 !important; }
@@ -210,6 +221,10 @@
         });
 
         async function requireLogin(targetUrl) {
+            if (typeof supabaseClient === 'undefined') {
+                window.location.href = "../login/index.html";
+                return;
+            }
             const { data: { session } } = await supabaseClient.auth.getSession();
             if (session) window.location.href = targetUrl;
             else window.location.href = "../login/index.html";
@@ -228,13 +243,13 @@
             try {
                 const { data, error } = await supabaseClient
                     .from('vendors')
-                    .select('id, vendor_code, business_name, description, logo_url, subscription_plan, is_pinned') // 🚀 Added is_pinned
+                    .select('id, vendor_code, business_name, description, logo_url, subscription_plan, is_pinned') 
                     .eq('is_active', true)
-                    .order('is_pinned', { ascending: false }); // 🚀 Order pinned first
+                    .order('is_pinned', { ascending: false }); 
 
                 if (error) throw error;
 
-                // 🚀 Keep pinned items at the top, shuffle the rest
+                // Keep pinned items at the top, shuffle the rest
                 const pinned = data.filter(v => v.is_pinned === true);
                 const unpinned = shuffleArray(data.filter(v => v.is_pinned !== true));
                 
@@ -290,7 +305,7 @@
                     if (v.subscription_plan === "Influencer") badgeColor = "#fbbf24"; 
                     if (v.subscription_plan === "Icon") badgeColor = "#1e293b"; 
 
-                    // 🚀 The Pin Badge
+                    // The Pin Badge
                     const pinBadge = v.is_pinned ? `<div style="position: absolute; top: 10px; right: 10px; background: rgba(0,0,0,0.7); color: #fbbf24; padding: 3px 8px; border-radius: 8px; font-size: 10px; font-weight: 800; backdrop-filter: blur(4px); z-index: 10;"><i class="fas fa-thumbtack"></i> Featured</div>` : '';
 
                     grid.insertAdjacentHTML('beforeend', `
@@ -344,6 +359,10 @@
             loadNextBatch();
 
             return false;
+        }
+
+        function escapeHTML(str) {
+            return str ? String(str).replace(/[&<>'"]/g, tag => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;'}[tag])) : '';
         }
     </script>
 </body>

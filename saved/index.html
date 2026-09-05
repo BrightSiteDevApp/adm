@@ -9,57 +9,80 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="../asset/style.css">
     <link rel="icon" href="../asset/img/app-logo.png" type="image/png" sizes="192x192">
-  <link rel="icon" href="../favicon.ico" type="image/x-icon">
-
+    <link rel="icon" href="../favicon.ico" type="image/x-icon">
 
     <style>
+        /* 🚀 STRICT BOX SIZING (Fixes the right-side cut-off) */
+        *, *::before, *::after { box-sizing: border-box !important; }
+        html, body { max-width: 100vw !important; overflow-x: hidden !important; margin: 0; padding: 0; }
+        
+        /* 🚀 ADDED MISSING ROOT VARIABLES (Fixes the invisible buttons) */
+        :root {
+            --brand-color: #2563eb;
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+        }
+
+        body { font-family: 'Poppins', sans-serif; background: #f8fafc; }
+
         .header-top-flex { display: flex; align-items: center; gap: 15px; }
         .page-title { font-size: 20px; font-weight: 800; color: var(--text-main); margin: 0; }
         
-        .items-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; padding: 20px 20px 0; }
+        .items-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; padding: 20px; width: 100%; }
 
         /* 🚀 REDESIGNED SAVED CARD */
         .product-card { 
             background: white; border-radius: 20px; padding: 12px; 
-            box-shadow: 0 8px 20px rgba(0,0,0,0.02); cursor: pointer; 
-            border: 1px solid #e2e8f0; position: relative; transition: 0.2s;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.03); cursor: pointer; 
+            border: 1px solid #e2e8f0; position: relative; transition: all 0.2s ease;
+            display: flex; flex-direction: column;
         }
+        .product-card:hover { transform: translateY(-3px); box-shadow: 0 12px 25px rgba(0,0,0,0.06); border-color: #cbd5e1; }
         .product-card:active { transform: scale(0.96); }
         
-        .img-wrapper { position: relative; width: 100%; height: 160px; margin-bottom: 12px; border-radius: 12px; overflow: hidden; }
-        .product-img { width: 100%; height: 100%; object-fit: cover; background: #f8fafc; }
+        .img-wrapper { position: relative; width: 100%; aspect-ratio: 1; margin-bottom: 12px; border-radius: 12px; overflow: hidden; background: #f1f5f9; }
+        .product-img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.3s ease; }
+        .product-card:hover .product-img { transform: scale(1.05); }
         
-        .product-price { font-size: 18px; font-weight: 900; color: var(--brand-color); margin-bottom: 4px; }
-        .product-title { font-size: 13px; font-weight: 700; color: var(--text-main); line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-        .product-category { font-size: 11px; color: var(--text-muted); margin-top: 6px; font-weight: 600; }
+        .product-price { font-size: 17px; font-weight: 900; color: var(--brand-color); margin-bottom: 4px; }
+        .product-title { font-size: 13px; font-weight: 700; color: var(--text-main); line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; flex-grow: 1;}
+        .product-category { font-size: 11px; color: var(--text-muted); margin-top: 6px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;}
         
         /* Sleek Frosted Glass Remove Button */
         .remove-btn { 
-            position: absolute; top: 10px; right: 10px; 
-            background: rgba(255, 255, 255, 0.85); color: #ef4444; 
-            width: 32px; height: 32px; border-radius: 10px; 
+            position: absolute; top: 8px; right: 8px; 
+            background: rgba(255, 255, 255, 0.9); color: #ef4444; 
+            width: 34px; height: 34px; border-radius: 10px; 
             display: flex; justify-content: center; align-items: center; 
             backdrop-filter: blur(8px); font-size: 15px; border: none; 
-            cursor: pointer; transition: 0.2s; box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            cursor: pointer; transition: 0.2s; box-shadow: 0 4px 10px rgba(0,0,0,0.1); z-index: 10;
         }
-        .remove-btn:active { transform: scale(0.85); background: #ef4444; color: white; }
+        .remove-btn:hover { background: #ef4444; color: white; transform: scale(1.1); }
+        .remove-btn:active { transform: scale(0.9); }
 
         /* Empty State */
-        .empty-state { text-align: center; padding: 80px 20px; display: none; flex-direction: column; align-items: center; grid-column: span 2;}
-        .empty-icon-wrapper { width: 80px; height: 80px; border-radius: 50%; background: #eff6ff; display: flex; justify-content: center; align-items: center; margin-bottom: 20px; }
+        .empty-state { text-align: center; padding: 60px 20px; display: none; flex-direction: column; align-items: center; grid-column: 1 / -1; width: 100%;}
+        .empty-icon-wrapper { width: 80px; height: 80px; border-radius: 50%; background: #eff6ff; display: flex; justify-content: center; align-items: center; margin-bottom: 20px; box-shadow: 0 10px 25px rgba(37, 99, 235, 0.1);}
         .empty-icon-wrapper i { font-size: 35px; color: var(--brand-color); }
-        .empty-state h3 { font-size: 20px; font-weight: 900; color: var(--text-main); margin: 0 0 10px; }
-        .empty-state p { font-size: 14px; color: var(--text-muted); margin-bottom: 30px; line-height: 1.6; }
-        .explore-btn { background: var(--brand-color); color: white; padding: 15px 30px; border-radius: 14px; font-weight: 800; font-size: 15px; text-decoration: none; box-shadow: 0 8px 20px rgba(45, 142, 255, 0.3); transition: 0.2s; }
+        .empty-state h3 { font-size: 20px; font-weight: 900; color: var(--text-main); margin: 0 0 10px; letter-spacing: -0.5px;}
+        .empty-state p { font-size: 14px; color: var(--text-muted); margin-bottom: 30px; line-height: 1.6; max-width: 300px;}
+        .explore-btn { background: var(--brand-color); color: white; padding: 14px 30px; border-radius: 14px; font-weight: 800; font-size: 15px; text-decoration: none; box-shadow: 0 8px 20px rgba(37, 99, 235, 0.3); transition: 0.2s; display: inline-block;}
+        .explore-btn:hover { transform: translateY(-2px); box-shadow: 0 12px 25px rgba(37, 99, 235, 0.4); background: #1d4ed8;}
         .explore-btn:active { transform: scale(0.96); }
 
         /* Skeletons */
         .sk-shimmer { background: linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%); background-size: 200% 100%; animation: shimmer 1.5s infinite; }
         @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
         .sk-card { background: white; border-radius: 20px; padding: 12px; border: 1px solid #f1f5f9; }
-        .sk-img { width: 100%; height: 160px; border-radius: 12px; margin-bottom: 12px; }
-        .sk-line-1 { width: 50%; height: 16px; border-radius: 4px; margin-bottom: 10px; }
+        .sk-img { width: 100%; aspect-ratio: 1; border-radius: 12px; margin-bottom: 12px; }
+        .sk-line-1 { width: 60%; height: 16px; border-radius: 4px; margin-bottom: 10px; }
         .sk-line-2 { width: 90%; height: 12px; border-radius: 4px; margin-bottom: 6px; }
+        .sk-line-3 { width: 40%; height: 10px; border-radius: 4px; margin-top: 10px; }
+
+        /* Mobile Fixes */
+        @media (max-width: 360px) {
+            .items-grid { grid-template-columns: 1fr; }
+        }
 
         /* ========================================= */
         /* 🌙 DARK MODE FIXES                        */
@@ -72,16 +95,19 @@
         
         body.dark-mode .empty-state h3 { color: #f1f5f9 !important; }
         body.dark-mode .empty-state p { color: #94a3b8 !important; }
-        body.dark-mode .empty-icon-wrapper { background: #1e293b !important; }
+        body.dark-mode .empty-icon-wrapper { background: #1e293b !important; box-shadow: none; }
         
         body.dark-mode .product-card { background: #1e293b !important; border-color: #334155 !important; }
-        body.dark-mode .product-img { background: #0f172a !important; }
+        body.dark-mode .product-card:hover { border-color: #475569 !important; }
+        body.dark-mode .img-wrapper { background: #0f172a !important; }
         body.dark-mode .product-title { color: #f1f5f9 !important; }
         body.dark-mode .product-category { color: #94a3b8 !important; }
         
-        body.dark-mode .remove-btn { background: rgba(15, 23, 42, 0.7) !important; color: #ef4444 !important; }
+        body.dark-mode .remove-btn { background: rgba(15, 23, 42, 0.8) !important; color: #ef4444 !important; }
+        body.dark-mode .remove-btn:hover { background: #ef4444 !important; color: white !important; }
         
         body.dark-mode .sk-card { background: #1e293b !important; border-color: #334155 !important; }
+        body.dark-mode .sk-shimmer { background: linear-gradient(90deg, #334155 25%, #475569 50%, #334155 75%); background-size: 200% 100%; }
     </style>
 </head>
 <body>
@@ -94,22 +120,22 @@
             </div>
         </div>
 
-        <div class="content-area" style="padding: 0 0 90px 0;">
+        <div class="content-area" style="padding: 0 0 90px 0; width: 100%;">
             
             <div class="empty-state" id="empty-state">
                 <div class="empty-icon-wrapper"><i class="fas fa-heart"></i></div>
                 <h3>No Saved Items</h3>
                 <p>You haven't saved any items yet. Explore the marketplace and tap the heart icon to save things you like!</p>
-                <a href="../items/index.html" class="explore-btn">Explore Market</a>
+                <a href="../index.html" class="explore-btn">Explore Market</a>
             </div>
 
             <div class="items-grid" id="main-items-grid"></div>
 
-            <div class="items-grid" id="skeleton-loader" style="padding-top: 15px;">
-                <div class="sk-card"><div class="sk-shimmer sk-img"></div><div class="sk-shimmer sk-line-1"></div><div class="sk-shimmer sk-line-2"></div></div>
-                <div class="sk-card"><div class="sk-shimmer sk-img"></div><div class="sk-shimmer sk-line-1"></div><div class="sk-shimmer sk-line-2"></div></div>
-                <div class="sk-card"><div class="sk-shimmer sk-img"></div><div class="sk-shimmer sk-line-1"></div><div class="sk-shimmer sk-line-2"></div></div>
-                <div class="sk-card"><div class="sk-shimmer sk-img"></div><div class="sk-shimmer sk-line-1"></div><div class="sk-shimmer sk-line-2"></div></div>
+            <div class="items-grid" id="skeleton-loader" style="padding-top: 20px;">
+                <div class="sk-card"><div class="sk-shimmer sk-img"></div><div class="sk-shimmer sk-line-1"></div><div class="sk-shimmer sk-line-2"></div><div class="sk-shimmer sk-line-3"></div></div>
+                <div class="sk-card"><div class="sk-shimmer sk-img"></div><div class="sk-shimmer sk-line-1"></div><div class="sk-shimmer sk-line-2"></div><div class="sk-shimmer sk-line-3"></div></div>
+                <div class="sk-card"><div class="sk-shimmer sk-img"></div><div class="sk-shimmer sk-line-1"></div><div class="sk-shimmer sk-line-2"></div><div class="sk-shimmer sk-line-3"></div></div>
+                <div class="sk-card"><div class="sk-shimmer sk-img"></div><div class="sk-shimmer sk-line-1"></div><div class="sk-shimmer sk-line-2"></div><div class="sk-shimmer sk-line-3"></div></div>
             </div>
 
         </div>
@@ -124,7 +150,7 @@
                 <span>Messages</span>
             </a>
             
-            <div class="nav-fab" onclick="requireLogin('../add-product/index.html')">
+            <div class="nav-fab" onclick="requireLogin('../vendor-dashboard/index.html')">
                 <i class="fas fa-plus"></i>
             </div>
             
@@ -144,7 +170,17 @@
         let currentUser = null;
         let savedProducts = [];
 
+        // Simple fallback escape HTML function just in case it's missing from script.js
+        const safeHTML = (str) => str ? String(str).replace(/[&<>'"]/g, 
+            tag => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;'}[tag])) : '';
+
         document.addEventListener("DOMContentLoaded", async () => {
+            if (typeof supabaseClient === 'undefined') {
+                const supabaseUrl = 'PASTE_YOUR_SUPABASE_URL_HERE';
+                const supabaseKey = 'PASTE_YOUR_SUPABASE_ANON_KEY_HERE';
+                window.supabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
+            }
+
             const { data: { session } } = await supabaseClient.auth.getSession();
             if (!session) {
                 window.location.href = "../login/index.html";
@@ -202,7 +238,7 @@
             } catch (error) {
                 console.error(error);
                 skeleton.style.display = 'none';
-                grid.innerHTML = `<p style="grid-column:span 2; text-align:center; color:red; padding: 40px;">Failed to load saved items.</p>`;
+                grid.innerHTML = `<p style="grid-column: 1 / -1; text-align:center; color:#ef4444; padding: 40px; font-weight:600;">Failed to load saved items. Please refresh.</p>`;
             }
         }
 
@@ -214,7 +250,6 @@
                 const imgUrl = (p.image_urls && p.image_urls.length > 0) ? p.image_urls[0] : 'https://via.placeholder.com/300x300?text=No+Image';
                 const fPrice = new Intl.NumberFormat('en-NG', { style: 'currency', currency: 'NGN', maximumFractionDigits: 0 }).format(p.price);
 
-                // 🚀 XSS FIX: Wrap product name and category
                 grid.insertAdjacentHTML('beforeend', `
                     <div class="product-card" id="card-${p.id}" onclick="window.location.href='../product/index.html?id=${p.id}'">
                         <div class="img-wrapper">
@@ -222,8 +257,8 @@
                             <img src="${imgUrl}" class="product-img" onerror="this.src='https://via.placeholder.com/300x300?text=No+Image'">
                         </div>
                         <div class="product-price">${fPrice}</div>
-                        <div class="product-title">${escapeHTML(p.name)}</div>
-                        <div class="product-category">${escapeHTML(p.category)}</div>
+                        <div class="product-title">${safeHTML(p.name)}</div>
+                        <div class="product-category">${safeHTML(p.category)}</div>
                     </div>
                 `);
             });
@@ -235,6 +270,7 @@
             const card = document.getElementById(`card-${productId}`);
             card.style.transform = 'scale(0.8)';
             card.style.opacity = '0';
+            card.style.pointerEvents = 'none';
             
             setTimeout(() => {
                 card.remove();
@@ -242,7 +278,7 @@
                 if (savedProducts.length === 0) {
                     document.getElementById('empty-state').style.display = 'flex';
                 }
-            }, 200);
+            }, 250);
 
             try {
                 await supabaseClient
@@ -253,6 +289,6 @@
                 console.error("Failed to delete from database:", err);
             }
         }
-</script>
+    </script>
 </body>
 </html>

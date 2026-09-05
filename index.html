@@ -1,242 +1,224 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-70VSGR5WBW"></script>
+    
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 
     <title>AFIT Digital Market (ADM) | #1 Campus Marketplace</title>
     <meta name="description" content="Join AFIT Digital Market (ADM) to buy, sell, and discover services on campus. The ultimate student marketplace connecting AFIT vendors and buyers securely.">
-    <meta name="keywords" content="AFIT Digital Market, AFIT marketplace, campus marketplace Nigeria, student vendors AFIT, buy and sell on campus, ADM AFIT, AFIT services, student market Kaduna">
-    <meta name="author" content="BrightSiteDev">
     
-    <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1">
     <link rel="canonical" href="https://afitdgm.store/">
-
-    <meta name="geo.region" content="NG-KD"> <meta name="geo.placename" content="Kaduna">
-    <meta name="geo.position" content="10.5105;7.4165"> <meta name="ICBM" content="10.5105, 7.4165">
-
-    <meta property="og:type" content="website">
-    <meta property="og:site_name" content="AFIT Digital Market">
-    <meta property="og:locale" content="en_NG">
-    <meta property="og:url" content="https://afitdgm.store/">
-    <meta property="og:title" content="AFIT Digital Market (ADM) | Discover. Connect. Trade.">
-    <meta property="og:description" content="Your campus digital marketplace built for AFIT students. Discover businesses, compare prices, and connect instantly.">
-    <meta property="og:image" content="https://afitdgm.store/asset/img/app-logo.png">
-    <meta property="og:image:width" content="1200">
-    <meta property="og:image:height" content="630">
-
-    <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:site" content="@brightsitedev"> <meta name="twitter:title" content="AFIT Digital Market (ADM)">
-    <meta name="twitter:description" content="Buy, sell, and discover services securely on the AFIT campus.">
-    <meta name="twitter:image" content="https://afitdgm.store/asset/img/app-logo.png">
-
-    <script type="application/ld+json">
-    {
-      "@context": "https://schema.org",
-      "@type": "WebSite",
-      "name": "AFIT Digital Market",
-      "alternateName": "ADM",
-      "url": "https://afitdgm.store/",
-      "description": "A student-focused digital marketplace for AFIT.",
-      "potentialAction": {
-        "@type": "SearchAction",
-        "target": "https://afitdgm.store/search/index.html?q={search_term_string}",
-        "query-input": "required name=search_term_string"
-      }
-    }
-    </script>
-
     <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#2d8eff">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="default">
-    <meta name="apple-mobile-web-app-title" content="AFIT DGM">
-
+    
     <link rel="icon" href="asset/img/app-logo.png" type="image/png" sizes="192x192">
     <link rel="apple-touch-icon" href="asset/img/app-logo.png">
     <link rel="icon" href="favicon.ico" type="image/x-icon">
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="stylesheet" href="asset/style.css">
+
+    <style>
+        /* 🚀 NEW HEADER STYLING */
+        .header-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+        .header-logo { max-height: 40px; }
+        
+        .greeting-box { flex-grow: 1; text-align: right; margin-right: 15px; display: flex; flex-direction: column; justify-content: center; }
+        .greeting-title { font-size: 15px; font-weight: 800; color: var(--text-main); margin: 0; line-height: 1.2; letter-spacing: -0.3px;}
+        .greeting-sub { font-size: 11px; color: var(--text-muted); margin: 0; font-weight: 500;}
+
+        /* 🚀 WELCOME BANNER */
+        .welcome-banner {
+            background: linear-gradient(135deg, #2d8eff 0%, #1e3a8a 100%);
+            border-radius: 16px; padding: 22px 20px; color: white; margin: 15px 20px 15px;
+            box-shadow: 0 10px 25px rgba(45, 142, 255, 0.25); position: relative; overflow: hidden;
+        }
+        .welcome-banner::after {
+            content: '\f290'; font-family: 'Font Awesome 6 Free'; font-weight: 900;
+            position: absolute; right: -15px; bottom: -20px; font-size: 100px;
+            color: rgba(255, 255, 255, 0.1); transform: rotate(-15deg); pointer-events: none;
+        }
+        .welcome-title { font-size: 20px; font-weight: 800; margin: 0 0 6px 0; letter-spacing: -0.5px; position: relative; z-index: 2;}
+        .welcome-desc { font-size: 13px; color: #bae6fd; line-height: 1.5; margin: 0; font-weight: 500; position: relative; z-index: 2;}
+
+        /* 🚀 MINI CARDS FOR RECOMMENDATIONS */
+        .mini-slider {
+            display: flex; overflow-x: auto; gap: 12px; padding-bottom: 10px;
+            scroll-snap-type: x mandatory; scrollbar-width: none; scroll-behavior: smooth;
+        }
+        .mini-slider::-webkit-scrollbar { display: none; }
+        
+        .mini-card {
+            width: 130px; flex-shrink: 0; scroll-snap-align: start; margin-bottom: 0;
+            background: var(--bg-card); border-radius: 14px; padding: 10px;
+            box-shadow: var(--shadow-sm); border: 1px solid var(--border-color);
+            display: flex; flex-direction: column; cursor: pointer; transition: transform 0.2s;
+        }
+        .mini-card:active { transform: scale(0.96); }
+        .mini-img { width: 100%; height: 105px; object-fit: cover; border-radius: 10px; margin-bottom: 8px; background: var(--bg-input); }
+        .mini-price { font-size: 14px; font-weight: 900; color: var(--brand-primary); margin-bottom: 3px; }
+        .mini-title { font-size: 11px; font-weight: 600; color: var(--text-main); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+        /* 🚀 SMALLER REVIEWS OVERRIDE */
+        .review-card { min-width: 250px !important; padding: 12px !important; border-radius: 14px !important; }
+        .rev-header { margin-bottom: 8px !important; gap: 10px !important; }
+        .rev-img { width: 36px !important; height: 36px !important; }
+        .rev-name { font-size: 13px !important; }
+        .rev-stars { font-size: 10px !important; margin-top: 0 !important; }
+        .rev-text { font-size: 12px !important; line-height: 1.5 !important; -webkit-line-clamp: 2 !important; }
+
+        /* 🚀 SLEEK FOOTER FIX */
+        .footer {
+            background: var(--brand-primary); color: white; 
+            padding: 30px 20px 85px; 
+            border-radius: 24px 24px 0 0; position: relative;
+            margin-top: 20px; box-shadow: 0 -10px 30px rgba(45, 142, 255, 0.15);
+        }
+        .footer-links-grid { display: flex; justify-content: center; gap: 20px; flex-wrap: wrap; margin-bottom: 20px; }
+        .footer-links-grid a { color: white; text-decoration: none; font-size: 13px; font-weight: 700; opacity: 0.9; }
+        .footer-links-grid a:hover { opacity: 1; text-decoration: underline; }
+        .copyright-text { font-size: 12px; color: rgba(255, 255, 255, 0.7); text-align: center; margin: 0; font-weight: 500; }
+
+        /* Dark Mode fixes for new elements */
+        body.dark-mode .welcome-banner { background: linear-gradient(135deg, #1e3a8a 0%, #0f172a 100%); border: 1px solid #334155; box-shadow: none; }
+        body.dark-mode .footer { background: #1e293b; box-shadow: 0 -10px 30px rgba(0,0,0,0.3); }
+        body.dark-mode .greeting-title { color: #f8fafc; }
+    </style>
 </head>
 <body>
 
     <div class="app-container">
         
-        <div class="header">
+        <header class="header">
             <div class="header-top">
                <a href="./" class="logo-link">
                     <img src="asset/img/logo.png" alt="AFIT Digital Market Logo" class="header-logo" onerror="this.src='https://via.placeholder.com/150x45?text=AFIT+DGM'">
                 </a>
-                <a href="notification/" class="notify-icon-container" style="position: relative; text-decoration: none; color: var(--brand-color); display: inline-block; font-size: 22px;">
-    <i class="fas fa-bell"></i>
-    <span class="notify-dot" style="display: none; position: absolute; top: -2px; right: -2px; width: 10px; height: 10px; background-color: #ef4444; border-radius: 50%; border: 2px solid white;"></span>
-</a>
+                
+                <!-- 🚀 DYNAMIC GREETING -->
+                <div class="greeting-box">
+                    <h1 class="greeting-title" id="user-name-display">Hi, Student 👋</h1>
+                    <p class="greeting-sub">Find everything you need</p>
+                </div>
+
+                <a href="notification/" class="notify-icon-container">
+                    <i class="fas fa-bell"></i>
+                    <span class="notify-dot"></span>
+                </a>
             </div>
             <div class="search-box">
                 <i class="fas fa-search search-icon" id="search-btn-icon"></i>
-                <input type="text" id="main-search" placeholder="Search for items, vendors, services on campus...">
+                <input type="text" id="main-search" placeholder="Search items, vendors, services...">
             </div>
-        </div>
+        </header>
 
-        <div class="content-area">
+        <main class="content-area">
+
+            <!-- 🚀 NEW WELCOME BANNER -->
+            <div class="welcome-banner">
+                <h2 class="welcome-title">Welcome to AFIT Digital Market</h2>
+                <p class="welcome-desc">Your #1 campus marketplace. Buy, sell, and discover student services with zero stress.</p>
+            </div>
             
-           <div class="category-grid">
-    <a href="requests/" class="cat-item">
-        <div class="cat-icon-box" style="color: #f43f5e; background: #fff1f2;"><i class="fas fa-bullhorn"></i></div>
-        <span class="cat-name">Request</span>
-    </a>
+            <!-- 🚀 RECOMMENDED FOR YOU (MOVED UP) -->
+            <section class="section-wrapper" style="padding-bottom: 5px;">
+                <div class="section-header" style="margin-bottom: 12px;">
+                    <h2 class="section-title">Recommended for you</h2>
+                </div>
+                <div class="mini-slider auto-scroll-slider" id="rec-slider">
+                    <!-- Skeletons -->
+                    <div class="mini-card skeleton"><div class="sk-shimmer sk-img" style="height:105px;"></div><div class="sk-shimmer sk-line medium"></div></div>
+                    <div class="mini-card skeleton"><div class="sk-shimmer sk-img" style="height:105px;"></div><div class="sk-shimmer sk-line medium"></div></div>
+                    <div class="mini-card skeleton"><div class="sk-shimmer sk-img" style="height:105px;"></div><div class="sk-shimmer sk-line medium"></div></div>
+                </div>
+            </section>
 
-    <a href="items/index.html?cat=Gadgets" class="cat-item">
-        <div class="cat-icon-box" style="color: #3b82f6; background: #eff6ff;"><i class="fas fa-mobile-screen"></i></div>
-        <span class="cat-name">Gadgets</span>
-    </a>
-    
-    <a href="items/index.html?cat=Fashion" class="cat-item">
-        <div class="cat-icon-box" style="color: #ec4899; background: #fdf2f8;"><i class="fas fa-bag-shopping"></i></div>
-        <span class="cat-name">Fashion</span>
-    </a>
-    
-    <a href="items/index.html?cat=Food" class="cat-item">
-        <div class="cat-icon-box" style="color: #f59e0b; background: #fffbeb;"><i class="fas fa-bowl-food"></i></div>
-        <span class="cat-name">Food</span>
-    </a>
-    
-    <a href="items/index.html?cat=Transport" class="cat-item">
-        <div class="cat-icon-box" style="color: #eab308; background: #fefce8;"><i class="fas fa-truck-fast"></i></div>
-        <span class="cat-name">Transport</span>
-    </a>
-    
-    <a href="items/index.html?cat=Beauty" class="cat-item">
-        <div class="cat-icon-box" style="color: #f43f5e; background: #fff1f2;"><i class="fas fa-spa"></i></div>
-        <span class="cat-name">Beauty</span>
-    </a>
-    
-    <a href="items/index.html?cat=CampusServices" class="cat-item">
-        <div class="cat-icon-box" style="color: #10b981; background: #ecfdf5;"><i class="fas fa-copy"></i></div>
-        <span class="cat-name">Services</span>
-    </a>
-    
-    <a href="category/" class="cat-item">
-        <div class="cat-icon-box" style="color: #64748b; background: #f8fafc;"><i class="fas fa-ellipsis-h"></i></div>
-        <span class="cat-name">Others</span>
-    </a>
-</div>
+            <!-- 🚀 DYNAMIC CATEGORY RECOMMENDATIONS (3 RANDOM ONES) -->
+            <div id="dynamic-category-recs"></div>
 
-            <div class="section-wrapper">
+            <!-- 🚀 CATEGORY GRID (MOVED DOWN) -->
+            <nav class="category-grid" style="margin-top: 10px;">
+                <a href="requests/" class="cat-item"><div class="cat-icon-box cat-red"><i class="fas fa-bullhorn"></i></div><span class="cat-name">Request</span></a>
+                <a href="items/index.html?cat=Gadgets" class="cat-item"><div class="cat-icon-box cat-blue"><i class="fas fa-mobile-screen"></i></div><span class="cat-name">Gadgets</span></a>
+                <a href="items/index.html?cat=Fashion" class="cat-item"><div class="cat-icon-box cat-pink"><i class="fas fa-bag-shopping"></i></div><span class="cat-name">Fashion</span></a>
+                <a href="items/index.html?cat=Food" class="cat-item"><div class="cat-icon-box cat-orange"><i class="fas fa-bowl-food"></i></div><span class="cat-name">Food</span></a>
+                <a href="items/index.html?cat=Transport" class="cat-item"><div class="cat-icon-box cat-yellow"><i class="fas fa-truck-fast"></i></div><span class="cat-name">Transport</span></a>
+                <a href="items/index.html?cat=Beauty" class="cat-item"><div class="cat-icon-box cat-rose"><i class="fas fa-spa"></i></div><span class="cat-name">Beauty</span></a>
+                <a href="items/index.html?cat=CampusServices" class="cat-item"><div class="cat-icon-box cat-green"><i class="fas fa-copy"></i></div><span class="cat-name">Services</span></a>
+                <a href="category/" class="cat-item"><div class="cat-icon-box cat-gray"><i class="fas fa-ellipsis-h"></i></div><span class="cat-name">Others</span></a>
+            </nav>
+
+            <!-- ORIGINAL SECTIONS (Handled by script.js) -->
+            <section class="section-wrapper">
                 <div class="section-header">
-                    <div class="section-title">Student Reviews</div>
+                    <h2 class="section-title">Student Reviews</h2>
                     <a href="reviews/" class="see-all">See all</a>
                 </div>
                <div class="reviews-slider" id="reviews-slider">
-                    <div class="review-card">
-                        <div class="rev-header">
-                            <div class="sk-shimmer sk-avatar"></div>
-                            <div style="flex: 1;">
-                                <div class="sk-shimmer sk-line short"></div>
-                                <div class="sk-shimmer sk-line medium" style="height: 8px;"></div>
-                            </div>
-                        </div>
-                        <div class="sk-shimmer sk-line long"></div>
-                        <div class="sk-shimmer sk-line medium"></div>
-                    </div>
+                    <div class="review-card skeleton"><div class="rev-header"><div class="sk-shimmer sk-avatar"></div><div class="sk-text-group"><div class="sk-shimmer sk-line short"></div><div class="sk-shimmer sk-line micro"></div></div></div><div class="sk-shimmer sk-line long"></div><div class="sk-shimmer sk-line medium"></div></div>
                 </div>
-            </div>
+            </section>
 
-            <div class="section-wrapper">
+            <section class="section-wrapper">
                 <div class="section-header">
-                    <div class="section-title">Available Items</div>
+                    <h2 class="section-title">Available Items</h2>
                     <a href="items/" class="see-all">See all</a>
                 </div>
                 <div class="product-grid" id="product-grid">
-                    <div class="sk-card">
-                        <div class="sk-shimmer sk-img"></div>
-                        <div class="sk-shimmer sk-line short"></div>
-                        <div class="sk-shimmer sk-line long"></div>
-                        <div class="sk-shimmer sk-line medium"></div>
-                    </div>
-                    <div class="sk-card">
-                        <div class="sk-shimmer sk-img"></div>
-                        <div class="sk-shimmer sk-line short"></div>
-                        <div class="sk-shimmer sk-line long"></div>
-                        <div class="sk-shimmer sk-line medium"></div>
-                    </div>
+                    <div class="card skeleton"><div class="sk-shimmer sk-img"></div><div class="sk-shimmer sk-line short"></div><div class="sk-shimmer sk-line long"></div><div class="sk-shimmer sk-line medium"></div></div>
+                    <div class="card skeleton"><div class="sk-shimmer sk-img"></div><div class="sk-shimmer sk-line short"></div><div class="sk-shimmer sk-line long"></div><div class="sk-shimmer sk-line medium"></div></div>
                 </div>
-            </div>
+            </section>
 
-            <div class="section-wrapper">
+            <section class="section-wrapper">
                 <div class="section-header">
-                    <div class="section-title">Verified Vendors</div>
+                    <h2 class="section-title">Verified Vendors</h2>
                     <a href="vendors/" class="see-all">See all</a>
                 </div>
                <div class="product-grid" id="vendor-grid">
-                    <div class="sk-card" style="align-items: center;">
-                        <div class="sk-shimmer sk-v-avatar"></div>
-                        <div class="sk-shimmer sk-line medium"></div>
-                        <div class="sk-shimmer sk-line short"></div>
-                    </div>
-                    <div class="sk-card" style="align-items: center;">
-                        <div class="sk-shimmer sk-v-avatar"></div>
-                        <div class="sk-shimmer sk-line medium"></div>
-                        <div class="sk-shimmer sk-line short"></div>
-                    </div>
+                    <div class="card skeleton center-align"><div class="sk-shimmer sk-v-avatar"></div><div class="sk-shimmer sk-line medium"></div><div class="sk-shimmer sk-line short"></div></div>
+                    <div class="card skeleton center-align"><div class="sk-shimmer sk-v-avatar"></div><div class="sk-shimmer sk-line medium"></div><div class="sk-shimmer sk-line short"></div></div>
                 </div>
-            </div>
+            </section>
 
-            <div class="section-wrapper" style="margin-top: 10px;">
+            <section class="section-wrapper">
                 <div class="section-header">
-                    <div class="section-title">Campus Gist & News</div>
+                    <h2 class="section-title">Campus Gist & News</h2>
                     <a href="blogs/" class="see-all">See all</a>
                 </div>
                <div id="blog-list">
-                    <div class="blog-card">
-                        <div class="sk-shimmer sk-b-img"></div>
-                        <div style="flex: 1; display: flex; flex-direction: column; justify-content: center;">
-                            <div class="sk-shimmer sk-line short" style="margin-bottom: 10px;"></div>
-                            <div class="sk-shimmer sk-line long"></div>
-                            <div class="sk-shimmer sk-line medium"></div>
-                        </div>
-                    </div>
+                    <div class="blog-card skeleton"><div class="sk-shimmer sk-b-img"></div><div class="sk-text-group center-vertical"><div class="sk-shimmer sk-line short margin-bottom"></div><div class="sk-shimmer sk-line long"></div><div class="sk-shimmer sk-line medium"></div></div></div>
                 </div>
-            </div>
+            </section>
 
-            <div class="footer collapsed" id="main-app-footer">
-                <div class="footer-toggle" id="footer-expand-btn">
-                    <i class="fas fa-chevron-down" id="footer-arrow-icon"></i>
-                </div>
+            <!-- 🚀 COMPACT STATIC FOOTER -->
+            <footer class="footer">
+                <nav class="footer-links-grid">
+                    <a href="about/">About</a>
+                    <a href="privacy-policy/">Privacy</a>
+                    <a href="terms/">T&C</a>
+                    <a href="contact/">Contact</a>
+                    <a href="#" onclick="downloadApp(); return false;" style="color: #facc15;">Download App</a>
+                </nav>
+                <p class="copyright-text">&copy; 2026 AFIT Digital Market</p>
+            </footer>
+        </main>
 
-                <div class="footer-top-collapsed">
-                    <a href="./" class="logo-link">
-                    <img src="asset/img/logo-1.png" alt="AFIT Digital Market Logo" class="header-logo" onerror="this.src='https://via.placeholder.com/150x45?text=AFIT+DGM'">
-                </a>
-                    <button class="download-app-btn" onclick="downloadApp()">Download App</button>
-                </div>
-
-                <div class="footer-expanded-links">
-                    <div class="footer-links-grid">
-                        <a href="about/">About</a>
-                        <a href="privacy-policy/">Privacy</a>
-                        <a href="terms/">T&C</a>
-                        <a href="contact/">Contact</a>
-                    </div>
-                    <p class="copyright-text">
-                        &copy; 2026 AFIT Digital Market<br>
-                    </p>
-                </div>
-            </div>
-
-        </div>
-
-        <div class="bottom-nav">
+        <nav class="bottom-nav">
             <a href="./" class="nav-item active">
                 <i class="fas fa-home"></i>
                 <span>Home</span>
             </a>
             <a href="#" class="nav-item" onclick="requireLogin('messages/index.html')">
-                <i class="fas fa-comment-dots"></i>
-                <span class="red-dot msg-dot"></span>
+                <div class="icon-wrapper">
+                    <i class="fas fa-comment-dots"></i>
+                    <span class="msg-dot"></span>
+                </div>
                 <span>Messages</span>
             </a>
             <div class="nav-fab" onclick="requireLogin('add-product/index.html')">
@@ -250,54 +232,139 @@
                 <i class="fas fa-user"></i>
                 <span>Account</span>
             </a>
-        </div>
+        </nav>
 
-        <style>
-            .ad-modal-box { background: white; border-radius: 24px; overflow: hidden; max-width: 350px; width: 100%; box-shadow: 0 20px 40px rgba(0,0,0,0.3); position: relative; animation: slideUp 0.3s ease-out; margin: 20px; }
-            .ad-close-btn { position: absolute; top: 15px; right: 15px; background: rgba(0,0,0,0.5); color: white; border: none; width: 30px; height: 30px; border-radius: 50%; cursor: pointer; z-index: 10; display: flex; justify-content: center; align-items: center; backdrop-filter: blur(4px); }
-            body.dark-mode .ad-modal-box { background: #1e293b; border: 1px solid #334155; }
-            body.dark-mode #ad-title { color: #f1f5f9 !important; }
-            body.dark-mode #ad-content { color: #cbd5e1 !important; }
-            @keyframes slideUp { from { transform: translateY(50px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
-        </style>
-        
-        <div id="ad-popup" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(2, 6, 23, 0.8); backdrop-filter: blur(5px); z-index: 10000; justify-content: center; align-items: center;">
+        <!-- Modals -->
+        <div id="ad-popup" class="modal-overlay hidden">
             <div class="ad-modal-box">
-                <button class="ad-close-btn" onclick="document.getElementById('ad-popup').style.display='none'"><i class="fas fa-times"></i></button>
-                <img id="ad-image" src="" style="width: 100%; height: 180px; object-fit: cover; display: none;">
-                <div style="padding: 25px 20px; text-align: center;">
-                    <h3 id="ad-title" style="margin: 0 0 10px; font-size: 18px; font-weight: 900; color: #1e293b;">...</h3>
-                    <p id="ad-content" style="font-size: 13px; color: #64748b; line-height: 1.6; margin-bottom: 20px;">...</p>
-                    <a id="ad-btn" href="#" target="_blank" style="display: block; background: var(--brand-color); color: white; text-decoration: none; padding: 14px; border-radius: 14px; font-weight: 800; font-size: 14px; transition: 0.2s;">Learn More</a>
-                </div>
+                <button class="modal-close-btn" onclick="document.getElementById('ad-popup').classList.add('hidden')"><i class="fas fa-times"></i></button>
+                <img id="ad-image" src="" class="ad-image hidden" alt="Advertisement">
+                <div class="ad-content-wrapper"><h3 id="ad-title" class="modal-title">...</h3><p id="ad-content" class="modal-desc">...<a id="ad-btn" href="#" target="_blank" class="btn-primary">Learn More</a></div>
             </div>
         </div>
         
-
-        <div id="ios-install-popup" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(2, 6, 23, 0.8); backdrop-filter:blur(5px); z-index:9999; justify-content:center; align-items:center; padding:20px;">
-            <div style="background:white; padding:30px 25px; border-radius:24px; text-align:center; position:relative; max-width: 350px; width: 100%; box-shadow: 0 20px 40px rgba(0,0,0,0.3);">
-                <div style="position:absolute; top:15px; right:20px; font-size:24px; color:#94a3b8; cursor:pointer;" onclick="document.getElementById('ios-install-popup').style.display='none'"><i class="fas fa-times"></i></div>
-                <div style="width: 60px; height: 60px; background: #eff6ff; color: var(--brand-color); border-radius: 16px; display: flex; justify-content: center; align-items: center; font-size: 30px; margin: 0 auto 15px;">
-                    <i class="fab fa-apple"></i>
-                </div>
-                <h3 style="margin:0 0 10px; color:#1e293b; font-size: 18px; font-weight: 800;">Install AFIT Market</h3>
-                <p style="color:#64748b; font-size:13px; margin-bottom:20px; line-height: 1.5;">Install this app on your iPhone for the best experience.</p>
-                
-                <div style="text-align:left; background: #f8fafc; padding: 15px; border-radius: 16px; border: 1px solid #f1f5f9; margin-bottom: 20px;">
-                    <div style="font-size: 13px; color: #475569; margin-bottom: 10px;">
-                        1. Tap the <b>Share</b> icon <i class="fas fa-external-link-alt" style="color:var(--brand-color); margin: 0 4px;"></i> below.
-                    </div>
-                    <div style="font-size: 13px; color: #475569;">
-                        2. Scroll down and tap <b>Add to Home Screen</b> <i class="fas fa-plus-square" style="color:var(--brand-color); margin: 0 4px;"></i>.
-                    </div>
-                </div>
-                
-                <button onclick="document.getElementById('ios-install-popup').style.display='none'" style="background:var(--brand-color); color:white; border:none; padding:14px; border-radius:14px; font-weight:800; width:100%; cursor:pointer;">Got it!</button>
+        <div id="ios-install-popup" class="modal-overlay hidden">
+            <div class="ios-modal-box">
+                <button class="modal-close-btn" onclick="document.getElementById('ios-install-popup').classList.add('hidden')"><i class="fas fa-times"></i></button>
+                <div class="ios-icon-box"><i class="fab fa-apple"></i></div>
+                <h3 class="modal-title">Install AFIT Market</h3>
+                <p class="modal-desc">Install this app on your iPhone for the best experience.</p>
+                <div class="ios-instructions"><p>1. Tap the <b>Share</b> icon <i class="fas fa-external-link-alt highlight-icon"></i> below.</p><p>2. Scroll down and tap <b>Add to Home Screen</b> <i class="fas fa-plus-square highlight-icon"></i>.</p></div>
+                <button class="btn-primary w-full" onclick="document.getElementById('ios-install-popup').classList.add('hidden')">Got it!</button>
             </div>
         </div>
 
     </div>
 
     <script src="asset/script.js"></script>
+
+    <script>
+        // 🚀 SMART GREETING & DYNAMIC RECOMMENDATIONS LOGIC
+        document.addEventListener('DOMContentLoaded', async () => {
+            
+            // 1. Fetch User Name
+            if (typeof supabaseClient !== 'undefined') {
+                const { data: { session } } = await supabaseClient.auth.getSession();
+                if (session && session.user) {
+                    const { data: profile } = await supabaseClient.from('profiles').select('full_name').eq('id', session.user.id).maybeSingle();
+                    if (profile && profile.full_name) {
+                        const firstName = profile.full_name.split(' ')[0];
+                        document.getElementById('user-name-display').innerHTML = `Hi, ${escapeHTML(firstName)} 👋`;
+                    }
+                }
+            }
+
+            // 2. Fetch and populate Recommendations
+            try {
+                const { data: products, error } = await supabaseClient
+                    .from('products')
+                    .select('id, name, price, image_urls, category')
+                    .eq('status', 'Active')
+                    .limit(150);
+
+                if (error || !products || products.length === 0) return;
+
+                // Helper to shuffle an array perfectly
+                const shuffle = (arr) => [...arr].sort(() => Math.random() - 0.5);
+                const shuffledAll = shuffle(products);
+
+                // 🚀 REUSABLE MINI-CARD GENERATOR
+                const createMiniCard = (p) => {
+                    const imgUrl = (p.image_urls && p.image_urls.length > 0) ? p.image_urls[0] : 'https://via.placeholder.com/300?text=No+Image';
+                    const fPrice = new Intl.NumberFormat('en-NG', { style: 'currency', currency: 'NGN', maximumFractionDigits: 0 }).format(p.price);
+                    
+                    return `
+                        <div class="mini-card" onclick="window.location.href='product/index.html?id=${escapeJS(p.id)}'">
+                            <img src="${escapeHTML(imgUrl)}" class="mini-img" onerror="this.src='https://via.placeholder.com/300'">
+                            <div class="mini-price">${fPrice}</div>
+                            <div class="mini-title">${escapeHTML(p.name)}</div>
+                        </div>
+                    `;
+                };
+
+                // A. Main Slider (up to 15 Random Items)
+                const slider = document.getElementById('rec-slider');
+                slider.innerHTML = shuffledAll.slice(0, 15).map(p => createMiniCard(p)).join('');
+
+                // B. Dynamic Category Recommendations
+                // 🚀 Pulls exactly 3 random categories every refresh!
+                const allCategories = ['Gadgets', 'Fashion', 'Food', 'Beauty', 'Transport', 'CampusServices'];
+                const selectedCategories = shuffle(allCategories).slice(0, 3); // Changed to 3
+                
+                const dynamicRecsContainer = document.getElementById('dynamic-category-recs');
+                let catHtml = '';
+
+                selectedCategories.forEach(cat => {
+                    // Pulls up to 15 items for this specific category
+                    const catItems = shuffle(products.filter(p => p.category === cat)).slice(0, 15);
+                    
+                    if (catItems.length > 0) {
+                        catHtml += `
+                            <section class="section-wrapper" style="padding-bottom: 5px;">
+                                <div class="section-header" style="margin-bottom: 12px;">
+                                    <h2 class="section-title">Recommended ${cat}</h2>
+                                    <a href="items/index.html?cat=${cat}" class="see-all">See all</a>
+                                </div>
+                                <div class="mini-slider auto-scroll-slider">
+                                    ${catItems.map(p => createMiniCard(p)).join('')}
+                                </div>
+                            </section>
+                        `;
+                    }
+                });
+
+                dynamicRecsContainer.innerHTML = catHtml;
+
+                // C. 🚀 UNIVERSAL AUTO-SCROLL LOGIC FOR ALL SLIDERS
+                const sliders = document.querySelectorAll('.auto-scroll-slider');
+                sliders.forEach(s => {
+                    if (s.children.length > 2) {
+                        setInterval(() => {
+                            const card = s.querySelector('.mini-card');
+                            if(!card) return;
+                            const maxScroll = s.scrollWidth - s.clientWidth;
+                            
+                            if (s.scrollLeft >= maxScroll - 10) {
+                                s.scrollTo({ left: 0, behavior: 'smooth' }); // Loop back
+                            } else {
+                                s.scrollBy({ left: card.offsetWidth + 12, behavior: 'smooth' }); // Scroll 1 card width
+                            }
+                        }, 2000); // Scrolls every 2 seconds
+                    }
+                });
+
+            } catch (err) {
+                console.error("Failed to load recommendations:", err);
+            }
+        });
+
+        // Failsafe HTML escaper
+        function escapeHTML(str) {
+            return str ? String(str).replace(/[&<>'"]/g, tag => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;'}[tag])) : '';
+        }
+        function escapeJS(str) {
+            return str ? String(str).replace(/'/g, "\\'").replace(/"/g, '&quot;') : '';
+        }
+    </script>
 </body>
 </html>
