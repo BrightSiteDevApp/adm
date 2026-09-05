@@ -73,6 +73,13 @@
             cursor: pointer; box-shadow: 0 4px 15px rgba(45, 142, 255, 0.3); transition: 0.2s; margin-top: 10px;
         }
         .submit-btn:active { transform: scale(0.98); }
+        
+        .cancel-btn { 
+            background: #fef2f2; color: #ef4444; width: 100%; padding: 15px; 
+            border: none; border-radius: 12px; font-weight: 800; font-size: 15px; 
+            cursor: pointer; transition: 0.2s; margin-top: 10px; display: none;
+        }
+        .cancel-btn:active { transform: scale(0.98); background: #fee2e2; }
 
         /* 🚀 SEARCH BAR & RESULT AREA */
         .search-row { display: flex; gap: 10px; margin-bottom: 20px; }
@@ -99,6 +106,14 @@
             margin-top: 15px;
         }
         .copy-btn:active { transform: scale(0.96); background: var(--brand-color); color: white; border-color: var(--brand-color); }
+        
+        .edit-btn { 
+            background: #fffbeb; color: #f59e0b; width: 100%; padding: 12px; 
+            border: 2px solid #fde68a; border-radius: 10px; font-weight: 800; font-size: 14px; 
+            cursor: pointer; transition: 0.2s; display: flex; justify-content: center; align-items: center; gap: 8px;
+            margin-top: 10px;
+        }
+        .edit-btn:active { transform: scale(0.96); background: #f59e0b; color: white; border-color: #f59e0b; }
 
         /* 🌙 DARK MODE FIXES */
         body.dark-mode { background-color: #020617 !important; }
@@ -112,7 +127,9 @@
         body.dark-mode .result-box { background: #1e293b !important; border-color: #334155 !important; }
         body.dark-mode .r-flex { border-bottom-color: #334155 !important; }
         body.dark-mode .copy-btn { background: #0f172a !important; border-color: #334155 !important; color: var(--brand-color); }
+        body.dark-mode .edit-btn { background: #0f172a !important; border-color: #334155 !important; color: #f59e0b; }
         body.dark-mode .search-btn { background: var(--brand-color) !important; }
+        body.dark-mode .cancel-btn { background: #1e293b !important; color: #ef4444 !important; }
     </style>
 </head>
 <body>
@@ -158,18 +175,22 @@
                     </div>
 
                     <button class="copy-btn" id="copy-btn" onclick="copyProductLink()"><i class="far fa-copy"></i> Copy Original Link</button>
+                    <!-- NEW EDIT BUTTON -->
+                    <button class="edit-btn" onclick="startEdit()"><i class="fas fa-edit"></i> Edit Item Details</button>
                     <input type="hidden" id="hidden-link" value="">
                 </div>
             </div>
 
-            <!-- 🚀 ADD NEW ITEM SECTION -->
+            <!-- 🚀 ADD / EDIT ITEM SECTION -->
             <div class="tracker-card">
-                <h2 class="section-title"><i class="fas fa-plus-circle" style="color: #10b981;"></i> Save New Item</h2>
+                <h2 class="section-title" id="form-section-title"><i class="fas fa-plus-circle" style="color: #10b981;"></i> Save New Item</h2>
                 
                 <form onsubmit="saveItem(event)">
+                    <!-- Hidden input to store database ID when editing -->
+                    <input type="hidden" id="edit-internal-id" value="">
+
                     <div class="form-group">
                         <label class="form-label">Product ID (Unique Identifier)</label>
-                        <!-- 🚀 Changed Placeholder here -->
                         <input type="text" id="p-id" class="form-input" placeholder="e.g. PD000" required>
                     </div>
 
@@ -195,6 +216,8 @@
                     </div>
 
                     <button type="submit" id="save-btn" class="submit-btn"><i class="fas fa-save"></i> Save to Database</button>
+                    <!-- CANCEL BUTTON (Hidden by default) -->
+                    <button type="button" id="cancel-edit-btn" class="cancel-btn" onclick="cancelEdit()"><i class="fas fa-times"></i> Cancel Edit</button>
                 </form>
             </div>
 
@@ -205,6 +228,7 @@
 
     <script>
         let currentUser = null;
+        let currentSearchedItem = null; // Store fetched item for editing
 
         // 🛡️ XSS Sanitizer
         function escapeHTML(str) {
@@ -224,7 +248,6 @@
 
             currentUser = session.user;
 
-            // Check if user email is in the `admins` table
             const { data: adminData, error } = await supabaseClient
                 .from('admins')
                 .select('email')
@@ -237,16 +260,16 @@
                 return;
             }
 
-            // Authentication Passed!
             document.getElementById('admin-loader').style.display = 'none';
         });
 
-        // 🚀 2. SAVE NEW ITEM LOGIC
+        // 🚀 2. SAVE OR UPDATE ITEM LOGIC
         async function saveItem(e) {
             e.preventDefault();
             const btn = document.getElementById('save-btn');
             const idInput = document.getElementById('p-id');
             
+            const editInternalId = document.getElementById('edit-internal-id').value;
             const productId = idInput.value.trim();
             const productName = document.getElementById('p-name').value.trim();
             const actualPrice = document.getElementById('p-actual').value;
@@ -257,41 +280,61 @@
             btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
 
             try {
-                // 🚀 Duplicate Product ID Warning logic
-                const { data: existing } = await supabaseClient.from('item_tracker').select('id').eq('product_id', productId).maybeSingle();
-                if (existing) {
-                    alert("There is already an item with that ID! Please pick a different one.");
-                    idInput.value = ''; // Clear the input
-                    idInput.focus();    // Focus the cursor back on it
-                    btn.disabled = false;
-                    btn.innerHTML = '<i class="fas fa-save"></i> Save to Database';
-                    return; // Stop the save process here
+                if (editInternalId) {
+                    // EDIT MODE: Check if the new ID exists on *another* product
+                    const { data: existing } = await supabaseClient.from('item_tracker').select('id').eq('product_id', productId).neq('id', editInternalId).maybeSingle();
+                    if (existing) {
+                        alert("There is already another item with that ID! Please pick a different one.");
+                        idInput.focus();
+                        btn.disabled = false;
+                        btn.innerHTML = '<i class="fas fa-sync"></i> Update Database';
+                        return;
+                    }
+
+                    // Update existing
+                    const { error } = await supabaseClient.from('item_tracker').update({
+                        product_id: productId,
+                        product_name: productName,
+                        actual_price: parseFloat(actualPrice),
+                        selling_price: parseFloat(sellingPrice),
+                        product_link: productLink
+                    }).eq('id', editInternalId);
+
+                    if (error) throw error;
+                    alert("Item updated successfully!");
+                    cancelEdit(); // Reset form back to "Save" mode
+
+                } else {
+                    // NEW MODE: Check if ID exists
+                    const { data: existing } = await supabaseClient.from('item_tracker').select('id').eq('product_id', productId).maybeSingle();
+                    if (existing) {
+                        alert("There is already an item with that ID! Please pick a different one.");
+                        idInput.value = '';
+                        idInput.focus();
+                        btn.disabled = false;
+                        btn.innerHTML = '<i class="fas fa-save"></i> Save to Database';
+                        return;
+                    }
+
+                    // Insert new
+                    const { error } = await supabaseClient.from('item_tracker').insert([{
+                        product_id: productId,
+                        product_name: productName,
+                        actual_price: parseFloat(actualPrice),
+                        selling_price: parseFloat(sellingPrice),
+                        product_link: productLink
+                    }]);
+
+                    if (error) throw error;
+                    alert("Item saved successfully!");
+                    
+                    // Clear form completely
+                    cancelEdit(); 
                 }
-
-                const { error } = await supabaseClient.from('item_tracker').insert([{
-                    product_id: productId,
-                    product_name: productName,
-                    actual_price: parseFloat(actualPrice),
-                    selling_price: parseFloat(sellingPrice),
-                    product_link: productLink
-                }]);
-
-                if (error) throw error;
-
-                alert("Item saved successfully!");
-                
-                // Clear form completely
-                document.getElementById('p-id').value = '';
-                document.getElementById('p-name').value = '';
-                document.getElementById('p-actual').value = '';
-                document.getElementById('p-selling').value = '';
-                document.getElementById('p-link').value = '';
-
             } catch (err) {
                 alert(err.message || "Failed to save item.");
-            } finally {
                 btn.disabled = false;
-                btn.innerHTML = '<i class="fas fa-save"></i> Save to Database';
+                btn.innerHTML = editInternalId ? '<i class="fas fa-sync"></i> Update Database' : '<i class="fas fa-save"></i> Save to Database';
             }
         }
 
@@ -324,19 +367,17 @@
                     return;
                 }
 
-                // Format Prices
+                currentSearchedItem = item; // Store it in memory for editing later
+
                 const formatActual = new Intl.NumberFormat('en-NG', { style: 'currency', currency: 'NGN', maximumFractionDigits: 0 }).format(item.actual_price);
                 const formatSelling = new Intl.NumberFormat('en-NG', { style: 'currency', currency: 'NGN', maximumFractionDigits: 0 }).format(item.selling_price);
 
-                // Populate UI (no nested backticks for VS Code)
                 document.getElementById('res-name').innerText = item.product_name;
                 document.getElementById('res-actual').innerText = formatActual;
                 document.getElementById('res-selling').innerText = formatSelling;
                 document.getElementById('hidden-link').value = item.product_link;
 
-                // Reset copy button
                 document.getElementById('copy-btn').innerHTML = '<i class="far fa-copy"></i> Copy Original Link';
-
                 resultBox.style.display = 'block';
 
             } catch (err) {
@@ -348,12 +389,51 @@
             }
         }
 
-        // 🚀 4. COPY LINK FUNCTION
+        // 🚀 4. START EDIT MODE
+        function startEdit() {
+            if (!currentSearchedItem) return;
+
+            const item = currentSearchedItem;
+
+            // Populate form fields
+            document.getElementById('edit-internal-id').value = item.id;
+            document.getElementById('p-id').value = item.product_id;
+            document.getElementById('p-name').value = item.product_name;
+            document.getElementById('p-actual').value = item.actual_price;
+            document.getElementById('p-selling').value = item.selling_price;
+            document.getElementById('p-link').value = item.product_link;
+
+            // Change Form UI to "Edit Mode"
+            document.getElementById('form-section-title').innerHTML = '<i class="fas fa-edit" style="color: #f59e0b;"></i> Edit Item';
+            document.getElementById('save-btn').innerHTML = '<i class="fas fa-sync"></i> Update Database';
+            document.getElementById('cancel-edit-btn').style.display = 'block';
+
+            // Scroll down smoothly to the form
+            document.getElementById('form-section-title').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        // 🚀 5. CANCEL EDIT MODE
+        function cancelEdit() {
+            // Clear all fields
+            document.getElementById('edit-internal-id').value = '';
+            document.getElementById('p-id').value = '';
+            document.getElementById('p-name').value = '';
+            document.getElementById('p-actual').value = '';
+            document.getElementById('p-selling').value = '';
+            document.getElementById('p-link').value = '';
+
+            // Revert Form UI to "Save Mode"
+            document.getElementById('form-section-title').innerHTML = '<i class="fas fa-plus-circle" style="color: #10b981;"></i> Save New Item';
+            document.getElementById('save-btn').innerHTML = '<i class="fas fa-save"></i> Save to Database';
+            document.getElementById('save-btn').disabled = false;
+            document.getElementById('cancel-edit-btn').style.display = 'none';
+        }
+
+        // 🚀 6. COPY LINK FUNCTION
         function copyProductLink() {
             const link = document.getElementById('hidden-link').value;
             if (!link) return;
 
-            // Use the Clipboard API
             navigator.clipboard.writeText(link).then(() => {
                 const copyBtn = document.getElementById('copy-btn');
                 copyBtn.innerHTML = '<i class="fas fa-check"></i> Copied!';
