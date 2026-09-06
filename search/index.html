@@ -1,87 +1,148 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-70VSGR5WBW"></script>
+    
     <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
     <title>Search Results | AFIT Digital Market</title>
     
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="../asset/style.css">
     <link rel="icon" href="../asset/img/app-logo.png" type="image/png" sizes="192x192">
-  <link rel="icon" href="../favicon.ico" type="image/x-icon">
-
+    <link rel="icon" href="../favicon.ico" type="image/x-icon">
 
     <style>
-        .search-header-row { display: flex; align-items: center; gap: 15px; width: 100%; }
-        .search-input-wrapper { flex: 1; background: #f8fafc; border: 2px solid #e2e8f0; border-radius: 30px; display: flex; align-items: center; padding: 12px 20px; margin: 0; transition: 0.2s; }
-        .search-input-wrapper:focus-within { border-color: var(--brand-color); background: white; box-shadow: 0 4px 15px rgba(45, 142, 255, 0.1); }
-        .search-input-wrapper input[type="search"] { border: none; background: transparent; outline: none; width: 100%; font-size: 14px; color: var(--text-main); -webkit-appearance: none; }
-        .search-input-wrapper i { color: var(--brand-color); margin-right: 12px; cursor: pointer; font-size: 16px; }
+        /* 🚀 EXACT AFIT BLUE VARIABLES */
+        :root {
+            --brand-color: #2d8eff; /* AFIT Blue */
+            --brand-hover: #1a73e8;
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+        }
 
-        .filter-row { 
-            display: grid; grid-template-columns: 1fr 1fr auto; gap: 8px; 
-            padding: 15px 20px; align-items: center; width: 100%; box-sizing: border-box;
-            background: white; border-bottom: 1px solid #f1f5f9; position: sticky; top: 70px; z-index: 90;
+        body, html { background: #f8fafc; margin: 0; padding: 0; font-family: 'Poppins', sans-serif;}
+        .app-container { padding-bottom: 90px; min-height: 100vh; position: relative; }
+
+        /* 🚀 PREMIUM HERO HEADER */
+        .hero-header {
+            background: linear-gradient(135deg, var(--brand-color), #1e3a8a);
+            padding: 20px 20px 65px 20px;
+            border-radius: 0 0 30px 30px;
+            color: white;
+            position: relative;
         }
-        .filter-input { 
-            width: 100%; min-width: 0; padding: 12px 10px; border: 2px solid #e2e8f0; 
-            border-radius: 12px; font-size: 13px; outline: none; box-sizing: border-box;
-            background: #f8fafc; transition: 0.2s;
+        .header-top-flex { display: flex; align-items: center; gap: 15px; margin-bottom: 5px; }
+        .back-btn { color: white; font-size: 20px; cursor: pointer; background: rgba(255,255,255,0.2); width: 40px; height: 40px; border-radius: 50%; display: flex; justify-content: center; align-items: center; border: none; backdrop-filter: blur(5px); transition: 0.2s;}
+        .back-btn:active { transform: scale(0.9); }
+        .page-title { font-size: 22px; font-weight: 900; margin: 0; }
+
+        /* 🚀 FLOATING SEARCH BAR & FILTERS */
+        .search-wrapper-floating {
+            background: white; border-radius: 20px; padding: 15px;
+            margin: -40px 20px 10px; position: relative; z-index: 10;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.08); border: 1px solid #f1f5f9;
         }
+
+        .search-input-wrapper { background: #f8fafc; border: 2px solid #e2e8f0; border-radius: 14px; display: flex; align-items: center; padding: 14px 18px; transition: 0.2s; margin-bottom: 12px;}
+        .search-input-wrapper:focus-within { border-color: var(--brand-color); background: white; box-shadow: 0 4px 15px rgba(45, 142, 255, 0.1); }
+        .search-input-wrapper input[type="search"] { border: none; background: transparent; outline: none; width: 100%; font-size: 15px; color: var(--text-main); font-weight: 500; -webkit-appearance: none; }
+        .search-input-wrapper i { color: var(--brand-color); margin-right: 12px; font-size: 18px; }
+
+        .filter-row { display: grid; grid-template-columns: 1fr 1fr auto; gap: 8px; align-items: center; width: 100%; box-sizing: border-box; }
+        .filter-input { width: 100%; min-width: 0; padding: 12px 10px; border: 2px solid #e2e8f0; border-radius: 12px; font-size: 12px; outline: none; box-sizing: border-box; background: #f8fafc; transition: 0.2s; font-family: inherit;}
         .filter-input:focus { border-color: var(--brand-color); background: white; }
-        .filter-btn { 
-            background: var(--text-main); color: white; border: none; 
-            border-radius: 12px; padding: 0 16px; height: 100%; min-height: 42px; 
-            font-weight: 800; font-size: 13px; cursor: pointer; transition: 0.2s; 
-        }
+        .filter-btn { background: var(--text-main); color: white; border: none; border-radius: 12px; padding: 0 14px; height: 100%; min-height: 42px; font-weight: 800; font-size: 12px; cursor: pointer; transition: 0.2s; }
         .filter-btn:active { transform: scale(0.95); }
 
-        .result-count-text { font-size: 13px; color: var(--text-muted); font-weight: 700; margin-bottom: 15px; }
-        
-        .empty-state { text-align: center; padding: 60px 20px; background: white; border-radius: 24px; border: 1px dashed #cbd5e1; margin-bottom: 25px; }
-        .empty-icon-wrapper { width: 70px; height: 70px; border-radius: 50%; background: #f8fafc; display: flex; justify-content: center; align-items: center; margin: 0 auto 15px; }
-        .empty-icon-wrapper i { font-size: 30px; color: #94a3b8; }
-        .empty-state h3 { font-size: 16px; color: var(--text-main); margin-bottom: 8px; font-weight: 800; }
-        .empty-state p { font-size: 13px; color: var(--text-muted); line-height: 1.5; }
+        /* 🚀 SUGGESTIONS ROW */
+        .suggestions-wrapper { padding: 0 20px 15px; }
+        .suggestions-title { font-size: 11px; font-weight: 800; color: var(--text-muted); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px;}
+        .chip-scroll { display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; padding-bottom: 5px;}
+        .chip-scroll::-webkit-scrollbar { display: none; }
+        .chip { 
+            background: white; border: 1px solid #e2e8f0; padding: 8px 14px; border-radius: 20px; 
+            font-size: 11px; font-weight: 800; color: var(--text-main); white-space: nowrap; 
+            cursor: pointer; transition: 0.2s; box-shadow: 0 2px 8px rgba(0,0,0,0.02);
+        }
+        .chip:active { transform: scale(0.95); background: var(--brand-color); color: white; border-color: var(--brand-color); }
 
-        /* 🚀 FIX: Clean Vendor Card Overflow Fix */
-        .vendor-card { 
-            background: white; border-radius: 20px; padding: 15px 10px 20px; 
-            text-align: center; box-shadow: 0 4px 20px rgba(0,0,0,0.02); 
-            border: 1px solid #f1f5f9; cursor: pointer; transition: 0.2s; 
-            display: flex; flex-direction: column; align-items: center; 
-            width: 100%; min-width: 0; box-sizing: border-box; overflow: hidden; /* Added min-width 0 & overflow hidden */
+        .section-wrapper { margin-bottom: 30px; }
+        .section-header { display: flex; justify-content: space-between; align-items: center; margin: 0 20px 10px; }
+        .section-title { font-size: 16px; font-weight: 900; color: var(--text-main); display: flex; align-items: center; gap: 8px;}
+        .result-count-text { font-size: 11px; color: var(--text-muted); font-weight: 800; margin: 0 20px 12px; background: #e2e8f0; display: inline-block; padding: 4px 10px; border-radius: 8px;}
+        
+        .empty-state { text-align: center; padding: 40px 20px; background: white; border-radius: 20px; border: 2px dashed #cbd5e1; margin: 0 20px 20px; }
+        .empty-icon-wrapper { width: 60px; height: 60px; border-radius: 50%; background: #f8fafc; display: flex; justify-content: center; align-items: center; margin: 0 auto 12px; }
+        .empty-icon-wrapper i { font-size: 24px; color: #94a3b8; }
+        .empty-state h3 { font-size: 16px; color: var(--text-main); margin-bottom: 6px; font-weight: 900; }
+        .empty-state p { font-size: 12px; color: var(--text-muted); line-height: 1.5; }
+
+        /* 🚀 ITEMS 3x3 GRID */
+        .product-grid { 
+            display: grid; 
+            grid-template-columns: repeat(3, 1fr); 
+            gap: 10px; 
+            padding: 0 20px; 
+        }
+
+        .product-card { 
+            background: white; border-radius: 14px; padding: 0; box-shadow: 0 4px 15px rgba(0,0,0,0.03); 
+            cursor: pointer; border: 1px solid #f1f5f9; position: relative; transition: 0.2s; 
+            width: 100%; box-sizing: border-box; overflow: hidden; display: flex; flex-direction: column;
+        }
+        .product-card:active { transform: scale(0.96); box-shadow: 0 2px 8px rgba(0,0,0,0.02); }
+        .product-img-wrap { position: relative; width: 100%; height: 100px; background: #f8fafc; }
+        .product-img { width: 100%; height: 100%; object-fit: cover; }
+        .product-price-badge { 
+            position: absolute; bottom: 6px; right: 6px; background: rgba(255,255,255,0.95); 
+            color: var(--brand-color); font-size: 11px; font-weight: 900; padding: 4px 8px; 
+            border-radius: 8px; backdrop-filter: blur(5px); box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .product-info { padding: 8px; flex-grow: 1; display: flex; flex-direction: column; justify-content: space-between;}
+        .product-title { font-size: 11px; font-weight: 800; color: var(--text-main); line-height: 1.3; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; margin-bottom: 4px;}
+        .product-location { font-size: 9px; color: var(--text-muted); display: flex; align-items: center; gap: 3px; font-weight: 700; text-transform: uppercase;}
+
+        /* 🚀 VENDORS 2x2 GRID (Fixes squishing issue) */
+        .vendor-grid-layout {
+            display: grid; 
+            grid-template-columns: repeat(2, 1fr); 
+            gap: 12px; 
+            padding: 0 20px;
+        }
+
+        .vendor-card {
+            background: white; border-radius: 16px; padding: 15px 10px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.03); border: 1px solid #f1f5f9;
+            display: flex; flex-direction: column; align-items: center; text-align: center;
+            cursor: pointer; transition: 0.2s; height: 100%; justify-content: center;
+            width: 100%; box-sizing: border-box; position: relative; overflow: hidden;
         }
         .vendor-card:active { transform: scale(0.96); }
-        .vendor-logo { 
-            width: 65px; height: 65px; border-radius: 50%; object-fit: cover; 
-            margin: 5px auto 12px; display: block; border: 2px solid #f8fafc; background: #eee; flex-shrink: 0;
-        }
-        .vendor-name { 
-            font-size: 13px; font-weight: 900; color: var(--text-main); 
-            margin-bottom: 4px; display: flex; justify-content: center; align-items: center; 
-            gap: 4px; width: 100%; text-transform: uppercase; 
-        }
-        .vendor-name-text {
-            white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block;
-        }
-        .vendor-desc { 
-            font-size: 11px; color: var(--text-muted); font-weight: 600; 
-            white-space: nowrap; overflow: hidden; text-overflow: ellipsis; 
-            width: 100%; text-transform: uppercase; display: block;
-        }
+        .vendor-logo { width: 60px; height: 60px; border-radius: 50%; object-fit: cover; border: 2px solid #f8fafc; flex-shrink: 0; margin-bottom: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); background: #eee; }
+        .vendor-name { font-size: 13px; font-weight: 900; color: var(--text-main); margin-bottom: 4px; display: flex; align-items: center; justify-content: center; width: 100%; text-transform: uppercase; line-height: 1.2; gap: 4px;}
+        .vendor-name-text { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block; }
+        .vendor-desc { font-size: 10px; color: var(--text-muted); line-height: 1.3; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 100%; text-transform: uppercase; display: block; font-weight: 700; }
 
         /* Skeletons */
         .sk-shimmer { background: linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%); background-size: 200% 100%; animation: shimmer 1.5s infinite; }
         @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
-        .sk-card { background: white; border-radius: 16px; padding: 10px; border: 1px solid #f1f5f9; display: flex; flex-direction: column; height: 100%; width: 100%; min-width: 0; box-sizing: border-box; overflow: hidden; }
-        .sk-img { width: 100%; height: 140px; border-radius: 10px; margin-bottom: 10px; flex-shrink: 0; }
+        .sk-card { background: white; border-radius: 14px; border: 1px solid #f1f5f9; overflow: hidden; }
+        .sk-img { width: 100%; height: 100px; border-radius: 0; }
+        .sk-info { padding: 8px; }
+        .sk-line-1 { width: 80%; height: 10px; margin-bottom: 8px; border-radius: 4px;}
+        .sk-line-2 { width: 50%; height: 8px; border-radius: 4px;}
+
         .sk-v-avatar { width: 60px; height: 60px; border-radius: 50%; margin: 0 auto 10px; flex-shrink: 0; }
-        .sk-line { height: 12px; border-radius: 4px; margin-bottom: 8px; }
-        .sk-line.short { width: 40%; }
-        .sk-line.medium { width: 70%; }
-        .sk-line.long { width: 100%; }
+
+        /* Responsive Fix for Tiny Phones */
+        @media (max-width: 380px) {
+            .product-grid { grid-template-columns: repeat(2, 1fr); }
+            .vendor-grid-layout { grid-template-columns: 1fr; }
+        }
 
         /* ========================================= */
         /* 🌙 DARK MODE FIXES                        */
@@ -89,122 +150,180 @@
         body.dark-mode { background-color: #020617 !important; }
         body.dark-mode .app-container { background: #0f172a !important; }
         
-        body.dark-mode .header { background: #1e293b !important; box-shadow: 0 2px 10px rgba(0,0,0,0.5) !important; border-bottom: 1px solid #334155; }
-        body.dark-mode .fa-arrow-left { color: #f1f5f9 !important; }
+        body.dark-mode .hero-header { background: linear-gradient(135deg, #1e3a8a, #0f172a) !important; box-shadow: 0 4px 15px rgba(0,0,0,0.5) !important;}
+        body.dark-mode .back-btn { background: rgba(255,255,255,0.1) !important; }
+        body.dark-mode .page-title { color: #f1f5f9 !important; }
         
+        body.dark-mode .search-wrapper-floating { background: #1e293b !important; border-color: #334155 !important; box-shadow: 0 10px 25px rgba(0,0,0,0.5) !important; }
         body.dark-mode .search-input-wrapper { background: #0f172a !important; border-color: #334155 !important; }
         body.dark-mode .search-input-wrapper input { color: #f1f5f9 !important; }
-        
-        body.dark-mode .filter-row { background: #1e293b !important; border-color: #334155 !important; }
+        body.dark-mode .search-icon { color: var(--brand-color) !important; }
         body.dark-mode .filter-input { background: #0f172a !important; color: #f1f5f9 !important; border-color: #334155 !important; }
         body.dark-mode .filter-input:focus { border-color: var(--brand-color) !important; }
         body.dark-mode .filter-btn { background: var(--brand-color) !important; }
         
+        body.dark-mode .suggestions-title { color: #94a3b8 !important; }
+        body.dark-mode .chip { background: #1e293b !important; border-color: #334155 !important; color: #cbd5e1 !important; }
+        
         body.dark-mode .section-title { color: #f1f5f9 !important; }
-        body.dark-mode .result-count-text { color: #94a3b8 !important; }
+        body.dark-mode .result-count-text { color: #94a3b8 !important; background: #334155 !important;}
         
         body.dark-mode .empty-state { background: #1e293b !important; border-color: #334155 !important; }
         body.dark-mode .empty-icon-wrapper { background: #0f172a !important; }
         body.dark-mode .empty-state h3 { color: #f1f5f9 !important; }
         body.dark-mode .empty-state p { color: #94a3b8 !important; }
 
+        body.dark-mode .product-card { background: #1e293b !important; border-color: #334155 !important; box-shadow: none !important;}
+        body.dark-mode .product-title { color: #f1f5f9 !important; }
+        body.dark-mode .product-img-wrap { background: #0f172a !important; }
+        body.dark-mode .product-price-badge { background: rgba(15, 23, 42, 0.95) !important; color: #60a5fa !important; border: 1px solid #334155; }
+        body.dark-mode .product-location { color: #94a3b8 !important; }
+
         body.dark-mode .vendor-card { background: #1e293b !important; border-color: #334155 !important; }
-        body.dark-mode .vendor-name { color: #f1f5f9 !important; }
         body.dark-mode .vendor-logo { border-color: #334155 !important; background: #0f172a !important; }
+        body.dark-mode .vendor-name { color: #f1f5f9 !important; }
+        body.dark-mode .vendor-desc { color: #cbd5e1 !important; }
         
         body.dark-mode .sk-card { background: #1e293b !important; border-color: #334155 !important; }
-        
-        body.dark-mode .card .card-price { color: var(--brand-color) !important; }
+        body.dark-mode .sk-shimmer { background: linear-gradient(90deg, #1e293b 25%, #334155 50%, #1e293b 75%) !important; background-size: 200% 100% !important; }
     </style>
 </head>
 <body>
+    <script>
+        if (localStorage.getItem('theme') === 'dark') {
+            document.body.classList.add('dark-mode');
+        }
+    </script>
 
     <div class="app-container">
         
-        <div class="header">
-            <div class="search-header-row">
-                <button onclick="window.history.back()" style="background:none; border:none; font-size:20px; color:var(--text-main); cursor:pointer;"><i class="fas fa-arrow-left"></i></button>
-                
-                <form class="search-input-wrapper" action="#" onsubmit="return triggerSearch(event)">
-                    <i class="fas fa-search" onclick="triggerSearch(event)"></i>
-                    <input type="search" id="search-input" placeholder="Search items, stores, services...">
-                </form>
+        <!-- 🚀 NEW HERO HEADER -->
+        <div class="hero-header">
+            <div class="header-top-flex">
+                <button onclick="window.history.back()" class="back-btn"><i class="fas fa-arrow-left"></i></button>
+                <h1 class="page-title">Search Market</h1>
             </div>
         </div>
 
-        <div class="filter-row">
-            <input type="number" id="min-price" class="filter-input" placeholder="Min (₦)">
-            <input type="number" id="max-price" class="filter-input" placeholder="Max (₦)">
-            <button class="filter-btn" onclick="applyFilters()">Filter</button>
+        <!-- 🚀 FLOATING SEARCH & FILTERS -->
+        <div class="search-wrapper-floating">
+            <form class="search-input-wrapper" action="#" onsubmit="return triggerSearch(event)">
+                <i class="fas fa-search" onclick="triggerSearch(event)"></i>
+                <input type="search" id="search-input" placeholder="Find items, stores, services...">
+            </form>
+            <div class="filter-row">
+                <input type="number" id="min-price" class="filter-input" placeholder="Min (₦)">
+                <input type="number" id="max-price" class="filter-input" placeholder="Max (₦)">
+                <button class="filter-btn" onclick="applyFilters()">Filter</button>
+            </div>
         </div>
 
-        <div class="content-area" style="padding: 20px 0 110px 0;">
+        <!-- 🚀 SEARCH SUGGESTIONS -->
+        <div class="suggestions-wrapper">
+            <div class="suggestions-title">Popular Searches</div>
+            <div class="chip-scroll">
+                <div class="chip" onclick="applySuggestion('iPhones')">iPhones</div>
+                <div class="chip" onclick="applySuggestion('Laptops')">Laptops</div>
+                <div class="chip" onclick="applySuggestion('Sneakers')">Sneakers</div>
+                <div class="chip" onclick="applySuggestion('Food')">Food</div>
+                <div class="chip" onclick="applySuggestion('Hair')">Hair</div>
+                <div class="chip" onclick="applySuggestion('Graphics')">Graphics</div>
+                <div class="chip" onclick="applySuggestion('Perfumes')">Perfumes</div>
+            </div>
+        </div>
+
+        <div class="content-area">
             
-            <div class="section-wrapper" id="items-section">
+            <!-- EXACT SEARCH RESULTS -->
+            <div class="section-wrapper" id="items-section" style="display: none;">
                 <div class="section-header" style="margin-bottom: 5px;">
                     <div class="section-title"><i class="fas fa-box-open" style="color: var(--brand-color);"></i> Matched Items</div>
                 </div>
                 <div class="result-count-text" id="items-count">Searching...</div>
-                
                 <div class="product-grid" id="matched-items-grid"></div>
             </div>
 
-            <div class="section-wrapper" id="vendors-section">
+            <div class="section-wrapper" id="vendors-section" style="display: none;">
                 <div class="section-header" style="margin-bottom: 5px;">
-                    <div class="section-title"><i class="fas fa-store" style="color: var(--brand-color);"></i> Matched Stores</div>
+                    <div class="section-title"><i class="fas fa-store" style="color: #10b981;"></i> Matched Stores</div>
                 </div>
-                <div class="result-count-text" id="vendors-count">Searching...</div>
-                
-                <div class="product-grid" id="matched-vendors-grid"></div>
+                <div class="result-count-text" id="vendors-count" style="background: rgba(16, 185, 129, 0.1); color: #059669;">Searching...</div>
+                <div class="vendor-grid-layout" id="matched-vendors-grid"></div>
             </div>
 
-            <hr style="border: 0; border-top: 4px solid #f1f5f9; margin: 20px 0 30px;">
+            <hr id="results-divider" style="border: 0; border-top: 4px solid #f1f5f9; margin: 20px 20px 30px; display: none;">
 
+            <!-- 🚀 6 INTERLEAVED EXPLORE SECTIONS -->
+            <!-- Section 1 -->
             <div class="section-wrapper">
                 <div class="section-header">
-                    <div class="section-title">Discover More</div>
-                    <a href="../items/index.html" class="see-all">See all</a>
+                    <div class="section-title"><i class="fas fa-fire" style="color: #ea580c;"></i> Discover More</div>
                 </div>
-                <div class="product-grid" id="explore-items-grid"></div>
+                <div class="product-grid" id="explore-items-grid-1"></div>
+            </div>
+            <div class="section-wrapper">
+                <div class="section-header">
+                    <div class="section-title"><i class="fas fa-users" style="color: #8b5cf6;"></i> Explore Vendors</div>
+                </div>
+                <div class="vendor-grid-layout" id="explore-vendors-grid-1"></div>
             </div>
 
+            <!-- Section 2 -->
             <div class="section-wrapper">
                 <div class="section-header">
-                    <div class="section-title">Explore Vendors</div>
-                    <a href="../vendors/index.html" class="see-all">See all</a>
+                    <div class="section-title"><i class="fas fa-magic" style="color: #ec4899;"></i> Handpicked For You</div>
                 </div>
-                <div class="product-grid" id="explore-vendors-grid"></div>
+                <div class="product-grid" id="explore-items-grid-2"></div>
+            </div>
+            <div class="section-wrapper">
+                <div class="section-header">
+                    <div class="section-title"><i class="fas fa-gem" style="color: #0ea5e9;"></i> Top Rated Shops</div>
+                </div>
+                <div class="vendor-grid-layout" id="explore-vendors-grid-2"></div>
+            </div>
+
+            <!-- Section 3 -->
+            <div class="section-wrapper">
+                <div class="section-header">
+                    <div class="section-title"><i class="fas fa-bolt" style="color: #eab308;"></i> Trending Now</div>
+                </div>
+                <div class="product-grid" id="explore-items-grid-3"></div>
+            </div>
+            <div class="section-wrapper" style="margin-bottom: 10px;">
+                <div class="section-header">
+                    <div class="section-title"><i class="fas fa-star" style="color: #facc15;"></i> Student Favorites</div>
+                </div>
+                <div class="vendor-grid-layout" id="explore-vendors-grid-3"></div>
             </div>
 
         </div>
 
         <div class="bottom-nav">
-            <a href="../index.html" class="nav-item">
-                <i class="fas fa-home"></i><span>Home</span>
-            </a>
+            <a href="../index.html" class="nav-item"><i class="fas fa-home"></i><span>Home</span></a>
             <a href="#" class="nav-item" onclick="requireLogin('../messages/index.html')">
-                <i class="fas fa-comment-dots"></i>
-                <span class="red-dot msg-dot"></span><span>Messages</span>
+                <i class="fas fa-comment-dots"></i><span class="red-dot msg-dot"></span><span>Messages</span>
             </a>
-            <div class="nav-fab" onclick="requireLogin('../add-product/index.html')">
-                <i class="fas fa-plus"></i>
-            </div>
-            <a href="#" class="nav-item" onclick="requireLogin('../saved/index.html')">
-                <i class="fas fa-heart"></i><span>Saved</span>
-            </a>
-            <a href="#" class="nav-item" onclick="requireLogin('../account/index.html')">
-                <i class="fas fa-user"></i><span>Account</span>
-            </a>
+            <div class="nav-fab" onclick="requireLogin('../add-product/index.html')"><i class="fas fa-plus"></i></div>
+            <a href="#" class="nav-item" onclick="requireLogin('../saved/index.html')"><i class="fas fa-heart"></i><span>Saved</span></a>
+            <a href="#" class="nav-item" onclick="requireLogin('../account/index.html')"><i class="fas fa-user"></i><span>Account</span></a>
         </div>
 
     </div>
 
     <script src="../asset/script.js"></script>
 
-   <script>
-        let allProducts = [];
-        let allVendors = [];
+    <script>
         let currentQuery = "";
+
+        // 🛡️ XSS Sanitizers
+        function escapeHTML(str) {
+            if (!str) return '';
+            return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;');
+        }
+        function escapeJS(str) {
+            if (!str) return '';
+            return String(str).replace(/'/g, "\\'").replace(/"/g, '&quot;').replace(/\n/g, '\\n');
+        }
 
         async function requireLogin(targetUrl) {
             const { data: { session } } = await supabaseClient.auth.getSession();
@@ -221,28 +340,29 @@
         }
 
         function showLoadingState() {
-            const itemSkeleton = `
-                <div class="sk-card"><div class="sk-shimmer sk-img"></div><div class="sk-shimmer sk-line short"></div><div class="sk-shimmer sk-line long"></div><div class="sk-shimmer sk-line medium"></div></div>
-                <div class="sk-card"><div class="sk-shimmer sk-img"></div><div class="sk-shimmer sk-line short"></div><div class="sk-shimmer sk-line long"></div><div class="sk-shimmer sk-line medium"></div></div>
-                <div class="sk-card"><div class="sk-shimmer sk-img"></div><div class="sk-shimmer sk-line short"></div><div class="sk-shimmer sk-line long"></div><div class="sk-shimmer sk-line medium"></div></div>
-                <div class="sk-card"><div class="sk-shimmer sk-img"></div><div class="sk-shimmer sk-line short"></div><div class="sk-shimmer sk-line long"></div><div class="sk-shimmer sk-line medium"></div></div>
-            `;
-            const vendorSkeleton = `
-                <div class="sk-card" style="text-align: center; align-items: center; padding-bottom: 15px;">
-                    <div class="sk-shimmer sk-v-avatar"></div><div class="sk-shimmer sk-line medium" style="margin: 0 auto 8px;"></div><div class="sk-shimmer sk-line short" style="margin: 0 auto;"></div>
-                </div>
-                <div class="sk-card" style="text-align: center; align-items: center; padding-bottom: 15px;">
-                    <div class="sk-shimmer sk-v-avatar"></div><div class="sk-shimmer sk-line medium" style="margin: 0 auto 8px;"></div><div class="sk-shimmer sk-line short" style="margin: 0 auto;"></div>
-                </div>
-            `;
+            const itemSkeleton = '<div class="sk-card"><div class="sk-shimmer sk-img"></div><div class="sk-info"><div class="sk-shimmer sk-line-1"></div><div class="sk-shimmer sk-line-2"></div></div></div>' +
+                                 '<div class="sk-card"><div class="sk-shimmer sk-img"></div><div class="sk-info"><div class="sk-shimmer sk-line-1"></div><div class="sk-shimmer sk-line-2"></div></div></div>' +
+                                 '<div class="sk-card"><div class="sk-shimmer sk-img"></div><div class="sk-info"><div class="sk-shimmer sk-line-1"></div><div class="sk-shimmer sk-line-2"></div></div></div>';
             
-            document.getElementById('matched-items-grid').innerHTML = itemSkeleton;
-            document.getElementById('matched-vendors-grid').innerHTML = vendorSkeleton;
-            document.getElementById('explore-items-grid').innerHTML = itemSkeleton;
-            document.getElementById('explore-vendors-grid').innerHTML = vendorSkeleton;
+            const vendorSkeleton = '<div class="sk-card" style="align-items: center; padding-top: 20px;">' +
+                                   '<div class="sk-shimmer sk-v-avatar"></div>' +
+                                   '<div class="sk-shimmer sk-line-1" style="margin: 0 auto 10px;"></div><div class="sk-shimmer sk-line-2" style="margin: 0 auto;"></div></div>' +
+                                   '<div class="sk-card" style="align-items: center; padding-top: 20px;">' +
+                                   '<div class="sk-shimmer sk-v-avatar"></div>' +
+                                   '<div class="sk-shimmer sk-line-1" style="margin: 0 auto 10px;"></div><div class="sk-shimmer sk-line-2" style="margin: 0 auto;"></div></div>';
             
-            document.getElementById('items-count').innerText = "Searching...";
-            document.getElementById('vendors-count').innerText = "Searching...";
+            if (currentQuery !== "") {
+                document.getElementById('items-section').style.display = 'block';
+                document.getElementById('vendors-section').style.display = 'block';
+                document.getElementById('results-divider').style.display = 'block';
+                document.getElementById('matched-items-grid').innerHTML = itemSkeleton;
+                document.getElementById('matched-vendors-grid').innerHTML = vendorSkeleton;
+                document.getElementById('items-count').innerText = "Searching...";
+                document.getElementById('vendors-count').innerText = "Searching...";
+            }
+
+            document.getElementById('explore-items-grid-1').innerHTML = itemSkeleton;
+            document.getElementById('explore-vendors-grid-1').innerHTML = vendorSkeleton;
         }
 
         document.addEventListener("DOMContentLoaded", async () => {
@@ -251,143 +371,203 @@
             document.getElementById('search-input').value = currentQuery;
 
             showLoadingState(); 
-
-            await fetchAllData();
             executeSearch();
         });
+
+        // 🚀 SUGGESTION CHIP CLICK HANDLER
+        function applySuggestion(term) {
+            document.getElementById('search-input').value = term;
+            currentQuery = term;
+            window.history.replaceState(null, '', '?q=' + encodeURIComponent(term));
+            
+            showLoadingState();
+            setTimeout(() => { executeSearch(); }, 200);
+        }
 
         function triggerSearch(e) {
             if (e) e.preventDefault(); 
             document.getElementById('search-input').blur(); 
             
             const newQuery = document.getElementById('search-input').value.trim();
-            window.history.replaceState(null, '', `?q=${encodeURIComponent(newQuery)}`);
+            window.history.replaceState(null, '', '?q=' + encodeURIComponent(newQuery));
             currentQuery = newQuery;
             
+            if (currentQuery === "") {
+                document.getElementById('items-section').style.display = 'none';
+                document.getElementById('vendors-section').style.display = 'none';
+                document.getElementById('results-divider').style.display = 'none';
+            }
+
             showLoadingState(); 
-            
-            setTimeout(() => {
-                executeSearch();
-            }, 400);
-            
+            setTimeout(() => { executeSearch(); }, 200);
             return false; 
         }
 
         function applyFilters() {
+            if (currentQuery === "") return alert("Please enter a search term first.");
             showLoadingState();
-            setTimeout(() => {
-                executeSearch(); 
-            }, 400);
+            setTimeout(() => { executeSearch(); }, 200);
         }
 
-        async function fetchAllData() {
-            try {
-                const { data: pData } = await supabaseClient.from('products').select('id, name, price, image_urls, category, description').eq('status', 'Active');
-                if (pData) allProducts = pData;
-
-                const { data: vData } = await supabaseClient.from('vendors').select('id, vendor_code, business_name, description, logo_url, subscription_plan').eq('is_active', true);
-                if (vData) allVendors = vData;
-            } catch (error) { console.error("Database fetch error."); }
-        }
-
-        function executeSearch() {
+        // 🚀 SMART SUPABASE RPC SEARCH + INTENT ANALYSIS
+        async function executeSearch() {
             const minPrice = parseFloat(document.getElementById('min-price').value) || 0;
-            const maxPrice = parseFloat(document.getElementById('max-price').value) || Infinity;
-            const queryLower = currentQuery.toLowerCase();
+            const maxPrice = parseFloat(document.getElementById('max-price').value) || 999999999;
+            const query = currentQuery;
 
-            const matchedItems = allProducts.filter(p => {
-                const matchesText = (p.name && p.name.toLowerCase().includes(queryLower)) || 
-                                    (p.description && p.description.toLowerCase().includes(queryLower)) ||
-                                    (p.category && p.category.toLowerCase().includes(queryLower));
-                const matchesPrice = p.price >= minPrice && p.price <= maxPrice;
-                return matchesText && matchesPrice;
-            });
+            try {
+                let matchedItems = [];
+                let matchedVendors = [];
 
-            renderItemsGrid(matchedItems, 'matched-items-grid', 'items-count');
+                if (query !== "") {
+                    // 1. Exact Search via RPC Backend
+                    const { data: mItems, error: itemErr } = await supabaseClient.rpc('smart_search_products', {
+                        search_term: query,
+                        min_price: minPrice,
+                        max_price: maxPrice
+                    });
+                    if (!itemErr && mItems) matchedItems = mItems;
 
-            const matchedVendors = allVendors.filter(v => {
-                const codeSearch = (v.vendor_code || "").toLowerCase();
-                return (v.business_name && v.business_name.toLowerCase().includes(queryLower)) || 
-                       (v.description && v.description.toLowerCase().includes(queryLower)) ||
-                       codeSearch.includes(queryLower);
-            });
+                    const { data: mVendors, error: vendorErr } = await supabaseClient.rpc('smart_search_vendors', {
+                        search_term: query
+                    });
+                    if (!vendorErr && mVendors) matchedVendors = mVendors;
 
-            renderVendorsGrid(matchedVendors, 'matched-vendors-grid', 'vendors-count');
+                    renderItemsGrid(matchedItems, 'matched-items-grid', 'items-count');
+                    renderVendorsGrid(matchedVendors, 'matched-vendors-grid', 'vendors-count');
+                }
 
-            const randomItems = shuffleArray([...allProducts]).slice(0, 8);
-            renderItemsGrid(randomItems, 'explore-items-grid', null);
+                // 2. Fetch Entire Pool for Recommendations
+                const { data: allItemsPool } = await supabaseClient.rpc('smart_search_products', { search_term: '', min_price: 0, max_price: 999999999 });
+                const { data: allVendorsPool } = await supabaseClient.rpc('smart_search_vendors', { search_term: '' });
 
-            const randomVendors = shuffleArray([...allVendors]).slice(0, 6);
-            renderVendorsGrid(randomVendors, 'explore-vendors-grid', null);
+                if (!allItemsPool || !allVendorsPool) return;
+
+                // Remove exact matches from the recommendation pool
+                let remainingItems = allItemsPool.filter(p => !matchedItems.some(m => m.id === p.id));
+                let remainingVendors = allVendorsPool.filter(v => !matchedVendors.some(m => m.id === v.id));
+
+                // 🧠 3. CATEGORY INTENT ENGINE
+                // Try to guess what the user is looking for based on the items they matched
+                let intentCat = null;
+                if (matchedItems.length > 0) {
+                    const catCounts = {};
+                    matchedItems.forEach(i => { catCounts[i.category] = (catCounts[i.category] || 0) + 1; });
+                    // Find the category with the most matches
+                    intentCat = Object.keys(catCounts).reduce((a, b) => catCounts[a] > catCounts[b] ? a : b);
+                }
+
+                let finalItemsPool = [];
+                let finalVendorsPool = [];
+
+                if (intentCat) {
+                    // Push items from the intent category to the top of the pool
+                    const smartI = remainingItems.filter(p => p.category === intentCat);
+                    const otherI = remainingItems.filter(p => p.category !== intentCat);
+                    finalItemsPool = [...shuffleArray(smartI), ...shuffleArray(otherI)];
+
+                    // Push vendors that mention this category to the top of the pool
+                    const smartV = remainingVendors.filter(v => 
+                        (v.description && v.description.toLowerCase().includes(intentCat.toLowerCase())) || 
+                        (v.business_name && v.business_name.toLowerCase().includes(intentCat.toLowerCase()))
+                    );
+                    const otherV = remainingVendors.filter(v => !smartV.some(sv => sv.id === v.id));
+                    finalVendorsPool = [...shuffleArray(smartV), ...shuffleArray(otherV)];
+                } else {
+                    // If no search or no matches, just shuffle everything
+                    finalItemsPool = shuffleArray(remainingItems);
+                    finalVendorsPool = shuffleArray(remainingVendors);
+                }
+
+                // 4. Fill the 6 alternating sections
+                // Items get 9 per section (3x3 grid)
+                // Vendors get 6 per section (2x3 grid)
+                renderItemsGrid(finalItemsPool.slice(0, 9), 'explore-items-grid-1', null);
+                renderVendorsGrid(finalVendorsPool.slice(0, 6), 'explore-vendors-grid-1', null);
+
+                renderItemsGrid(finalItemsPool.slice(9, 18), 'explore-items-grid-2', null);
+                renderVendorsGrid(finalVendorsPool.slice(6, 12), 'explore-vendors-grid-2', null);
+
+                renderItemsGrid(finalItemsPool.slice(18, 27), 'explore-items-grid-3', null);
+                renderVendorsGrid(finalVendorsPool.slice(12, 18), 'explore-vendors-grid-3', null);
+
+            } catch (err) {
+                console.error("Search failed:", err);
+            }
         }
 
+        // 🚀 REFACTORED HTML RENDERERS (No nested backticks)
         function renderItemsGrid(itemsArray, containerId, countId) {
             const grid = document.getElementById(containerId);
-            if (countId) document.getElementById(countId).innerText = itemsArray.length === 0 ? "No items found." : `Found ${itemsArray.length} items`;
+            if (countId) document.getElementById(countId).innerText = itemsArray.length === 0 ? "No items found." : "Found " + itemsArray.length + " items";
 
             if (itemsArray.length === 0 && countId) {
-                grid.innerHTML = `
-                    <div class="empty-state" style="grid-column: span 2;">
-                        <div class="empty-icon-wrapper"><i class="fas fa-search"></i></div>
-                        <h3>No items found</h3>
-                        <p>Try adjusting your price filters or checking your spelling.</p>
-                    </div>`;
+                grid.innerHTML = '<div class="empty-state" style="grid-column: 1 / -1;">' +
+                                 '<div class="empty-icon-wrapper"><i class="fas fa-search"></i></div>' +
+                                 '<h3>No items found</h3>' +
+                                 '<p>Try adjusting your price filters or checking your spelling.</p>' +
+                                 '</div>';
                 return;
+            } else if (itemsArray.length === 0) {
+                grid.innerHTML = ''; return; // Silently hide empty explore sections
             }
 
-            grid.innerHTML = "";
-            itemsArray.forEach(p => {
+            const htmlStrings = itemsArray.map(p => {
                 const imgUrl = (p.image_urls && p.image_urls.length > 0) ? p.image_urls[0] : 'https://via.placeholder.com/300';
                 const fPrice = new Intl.NumberFormat('en-NG', { style: 'currency', currency: 'NGN', maximumFractionDigits: 0 }).format(p.price);
 
-                grid.innerHTML += `
-                    <div class="card" onclick="window.location.href='../product/index.html?id=${p.id}'">
-                        <img src="${imgUrl}" class="card-img" onerror="this.src='https://via.placeholder.com/300'">
-                        <div class="card-price">${fPrice}</div>
-                        <div>
-                            <div class="card-title">${escapeHTML(p.name)}</div>
-                            <div class="card-desc">${escapeHTML(p.category)}</div>
-                        </div>
-                    </div>
-                `;
+                return '<div class="product-card" onclick="window.location.href=\'../product/index.html?id=' + escapeJS(p.id) + '\'">' +
+                            '<div class="product-img-wrap">' +
+                                '<img src="' + escapeHTML(imgUrl) + '" class="product-img" onerror="this.src=\'https://via.placeholder.com/300\'">' +
+                                '<div class="product-price-badge">' + fPrice + '</div>' +
+                            '</div>' +
+                            '<div class="product-info">' +
+                                '<div class="product-title">' + escapeHTML(p.name) + '</div>' +
+                                '<div class="product-location"><i class="fas fa-layer-group" style="color: var(--brand-color);"></i> ' + escapeHTML(p.category) + '</div>' +
+                            '</div>' +
+                       '</div>';
             });
+
+            grid.innerHTML = htmlStrings.join('');
         }
 
         function renderVendorsGrid(vendorsArray, containerId, countId) {
             const grid = document.getElementById(containerId);
-            if (countId) document.getElementById(countId).innerText = vendorsArray.length === 0 ? "No stores found." : `Found ${vendorsArray.length} stores`;
+            if (countId) document.getElementById(countId).innerText = vendorsArray.length === 0 ? "No stores found." : "Found " + vendorsArray.length + " stores";
 
             if (vendorsArray.length === 0 && countId) {
-                grid.innerHTML = `
-                    <div class="empty-state" style="grid-column: span 2;">
-                        <div class="empty-icon-wrapper"><i class="fas fa-store-slash"></i></div>
-                        <h3>No stores matched your search</h3>
-                        <p>Try searching by business name or Vendor ID.</p>
-                    </div>`;
+                grid.innerHTML = '<div class="empty-state" style="grid-column: 1 / -1; border-color: #cbd5e1;">' +
+                                 '<div class="empty-icon-wrapper"><i class="fas fa-store-slash"></i></div>' +
+                                 '<h3>No stores matched your search</h3>' +
+                                 '<p>Try searching by business name or Vendor ID.</p>' +
+                                 '</div>';
                 return;
+            } else if (vendorsArray.length === 0) {
+                grid.innerHTML = ''; return;
             }
 
-            grid.innerHTML = "";
-            vendorsArray.forEach(v => {
+            const htmlStrings = vendorsArray.map(v => {
                 const logo = v.logo_url || "https://via.placeholder.com/100";
-                const descTxt = v.description ? v.description.substring(0, 25) + '...' : 'Verified Seller';
+                const descTxt = v.description ? v.description.substring(0, 30) + '...' : 'Verified Seller';
 
                 let badgeColor = "var(--brand-color)"; 
                 if (v.subscription_plan === "Influencer") badgeColor = "#fbbf24"; 
                 if (v.subscription_plan === "Icon") badgeColor = "#1e293b"; 
 
-                // 🚀 FIX: The name is now cleanly wrapped in <span class="vendor-name-text">
-                grid.innerHTML += `
-                    <div class="vendor-card" onclick="window.location.href='../vendors/profile/index.html?id=${v.id}'">
-                        <img src="${logo}" class="vendor-logo" onerror="this.src='https://via.placeholder.com/100'">
-                        <div class="vendor-name">
-                            <span class="vendor-name-text">${escapeHTML(v.business_name)}</span> <i class="fas fa-check-circle" style="color: ${badgeColor}; font-size: 12px; flex-shrink: 0;"></i>
-                        </div>
-                        <div class="vendor-desc">${escapeHTML(descTxt)}</div>
-                    </div>
-                `;
+                return '<div class="vendor-card" onclick="window.location.href=\'../vendors/profile/index.html?id=' + escapeJS(v.id) + '\'">' +
+                            '<img src="' + escapeHTML(logo) + '" class="vendor-logo" onerror="this.src=\'https://via.placeholder.com/100\'">' +
+                            '<div class="vendor-info-wrapper">' +
+                                '<div class="vendor-name">' +
+                                    '<span class="vendor-name-text">' + escapeHTML(v.business_name) + '</span> ' +
+                                    '<i class="fas fa-check-circle" style="color: ' + badgeColor + '; font-size: 10px; flex-shrink: 0;"></i>' +
+                                '</div>' +
+                                '<div class="vendor-desc">' + escapeHTML(descTxt) + '</div>' +
+                            '</div>' +
+                       '</div>';
             });
+
+            grid.innerHTML = htmlStrings.join('');
         }
-</script>
+    </script>
 </body>
 </html>
